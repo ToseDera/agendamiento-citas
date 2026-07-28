@@ -132,6 +132,8 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
 #redirect
+AUTH_USER_MODEL = 'usuarios.Usuario'
+
 LOGIN_REDIRECT_URL = 'inicio'
 LOGOUT_REDIRECT_URL = 'login'
 LOGIN_URL = 'login'
