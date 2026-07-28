@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Crear nueva cuenta - MedSync</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-fixed-dim": "#a9c7ff",
+                      "secondary-fixed": "#7af6eb",
+                      "surface-variant": "#d8e3fa",
+                      "secondary": "#006a64",
+                      "on-tertiary": "#ffffff",
+                      "on-error-container": "#93000a",
+                      "surface": "#f9f9ff",
+                      "secondary-container": "#77f4e8",
+                      "primary": "#00478d",
+                      "surface-container-lowest": "#ffffff",
+                      "tertiary-fixed": "#dfe3e7",
+                      "tertiary": "#43484c",
+                      "surface-bright": "#f9f9ff",
+                      "on-surface": "#111c2c",
+                      "on-primary-fixed": "#001b3d",
+                      "error": "#ba1a1a",
+                      "tertiary-fixed-dim": "#c3c7cb",
+                      "on-primary-container": "#c8daff",
+                      "primary-container": "#005eb8",
+                      "inverse-primary": "#a9c7ff",
+                      "surface-container-high": "#dee8ff",
+                      "surface-tint": "#005db6",
+                      "on-error": "#ffffff",
+                      "background": "#f9f9ff",
+                      "on-surface-variant": "#424752",
+                      "on-tertiary-container": "#d6dade",
+                      "on-tertiary-fixed": "#171c1f",
+                      "outline-variant": "#c2c6d4",
+                      "inverse-surface": "#263142",
+                      "surface-container": "#e7eeff",
+                      "on-secondary-fixed": "#00201d",
+                      "on-primary": "#ffffff",
+                      "on-secondary-fixed-variant": "#00504b",
+                      "primary-fixed": "#d6e3ff",
+                      "on-primary-fixed-variant": "#00468c",
+                      "on-background": "#111c2c",
+                      "surface-dim": "#cfdaf1",
+                      "on-secondary": "#ffffff",
+                      "outline": "#727783",
+                      "surface-container-low": "#f0f3ff",
+                      "surface-container-highest": "#d8e3fa",
+                      "error-container": "#ffdad6",
+                      "tertiary-container": "#5b6063",
+                      "secondary-fixed-dim": "#5adacf",
+                      "on-tertiary-fixed-variant": "#43474b",
+                      "on-secondary-container": "#006f68",
+                      "inverse-on-surface": "#ebf1ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "unit": "4px",
+                      "stack-md": "16px",
+                      "gutter": "24px",
+                      "stack-sm": "8px",
+                      "stack-lg": "32px",
+                      "margin-mobile": "16px",
+                      "margin-desktop": "40px",
+                      "container-max": "1280px"
+              },
+              "fontFamily": {
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+</head>
+<body class="bg-background text-on-background antialiased min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+<div class="sm:mx-auto sm:w-full sm:max-w-md">
+<h2 class="mt-6 text-center font-headline-lg text-headline-lg md:font-display-lg md:text-display-lg text-primary">
+            Crear nueva cuenta
+        </h2>
+<p class="mt-2 text-center font-body-md text-body-md text-on-surface-variant">
+            Únase a MedSync para gestionar sus citas médicas.
+        </p>
+</div>
+<div class="mt-8 sm:mx-auto sm:w-full sm:max-w-xl">
+<div class="bg-surface-container-lowest py-8 px-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)] sm:rounded-xl sm:px-10">
+<form action="#" class="space-y-6" method="POST">
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+<div>
+<label class="block font-label-md text-label-md text-on-surface" for="first-name">
+                            Nombres
+                        </label>
+<div class="mt-1">
+<input autocomplete="given-name" class="appearance-none block w-full px-3 py-2 border border-outline-variant rounded-lg shadow-sm placeholder-outline focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright" id="first-name" name="first-name" required="" type="text"/>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface" for="last-name">
+                            Apellidos
+                        </label>
+<div class="mt-1">
+<input autocomplete="family-name" class="appearance-none block w-full px-3 py-2 border border-outline-variant rounded-lg shadow-sm placeholder-outline focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright" id="last-name" name="last-name" required="" type="text"/>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+<div>
+<label class="block font-label-md text-label-md text-on-surface" for="dob">
+                            Fecha de Nacimiento
+                        </label>
+<div class="mt-1 relative rounded-lg shadow-sm">
+<input class="appearance-none block w-full px-3 py-2 border border-outline-variant rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright text-on-surface" id="dob" name="dob" required="" type="date"/>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface" for="id-number">
+                            Cédula
+                        </label>
+<div class="mt-1">
+<input class="appearance-none block w-full px-3 py-2 border border-outline-variant rounded-lg shadow-sm placeholder-outline focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright" id="id-number" name="id-number" required="" type="text"/>
+</div>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface" for="email">
+                        Correo Electrónico
+                    </label>
+<div class="mt-1 relative rounded-lg shadow-sm">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline-variant" style="font-variation-settings: 'FILL' 0;">mail</span>
+</div>
+<input autocomplete="email" class="appearance-none block w-full pl-10 px-3 py-2 border border-outline-variant rounded-lg shadow-sm placeholder-outline focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright" id="email" name="email" required="" type="email"/>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface" for="phone">
+                        Teléfono
+                    </label>
+<div class="mt-1 relative rounded-lg shadow-sm">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline-variant" style="font-variation-settings: 'FILL' 0;">call</span>
+</div>
+<input autocomplete="tel" class="appearance-none block w-full pl-10 px-3 py-2 border border-outline-variant rounded-lg shadow-sm placeholder-outline focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright" id="phone" name="phone" required="" type="tel"/>
+</div>
+</div>
+<div>
+<button class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm font-label-md text-label-md text-on-primary bg-primary-container hover:bg-surface-tint focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors" type="submit">
+                        Registrarse
+                    </button>
+</div>
+</form>
+<div class="mt-6 text-center">
+<p class="font-body-md text-body-md text-on-surface-variant">
+                    ¿Ya tienes una cuenta? 
+                    <a class="font-label-md text-label-md text-primary hover:text-primary-container transition-colors font-medium" href="#">
+                        Inicia sesión
+                    </a>
+</p>
+</div>
+</div>
+</div>
+</body></html>

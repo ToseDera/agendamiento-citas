@@ -1,0 +1,29 @@
+# Entorno virtual
+venv/
+
+# Variables de entorno / secretos
+.env
+
+# Python
+__pycache__/
+*.pyc
+
+# Base de datos local (por si se usa SQLite en desarrollo)
+db.sqlite3
+
+# Archivos estáticos recolectados por collectstatic
+staticfiles/
+
+# Archivos subidos por usuarios
+media/
+
+# Logs
+*.log
+
+# VS Code
+.vscode/
+
+# Archivos del sistema (Windows/macOS)
+Thumbs.db
+Desktop.ini
+.DS_Store
