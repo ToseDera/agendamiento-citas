@@ -16,13 +16,8 @@
 <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-xl">
 <div class="bg-surface-container-lowest py-8 px-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)] sm:rounded-xl sm:px-10">
 
-{% if form.errors %}
+{% if form.non_field_errors %}
 <div class="mb-6 rounded-lg bg-error-container px-4 py-3">
-{% for field in form %}
-{% for error in field.errors %}
-<p class="font-label-md text-label-md text-error">{{ error }}</p>
-{% endfor %}
-{% endfor %}
 {% for error in form.non_field_errors %}
 <p class="font-label-md text-label-md text-error">{{ error }}</p>
 {% endfor %}
@@ -37,16 +32,22 @@
                             Nombres
                         </label>
 <div class="mt-1">
-<input autocomplete="given-name" class="appearance-none block w-full px-3 py-2 border border-outline-variant rounded-lg shadow-sm placeholder-outline focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright" id="id_nombre" name="nombre" required type="text"/>
+{{ form.nombre }}
 </div>
+{% for error in form.nombre.errors %}
+<p class="mt-1 font-label-sm text-label-sm text-error">{{ error }}</p>
+{% endfor %}
 </div>
 <div>
 <label class="block font-label-md text-label-md text-on-surface" for="id_apellido">
                             Apellidos
                         </label>
 <div class="mt-1">
-<input autocomplete="family-name" class="appearance-none block w-full px-3 py-2 border border-outline-variant rounded-lg shadow-sm placeholder-outline focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright" id="id_apellido" name="apellido" required type="text"/>
+{{ form.apellido }}
 </div>
+{% for error in form.apellido.errors %}
+<p class="mt-1 font-label-sm text-label-sm text-error">{{ error }}</p>
+{% endfor %}
 </div>
 </div>
 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -55,8 +56,11 @@
                             Fecha de Nacimiento
                         </label>
 <div class="mt-1 relative rounded-lg shadow-sm">
-<input class="appearance-none block w-full px-3 py-2 border border-outline-variant rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright text-on-surface" id="id_fecha_nacimiento" name="fecha_nacimiento" required type="date"/>
+{{ form.fecha_nacimiento }}
 </div>
+{% for error in form.fecha_nacimiento.errors %}
+<p class="mt-1 font-label-sm text-label-sm text-error">{{ error }}</p>
+{% endfor %}
 </div>
 <div>
 <label class="block font-label-md text-label-md text-on-surface" for="id_tipo_documento">
@@ -65,6 +69,9 @@
 <div class="mt-1">
 {{ form.tipo_documento }}
 </div>
+{% for error in form.tipo_documento.errors %}
+<p class="mt-1 font-label-sm text-label-sm text-error">{{ error }}</p>
+{% endfor %}
 </div>
 </div>
 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -73,8 +80,11 @@
                             Número de Documento
                         </label>
 <div class="mt-1">
-<input class="appearance-none block w-full px-3 py-2 border border-outline-variant rounded-lg shadow-sm placeholder-outline focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright" id="id_numero_documento" name="numero_documento" required type="text"/>
+{{ form.numero_documento }}
 </div>
+{% for error in form.numero_documento.errors %}
+<p class="mt-1 font-label-sm text-label-sm text-error">{{ error }}</p>
+{% endfor %}
 </div>
 <div>
 <label class="block font-label-md text-label-md text-on-surface" for="id_telefono">
@@ -84,8 +94,11 @@
 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
 <span class="material-symbols-outlined text-outline-variant" style="font-variation-settings: 'FILL' 0;">call</span>
 </div>
-<input autocomplete="tel" class="appearance-none block w-full pl-10 px-3 py-2 border border-outline-variant rounded-lg shadow-sm placeholder-outline focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright" id="id_telefono" name="telefono" required type="tel"/>
+{{ form.telefono }}
 </div>
+{% for error in form.telefono.errors %}
+<p class="mt-1 font-label-sm text-label-sm text-error">{{ error }}</p>
+{% endfor %}
 </div>
 </div>
 <div>
@@ -96,8 +109,11 @@
 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
 <span class="material-symbols-outlined text-outline-variant" style="font-variation-settings: 'FILL' 0;">mail</span>
 </div>
-<input autocomplete="email" class="appearance-none block w-full pl-10 px-3 py-2 border border-outline-variant rounded-lg shadow-sm placeholder-outline focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright" id="id_correo" name="correo" required type="email"/>
+{{ form.correo }}
 </div>
+{% for error in form.correo.errors %}
+<p class="mt-1 font-label-sm text-label-sm text-error">{{ error }}</p>
+{% endfor %}
 </div>
 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
 <div>
@@ -108,8 +124,11 @@
 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
 <span class="material-symbols-outlined text-outline-variant" style="font-variation-settings: 'FILL' 0;">lock</span>
 </div>
-<input autocomplete="new-password" class="appearance-none block w-full pl-10 px-3 py-2 border border-outline-variant rounded-lg shadow-sm placeholder-outline focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright" id="id_password1" name="password1" required type="password"/>
+{{ form.password1 }}
 </div>
+{% for error in form.password1.errors %}
+<p class="mt-1 font-label-sm text-label-sm text-error">{{ error }}</p>
+{% endfor %}
 </div>
 <div>
 <label class="block font-label-md text-label-md text-on-surface" for="id_password2">
@@ -119,8 +138,11 @@
 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
 <span class="material-symbols-outlined text-outline-variant" style="font-variation-settings: 'FILL' 0;">lock</span>
 </div>
-<input autocomplete="new-password" class="appearance-none block w-full pl-10 px-3 py-2 border border-outline-variant rounded-lg shadow-sm placeholder-outline focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright" id="id_password2" name="password2" required type="password"/>
+{{ form.password2 }}
 </div>
+{% for error in form.password2.errors %}
+<p class="mt-1 font-label-sm text-label-sm text-error">{{ error }}</p>
+{% endfor %}
 </div>
 </div>
 <div>

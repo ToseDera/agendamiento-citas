@@ -86,6 +86,20 @@ class RegistroTests(TestCase):
             Usuario.objects.filter(numero_documento=datos['numero_documento']).count(), 1,
         )
 
+    def test_registro_invalido_repuebla_los_campos_menos_las_contrasenas(self):
+        datos = self.datos_registro(password1='corta', password2='corta')
+        response = self.client.post(reverse('registro'), datos)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'value="Ana"')
+        self.assertContains(response, 'value="Gómez"')
+        self.assertContains(response, 'value="1000123456"')
+        self.assertContains(response, 'value="ana.gomez@example.com"')
+        self.assertContains(response, 'value="3001234567"')
+        self.assertContains(response, 'value="1990-05-10"')
+
+        self.assertNotContains(response, 'value="corta"')
+
 
 class LoginTests(TestCase):
     def setUp(self):

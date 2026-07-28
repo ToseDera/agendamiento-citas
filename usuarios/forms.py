@@ -7,25 +7,69 @@ from django.core.exceptions import ValidationError
 
 from .models import TipoDocumento, Usuario
 
+INPUT_CLASS = (
+    'appearance-none block w-full px-3 py-2 border border-outline-variant '
+    'rounded-lg shadow-sm placeholder-outline focus:outline-none '
+    'focus:ring-primary focus:border-primary font-body-md text-body-md '
+    'bg-surface-bright'
+)
+DATE_INPUT_CLASS = (
+    'appearance-none block w-full px-3 py-2 border border-outline-variant '
+    'rounded-lg shadow-sm focus:outline-none focus:ring-primary '
+    'focus:border-primary font-body-md text-body-md bg-surface-bright '
+    'text-on-surface'
+)
+ICON_INPUT_CLASS = (
+    'appearance-none block w-full pl-10 px-3 py-2 border border-outline-variant '
+    'rounded-lg shadow-sm placeholder-outline focus:outline-none '
+    'focus:ring-primary focus:border-primary font-body-md text-body-md '
+    'bg-surface-bright'
+)
+SELECT_CLASS = (
+    'appearance-none block w-full px-3 py-2 border border-outline-variant '
+    'rounded-lg shadow-sm focus:outline-none focus:ring-primary '
+    'focus:border-primary font-body-md text-body-md bg-surface-bright '
+    'text-on-surface'
+)
+
 
 class RegistroForm(UserCreationForm):
-    nombre = forms.CharField(max_length=150, label='Nombres')
-    apellido = forms.CharField(max_length=150, label='Apellidos')
-    correo = forms.EmailField(label='Correo electrónico')
-    fecha_nacimiento = forms.DateField(label='Fecha de nacimiento')
+    nombre = forms.CharField(
+        max_length=150, label='Nombres',
+        widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'autocomplete': 'given-name'}),
+    )
+    apellido = forms.CharField(
+        max_length=150, label='Apellidos',
+        widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'autocomplete': 'family-name'}),
+    )
+    correo = forms.EmailField(
+        label='Correo electrónico',
+        widget=forms.EmailInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'email'}),
+    )
+    fecha_nacimiento = forms.DateField(
+        label='Fecha de nacimiento',
+        widget=forms.DateInput(format='%Y-%m-%d', attrs={'class': DATE_INPUT_CLASS, 'type': 'date'}),
+    )
     tipo_documento = forms.ModelChoiceField(
         queryset=TipoDocumento.objects.all(), label='Tipo de documento',
-        widget=forms.Select(attrs={
-            'class': (
-                'appearance-none block w-full px-3 py-2 border border-outline-variant '
-                'rounded-lg shadow-sm focus:outline-none focus:ring-primary '
-                'focus:border-primary font-body-md text-body-md bg-surface-bright '
-                'text-on-surface'
-            ),
-        }),
+        widget=forms.Select(attrs={'class': SELECT_CLASS}),
     )
-    numero_documento = forms.CharField(max_length=25, label='Número de documento')
-    telefono = forms.CharField(max_length=15, label='Teléfono', required=False)
+    numero_documento = forms.CharField(
+        max_length=25, label='Número de documento',
+        widget=forms.TextInput(attrs={'class': INPUT_CLASS}),
+    )
+    telefono = forms.CharField(
+        max_length=15, label='Teléfono', required=False,
+        widget=forms.TextInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'tel', 'type': 'tel'}),
+    )
+    password1 = forms.CharField(
+        label='Contraseña', strip=False,
+        widget=forms.PasswordInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'new-password'}),
+    )
+    password2 = forms.CharField(
+        label='Confirmar contraseña', strip=False,
+        widget=forms.PasswordInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'new-password'}),
+    )
 
     class Meta:
         model = Usuario

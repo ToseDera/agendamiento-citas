@@ -40,7 +40,11 @@ pip install -r requirements.txt
 
 ## 4. Variables de entorno
 
-El archivo `.env` tampoco viaja en el repo. Créalo en la raíz del proyecto (junto a `manage.py`) con este contenido, ajustando usuario/contraseña a tu instalación local de PostgreSQL:
+El archivo `.env` tampoco viaja en el repo. Copia `.env.example` como `.env` en la raíz del proyecto (junto a `manage.py`) y ajusta usuario/contraseña a tu instalación local de PostgreSQL:
+
+```bash
+cp .env.example .env   # Windows (Git Bash) / macOS / Linux
+```
 
 ```env
 SECRET_KEY=pon-aqui-una-clave-secreta-cualquiera-para-desarrollo
