@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}MedSync - Iniciar Sesión{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center p-margin-mobile md:p-margin-desktop">
+<!-- Split Layout Container -->
+<div class="w-full max-w-container-max mx-auto flex flex-col md:flex-row bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] overflow-hidden">
+<!-- Left Side: Login Form -->
+<div class="w-full md:w-1/2 p-stack-lg flex flex-col justify-center bg-surface-container-lowest">
+<!-- Header -->
+<div class="mb-stack-lg text-center md:text-left">
+<div class="flex items-center justify-center md:justify-start gap-stack-sm mb-stack-md text-primary">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+<h1 class="font-headline-md text-headline-md text-primary font-bold">MedSync</h1>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface mb-stack-sm">Bienvenido de nuevo</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Inicia sesión para gestionar tus citas médicas.</p>
+</div>
+
+{% if form.errors %}
+<div class="mb-stack-md rounded-lg bg-error-container px-4 py-3">
+{% for field in form %}
+{% for error in field.errors %}
+<p class="font-label-md text-label-md text-error">{{ error }}</p>
+{% endfor %}
+{% endfor %}
+{% for error in form.non_field_errors %}
+<p class="font-label-md text-label-md text-error">{{ error }}</p>
+{% endfor %}
+</div>
+{% endif %}
+
+<!-- Form -->
+<form class="flex flex-col gap-stack-md" method="post">
+{% csrf_token %}
+<!-- ID Field -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-stack-sm" for="id_username">Cédula</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-opacity-50">badge</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-fixed-dim transition-all" id="id_username" name="username" placeholder="Ingresa tu número de cédula" required type="text"/>
+</div>
+</div>
+<!-- Password Field -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-stack-sm" for="id_password">Contraseña</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-opacity-50">lock</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-fixed-dim transition-all" id="id_password" name="password" placeholder="Ingresa tu contraseña" required type="password"/>
+</div>
+<div class="mt-2 text-right">
+<a class="font-label-sm text-label-sm text-primary hover:text-primary-container transition-colors" href="#">¿Olvidaste tu contraseña?</a>
+</div>
+</div>
+<!-- Submit Button -->
+<button class="w-full bg-primary text-on-primary py-3 rounded-lg font-label-md text-label-md font-semibold hover:bg-[#013a6b] transition-colors mt-stack-sm shadow-sm flex items-center justify-center gap-2" type="submit">
+                    Iniciar Sesión
+                    <span class="material-symbols-outlined text-[20px]">login</span>
+</button>
+</form>
+<!-- Sign Up CTA -->
+<div class="mt-stack-lg text-center">
+<p class="font-body-md text-body-md text-on-surface-variant">
+                    ¿No tienes una cuenta?
+                    <a class="font-label-md text-label-md text-primary font-semibold hover:underline" href="{% url 'registro' %}">Regístrate aquí</a>
+</p>
+</div>
+</div>
+<!-- Right Side: Imagery (Hidden on Mobile) -->
+<div class="hidden md:block md:w-1/2 relative bg-surface-variant">
+<div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{% static 'img/login-bg.jpg' %}')"></div>
+<!-- Gradient Overlay for readability if text was placed here, or just for mood -->
+<div class="absolute inset-0 bg-gradient-to-tr from-primary/80 to-transparent mix-blend-multiply opacity-40"></div>
+<!-- Optional overlay content to reinforce brand -->
+<div class="absolute bottom-stack-lg left-stack-lg right-stack-lg text-on-primary">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-secondary-fixed">verified_user</span>
+<span class="font-label-md text-label-md text-secondary-fixed font-semibold">Plataforma Segura</span>
+</div>
+<h3 class="font-headline-lg text-headline-lg font-bold mb-2">Tu salud, sincronizada.</h3>
+<p class="font-body-md text-body-md text-on-primary/90">Accede a tu historial, agenda citas y comunícate con tus especialistas de manera eficiente y compasiva.</p>
+</div>
+</div>
+</div>
+</div>
+{% endblock %}

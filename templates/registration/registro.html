@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Crear nueva cuenta - MedSync{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+<div class="sm:mx-auto sm:w-full sm:max-w-md">
+<h2 class="mt-6 text-center font-headline-lg text-headline-lg md:font-display-lg md:text-display-lg text-primary">
+            Crear nueva cuenta
+        </h2>
+<p class="mt-2 text-center font-body-md text-body-md text-on-surface-variant">
+            Únase a MedSync para gestionar sus citas médicas.
+        </p>
+</div>
+<div class="mt-8 sm:mx-auto sm:w-full sm:max-w-xl">
+<div class="bg-surface-container-lowest py-8 px-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)] sm:rounded-xl sm:px-10">
+
+{% if form.errors %}
+<div class="mb-6 rounded-lg bg-error-container px-4 py-3">
+{% for field in form %}
+{% for error in field.errors %}
+<p class="font-label-md text-label-md text-error">{{ error }}</p>
+{% endfor %}
+{% endfor %}
+{% for error in form.non_field_errors %}
+<p class="font-label-md text-label-md text-error">{{ error }}</p>
+{% endfor %}
+</div>
+{% endif %}
+
+<form action="{% url 'registro' %}" class="space-y-6" method="post">
+{% csrf_token %}
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+<div>
+<label class="block font-label-md text-label-md text-on-surface" for="id_nombre">
+                            Nombres
+                        </label>
+<div class="mt-1">
+<input autocomplete="given-name" class="appearance-none block w-full px-3 py-2 border border-outline-variant rounded-lg shadow-sm placeholder-outline focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright" id="id_nombre" name="nombre" required type="text"/>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface" for="id_apellido">
+                            Apellidos
+                        </label>
+<div class="mt-1">
+<input autocomplete="family-name" class="appearance-none block w-full px-3 py-2 border border-outline-variant rounded-lg shadow-sm placeholder-outline focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright" id="id_apellido" name="apellido" required type="text"/>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+<div>
+<label class="block font-label-md text-label-md text-on-surface" for="id_fecha_nacimiento">
+                            Fecha de Nacimiento
+                        </label>
+<div class="mt-1 relative rounded-lg shadow-sm">
+<input class="appearance-none block w-full px-3 py-2 border border-outline-variant rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright text-on-surface" id="id_fecha_nacimiento" name="fecha_nacimiento" required type="date"/>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface" for="id_tipo_documento">
+                            Tipo de Documento
+                        </label>
+<div class="mt-1">
+<select class="appearance-none block w-full px-3 py-2 border border-outline-variant rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright text-on-surface" id="id_tipo_documento" name="tipo_documento" required>
+<option value="CC">Cédula de ciudadanía</option>
+<option value="TI">Tarjeta de identidad</option>
+<option value="CE">Cédula de extranjería</option>
+</select>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+<div>
+<label class="block font-label-md text-label-md text-on-surface" for="id_numero_documento">
+                            Número de Documento
+                        </label>
+<div class="mt-1">
+<input class="appearance-none block w-full px-3 py-2 border border-outline-variant rounded-lg shadow-sm placeholder-outline focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright" id="id_numero_documento" name="numero_documento" required type="text"/>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface" for="id_telefono">
+                        Teléfono
+                    </label>
+<div class="mt-1 relative rounded-lg shadow-sm">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline-variant" style="font-variation-settings: 'FILL' 0;">call</span>
+</div>
+<input autocomplete="tel" class="appearance-none block w-full pl-10 px-3 py-2 border border-outline-variant rounded-lg shadow-sm placeholder-outline focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright" id="id_telefono" name="telefono" required type="tel"/>
+</div>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface" for="id_correo">
+                        Correo Electrónico
+                    </label>
+<div class="mt-1 relative rounded-lg shadow-sm">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline-variant" style="font-variation-settings: 'FILL' 0;">mail</span>
+</div>
+<input autocomplete="email" class="appearance-none block w-full pl-10 px-3 py-2 border border-outline-variant rounded-lg shadow-sm placeholder-outline focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright" id="id_correo" name="correo" required type="email"/>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+<div>
+<label class="block font-label-md text-label-md text-on-surface" for="id_password1">
+                        Contraseña
+                    </label>
+<div class="mt-1 relative rounded-lg shadow-sm">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline-variant" style="font-variation-settings: 'FILL' 0;">lock</span>
+</div>
+<input autocomplete="new-password" class="appearance-none block w-full pl-10 px-3 py-2 border border-outline-variant rounded-lg shadow-sm placeholder-outline focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright" id="id_password1" name="password1" required type="password"/>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface" for="id_password2">
+                        Confirmar Contraseña
+                    </label>
+<div class="mt-1 relative rounded-lg shadow-sm">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline-variant" style="font-variation-settings: 'FILL' 0;">lock</span>
+</div>
+<input autocomplete="new-password" class="appearance-none block w-full pl-10 px-3 py-2 border border-outline-variant rounded-lg shadow-sm placeholder-outline focus:outline-none focus:ring-primary focus:border-primary font-body-md text-body-md bg-surface-bright" id="id_password2" name="password2" required type="password"/>
+</div>
+</div>
+</div>
+<div>
+<button class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm font-label-md text-label-md text-on-primary bg-primary hover:bg-[#013a6b] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors" type="submit">
+                        Registrarse
+                    </button>
+</div>
+</form>
+<div class="mt-6 text-center">
+<p class="font-body-md text-body-md text-on-surface-variant">
+                    ¿Ya tienes una cuenta?
+                    <a class="font-label-md text-label-md text-primary hover:text-primary-container transition-colors font-medium" href="{% url 'login' %}">
+                        Inicia sesión
+                    </a>
+</p>
+</div>
+</div>
+</div>
+{% endblock %}
