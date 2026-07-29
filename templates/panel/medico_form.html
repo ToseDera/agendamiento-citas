@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}{% if modo == 'editar' %}Editar médico{% else %}Registrar médico{% endif %} - Panel MedSync{% endblock %}
+
+{% block content %}
+<div class="min-h-screen p-margin-mobile md:p-margin-desktop">
+<div class="max-w-container-max mx-auto">
+{% include "panel/_nav.html" %}
+
+<h1 class="font-headline-lg text-headline-lg text-primary mb-stack-lg">
+{% if modo == 'editar' %}Editar médico{% else %}Registrar médico{% endif %}
+</h1>
+
+<div class="max-w-xl bg-surface-container-lowest p-stack-lg rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)]">
+{% if form.non_field_errors %}
+<div class="mb-6 rounded-lg bg-error-container px-4 py-3">
+{% for error in form.non_field_errors %}
+<p class="font-label-md text-label-md text-error">{{ error }}</p>
+{% endfor %}
+</div>
+{% endif %}
+
+<form method="post">
+{% csrf_token %}
+{% for field in form %}
+<div class="mb-stack-md">
+<label class="block font-label-md text-label-md text-on-surface mb-stack-sm" for="{{ field.id_for_label }}">{{ field.label }}</label>
+{{ field }}
+{% for error in field.errors %}
+<p class="mt-1 font-label-sm text-label-sm text-error">{{ error }}</p>
+{% endfor %}
+</div>
+{% endfor %}
+<button class="w-full bg-primary text-on-primary py-3 rounded-lg font-label-md text-label-md font-semibold hover:bg-[#013a6b] transition-colors" type="submit">Guardar</button>
+</form>
+</div>
+</div>
+</div>
+{% endblock %}

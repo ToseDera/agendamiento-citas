@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Especialidades - Panel MedSync{% endblock %}
+
+{% block content %}
+<div class="min-h-screen p-margin-mobile md:p-margin-desktop">
+<div class="max-w-container-max mx-auto">
+{% include "panel/_nav.html" %}
+
+<div class="flex items-center justify-between mb-stack-md">
+<h1 class="font-headline-lg text-headline-lg text-primary">Especialidades</h1>
+<a class="bg-primary text-on-primary py-2 px-4 rounded-lg font-label-md text-label-md font-semibold hover:bg-[#013a6b] transition-colors" href="{% url 'panel_especialidad_nueva' %}">Nueva especialidad</a>
+</div>
+
+<div class="bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] overflow-hidden">
+<table class="w-full text-left">
+<thead class="bg-surface-container">
+<tr>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface">Nombre</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface">Duración (min)</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface">Estado</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface">Acciones</th>
+</tr>
+</thead>
+<tbody>
+{% for especialidad in especialidades %}
+<tr class="border-t border-outline-variant">
+<td class="px-4 py-3 font-body-md text-body-md text-on-surface">{{ especialidad.nombre }}</td>
+<td class="px-4 py-3 font-body-md text-body-md text-on-surface">{{ especialidad.duracion_cita_min }}</td>
+<td class="px-4 py-3 font-body-md text-body-md">
+{% if especialidad.activa %}
+<span class="text-secondary font-label-sm text-label-sm">Activa</span>
+{% else %}
+<span class="text-error font-label-sm text-label-sm">Inactiva</span>
+{% endif %}
+</td>
+<td class="px-4 py-3 flex flex-wrap gap-stack-sm">
+<a class="font-label-sm text-label-sm text-primary hover:underline" href="{% url 'panel_especialidad_editar' especialidad.pk %}">Editar</a>
+<form action="{% url 'panel_especialidad_toggle' especialidad.pk %}" method="post">
+{% csrf_token %}
+<button class="font-label-sm text-label-sm text-error hover:underline" type="submit">
+{% if especialidad.activa %}Desactivar{% else %}Activar{% endif %}
+</button>
+</form>
+</td>
+</tr>
+{% empty %}
+<tr>
+<td class="px-4 py-3 font-body-md text-body-md text-on-surface-variant" colspan="4">No hay especialidades registradas.</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+</div>
+{% endblock %}

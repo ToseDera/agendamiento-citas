@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Médicos - Panel MedSync{% endblock %}
+
+{% block content %}
+<div class="min-h-screen p-margin-mobile md:p-margin-desktop">
+<div class="max-w-container-max mx-auto">
+{% include "panel/_nav.html" %}
+
+<div class="flex items-center justify-between mb-stack-md">
+<h1 class="font-headline-lg text-headline-lg text-primary">Médicos</h1>
+<a class="bg-primary text-on-primary py-2 px-4 rounded-lg font-label-md text-label-md font-semibold hover:bg-[#013a6b] transition-colors" href="{% url 'panel_medico_nuevo' %}">Registrar médico</a>
+</div>
+
+<div class="bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] overflow-hidden">
+<table class="w-full text-left">
+<thead class="bg-surface-container">
+<tr>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface">Nombre</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface">Cédula</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface">Especialidad</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface">Estado</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface">Acciones</th>
+</tr>
+</thead>
+<tbody>
+{% for medico in medicos %}
+<tr class="border-t border-outline-variant">
+<td class="px-4 py-3 font-body-md text-body-md text-on-surface">{{ medico.usuario.get_full_name }}</td>
+<td class="px-4 py-3 font-body-md text-body-md text-on-surface">{{ medico.usuario.numero_documento }}</td>
+<td class="px-4 py-3 font-body-md text-body-md text-on-surface">{{ medico.especialidad.nombre }}</td>
+<td class="px-4 py-3 font-body-md text-body-md">
+{% if medico.activo %}
+<span class="text-secondary font-label-sm text-label-sm">Activo</span>
+{% else %}
+<span class="text-error font-label-sm text-label-sm">Inactivo</span>
+{% endif %}
+</td>
+<td class="px-4 py-3 flex flex-wrap gap-stack-sm">
+<a class="font-label-sm text-label-sm text-primary hover:underline" href="{% url 'panel_medico_editar' medico.pk %}">Editar</a>
+<a class="font-label-sm text-label-sm text-primary hover:underline" href="{% url 'panel_medico_horarios' medico.pk %}">Horario</a>
+<form action="{% url 'panel_medico_toggle' medico.pk %}" method="post">
+{% csrf_token %}
+<button class="font-label-sm text-label-sm text-error hover:underline" type="submit">
+{% if medico.activo %}Desactivar{% else %}Activar{% endif %}
+</button>
+</form>
+</td>
+</tr>
+{% empty %}
+<tr>
+<td class="px-4 py-3 font-body-md text-body-md text-on-surface-variant" colspan="5">No hay médicos registrados.</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+</div>
+{% endblock %}
