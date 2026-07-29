@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import TipoDocumento, Usuario
+from .models import Medico, TipoDocumento, Usuario
 
 
 @admin.register(Usuario)
@@ -31,3 +31,11 @@ class UsuarioAdmin(UserAdmin):
 class TipoDocumentoAdmin(admin.ModelAdmin):
     list_display = ('id', 'nombre')
     search_fields = ('nombre',)
+
+
+@admin.register(Medico)
+class MedicoAdmin(admin.ModelAdmin):
+    list_display = ('usuario', 'especialidad', 'registro_medico', 'activo')
+    list_filter = ('especialidad', 'activo')
+    search_fields = ('usuario__numero_documento', 'usuario__first_name', 'usuario__last_name')
+    autocomplete_fields = ('usuario',)

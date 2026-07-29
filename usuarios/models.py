@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 
@@ -44,3 +45,23 @@ class Usuario(AbstractUser):
 
     def __str__(self):
         return f'{self.get_full_name()} ({self.numero_documento})'
+
+
+class Medico(models.Model):
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='medico',
+    )
+    especialidad = models.ForeignKey(
+        'citas.Especialidad', on_delete=models.PROTECT, related_name='medicos',
+    )
+    registro_medico = models.CharField(max_length=30, blank=True)
+    activo = models.BooleanField(default=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Médico'
+        verbose_name_plural = 'Médicos'
+
+    def __str__(self):
+        return f'{self.usuario.get_full_name()} - {self.especialidad}'

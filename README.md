@@ -81,6 +81,24 @@ Esto crea las tablas y, además, siembra automáticamente (vía migración de da
 
 ## 6. Crear un superusuario
 
+### Opción rápida (recomendada para desarrollo): `seed_dev`
+
+```bash
+python manage.py seed_dev
+```
+
+Comando idempotente (correrlo varias veces no duplica nada) que solo funciona con `DEBUG=True`. Crea:
+
+| Rol | Cédula (username) | Contraseña |
+|---|---|---|
+| Administrador (superusuario, grupo `Administrador`) | `9999999999` | `admin123` |
+| Paciente de prueba (grupo `Paciente`) | `8888888888` | `paciente123` |
+| Médico de prueba (grupo `Medico`, especialidad Medicina general) | `7777777777` | `medico123` |
+
+Usa `python manage.py seed_dev --sin-extra` si solo quieres el admin, sin el paciente ni el médico de prueba.
+
+### Opción manual: `createsuperuser`
+
 ```bash
 python manage.py createsuperuser
 ```
@@ -92,6 +110,8 @@ Te pedirá, entre otros, dos campos que no son obvios en consola:
   python manage.py shell -c "from usuarios.models import TipoDocumento; [print(t.pk, t.nombre) for t in TipoDocumento.objects.all()]"
   ```
 - **Fecha de nacimiento**: formato `YYYY-MM-DD` (ej. `1990-05-10`).
+
+Con `createsuperuser` el usuario queda como superusuario de Django, pero **no** entra automáticamente al grupo `Administrador` (que es lo que controla el acceso al panel `/panel/...` de la app) — únelo manualmente desde `/admin/` o por shell si necesitas ver el panel.
 
 ## 7. Correr el servidor
 
@@ -112,14 +132,44 @@ El registro público de usuarios siempre crea el usuario en el grupo **Paciente*
 python manage.py test
 ```
 
+## Reiniciar el entorno desde cero
+
+Cuando necesites dejar la base de datos limpia (por ejemplo tras un cambio grande de modelos), el flujo completo es:
+
+```bash
+# 1. Recrear la BD (ver el bloque de creación de BD en el paso 4; agrega un DROP DATABASE antes del CREATE)
+python -c "
+import os, psycopg2
+from dotenv import load_dotenv
+load_dotenv()
+db_name = os.getenv('DB_NAME')
+conn = psycopg2.connect(dbname='postgres', user=os.getenv('DB_USER'), password=os.getenv('DB_PASSWORD'), host=os.getenv('DB_HOST','localhost'), port=os.getenv('DB_PORT','5432'))
+conn.autocommit = True
+cur = conn.cursor()
+cur.execute(f'DROP DATABASE IF EXISTS \"{db_name}\" WITH (FORCE)')
+cur.execute(f'CREATE DATABASE \"{db_name}\"')
+"
+
+# 2. Migrar (crea tablas + catálogos + grupos + especialidades iniciales)
+python manage.py migrate
+
+# 3. Sembrar datos de desarrollo (admin + paciente + médico de prueba)
+python manage.py seed_dev
+
+# 4. Levantar el servidor
+python manage.py runserver
+```
+
+Después de estos 4 pasos el entorno queda listo para probar login, registro y el panel de gestión (`/panel/`) con las credenciales de la tabla del paso 6.
+
 ## Estructura relevante
 
 ```
 config/            # settings, urls, wsgi/asgi
-usuarios/          # modelo de usuario custom (AUTH_USER_MODEL), auth, registro
-citas/             # (pendiente de implementar)
+usuarios/          # modelo de usuario custom (AUTH_USER_MODEL), auth, registro, panel de médicos, seed_dev
+citas/             # especialidades, médicos (horario), panel de especialidades
 notificaciones/    # (pendiente de implementar)
-templates/         # base.html + registration/{login,registro}.html
+templates/         # base.html + registration/{login,registro}.html + panel/
 static/            # estáticos (imágenes, etc.)
 docs/esquema_citas_v1.sql   # referencia de diseño de BD, NO ejecutar directo
 ```

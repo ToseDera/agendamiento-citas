@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Panel de gestión - MedSync{% endblock %}
+
+{% block content %}
+<div class="min-h-screen p-margin-mobile md:p-margin-desktop">
+<div class="max-w-container-max mx-auto">
+<div class="flex items-center justify-between mb-stack-lg">
+<h1 class="font-headline-lg text-headline-lg text-primary">Panel de gestión</h1>
+<form action="{% url 'logout' %}" method="post">
+{% csrf_token %}
+<button class="font-label-md text-label-md text-primary hover:underline" type="submit">Cerrar sesión</button>
+</form>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-stack-md">
+<a class="block p-stack-lg bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_10px_30px_rgba(0,0,0,0.1)] transition-shadow" href="{% url 'panel_especialidades' %}">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-stack-sm">Especialidades</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Crear, editar y activar/desactivar especialidades médicas.</p>
+</a>
+<a class="block p-stack-lg bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_10px_30px_rgba(0,0,0,0.1)] transition-shadow" href="{% url 'panel_medicos' %}">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-stack-sm">Médicos</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Registrar médicos, editar sus datos y gestionar su horario.</p>
+</a>
+</div>
+</div>
+</div>
+{% endblock %}

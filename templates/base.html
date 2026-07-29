@@ -107,6 +107,15 @@
 {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-background text-on-background min-h-screen">
+{% if messages %}
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop pt-stack-md flex flex-col gap-stack-sm">
+{% for message in messages %}
+<div class="rounded-lg px-4 py-3 font-label-md text-label-md{% if message.tags == 'success' %} bg-secondary-container text-on-secondary-container{% elif message.tags == 'error' %} bg-error-container text-error{% elif message.tags == 'warning' %} bg-tertiary-container text-on-tertiary-container{% else %} bg-surface-container text-on-surface-variant{% endif %}">
+{{ message }}
+</div>
+{% endfor %}
+</div>
+{% endif %}
 {% block content %}{% endblock %}
 </body>
 </html>
