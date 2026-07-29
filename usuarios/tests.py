@@ -197,6 +197,12 @@ class PanelAccesoTests(TestCase):
         response = self.client.get(reverse('inicio'))
         self.assertEqual(response.status_code, 200)
 
+    def test_paciente_recibe_pagina_403_personalizada(self):
+        self.client.login(username='2222222222', password='ClaveSegura123')
+        response = self.client.get(reverse('panel_home'))
+        self.assertEqual(response.status_code, 403)
+        self.assertContains(response, 'No tiene permisos de administrador', status_code=403)
+
     def test_admin_accede_al_panel(self):
         self.client.login(username='1111111111', password='ClaveSegura123')
         response = self.client.get(reverse('panel_home'))

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Acceso denegado - MedSync{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center p-margin-mobile md:p-margin-desktop">
+<div class="max-w-md w-full bg-surface-container-lowest p-stack-lg rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] text-center">
+<div class="flex items-center justify-center mb-stack-md">
+<span class="material-symbols-outlined text-error text-[48px]">block</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-stack-md">Acceso denegado</h1>
+<div class="rounded-lg bg-error-container px-4 py-3 mb-stack-lg">
+<p class="font-label-md text-label-md text-error">No tiene permisos de administrador para acceder a esta página.</p>
+</div>
+<a class="inline-block bg-primary text-on-primary py-3 px-6 rounded-lg font-label-md text-label-md font-semibold hover:bg-[#013a6b] transition-colors" href="{% url 'inicio' %}">Volver a inicio</a>
+</div>
+</div>
+{% endblock %}
