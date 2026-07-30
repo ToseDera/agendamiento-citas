@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Médicos de {{ especialidad.nombre }} - MedSync{% endblock %}
+
+{% block content %}
+<div class="min-h-screen p-margin-mobile md:p-margin-desktop">
+<div class="max-w-container-max mx-auto">
+<a class="font-label-md text-label-md text-primary hover:underline" href="{% url 'agendar_especialidades' %}">&larr; Especialidades</a>
+<h1 class="font-headline-lg text-headline-lg text-primary mt-stack-sm mb-stack-sm">{{ especialidad.nombre }}</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mb-stack-lg">Elige el médico con el que quieres agendar.</p>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-stack-md">
+{% for medico in medicos %}
+<a class="block p-stack-lg bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_10px_30px_rgba(0,0,0,0.1)] transition-shadow" href="{% url 'agendar_slots' medico.pk %}">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-stack-sm">{{ medico.usuario.get_full_name }}</h2>
+{% if medico.registro_medico %}
+<p class="font-label-sm text-label-sm text-on-surface-variant">Registro: {{ medico.registro_medico }}</p>
+{% endif %}
+</a>
+{% empty %}
+<p class="font-body-md text-body-md text-on-surface-variant">No hay médicos disponibles para esta especialidad por el momento.</p>
+{% endfor %}
+</div>
+</div>
+</div>
+{% endblock %}

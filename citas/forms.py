@@ -28,3 +28,12 @@ class EspecialidadForm(forms.ModelForm):
         if existe.exists():
             raise forms.ValidationError('Ya existe una especialidad con este nombre.')
         return nombre
+
+
+class ConfirmarCitaForm(forms.Form):
+    fecha = forms.DateField(widget=forms.HiddenInput())
+    hora_inicio = forms.TimeField(widget=forms.HiddenInput())
+    motivo_consulta = forms.CharField(
+        max_length=500, required=False, label='Motivo de la consulta',
+        widget=forms.Textarea(attrs={'class': INPUT_CLASS, 'rows': 3}),
+    )

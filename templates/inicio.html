@@ -6,6 +6,9 @@
 <div class="min-h-screen flex flex-col items-center justify-center p-margin-mobile md:p-margin-desktop gap-stack-md">
 <h1 class="font-headline-lg text-headline-lg text-primary">Bienvenido, {{ user.first_name|default:user.username }}</h1>
 <p class="font-body-md text-body-md text-on-surface-variant">Este es un placeholder del panel principal de MedSync.</p>
+{% if es_paciente %}
+<a class="bg-primary text-on-primary py-3 px-6 rounded-lg font-label-md text-label-md font-semibold hover:bg-[#013a6b] transition-colors" href="{% url 'agendar_especialidades' %}">Agendar cita</a>
+{% endif %}
 <form action="{% url 'logout' %}" method="post">
 {% csrf_token %}
 <button class="font-label-md text-label-md text-primary hover:underline" type="submit">Cerrar sesión</button>
