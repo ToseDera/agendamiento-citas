@@ -6,6 +6,8 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from citas.models import DIAS_SEMANA, Especialidad, HorarioMedico
+
 from .models import Medico, TipoDocumento, Usuario
 
 INPUT_CLASS = (
@@ -53,6 +55,7 @@ class RegistroForm(UserCreationForm):
     )
     tipo_documento = forms.ModelChoiceField(
         queryset=TipoDocumento.objects.all(), label='Tipo de documento',
+        empty_label='Seleccione tipo de documento',
         widget=forms.Select(attrs={'class': SELECT_CLASS}),
     )
     numero_documento = forms.CharField(
@@ -132,7 +135,8 @@ class RegistroMedicoForm(RegistroForm):
     """Registro de médico por el Administrador: crea Usuario + Medico en una transacción."""
 
     especialidad = forms.ModelChoiceField(
-        queryset=None, label='Especialidad',
+        queryset=Especialidad.objects.filter(activa=True), label='Especialidad',
+        empty_label='Seleccione especialidad',
         widget=forms.Select(attrs={'class': SELECT_CLASS}),
     )
     registro_medico = forms.CharField(
@@ -142,11 +146,6 @@ class RegistroMedicoForm(RegistroForm):
 
     class Meta(RegistroForm.Meta):
         fields = RegistroForm.Meta.fields + ('especialidad', 'registro_medico')
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        from citas.models import Especialidad
-        self.fields['especialidad'].queryset = Especialidad.objects.filter(activa=True)
 
     def save(self, commit=True):
         usuario = super().save(commit=False)
@@ -184,6 +183,7 @@ class MedicoEditForm(forms.ModelForm):
     )
     especialidad = forms.ModelChoiceField(
         queryset=None, label='Especialidad',
+        empty_label='Seleccione especialidad',
         widget=forms.Select(attrs={'class': SELECT_CLASS}),
     )
     registro_medico = forms.CharField(
@@ -198,7 +198,6 @@ class MedicoEditForm(forms.ModelForm):
     def __init__(self, *args, medico=None, **kwargs):
         self.medico = medico
         super().__init__(*args, **kwargs)
-        from citas.models import Especialidad
 
         if self.instance.pk:
             self.fields['nombre'].initial = self.instance.first_name
@@ -248,20 +247,24 @@ def _copiar_errores_de_validacion(form, error):
 
 
 class HorarioMedicoForm(forms.ModelForm):
+    dia_semana = forms.TypedChoiceField(
+        choices=[('', 'Seleccione día')] + list(DIAS_SEMANA),
+        coerce=int, label='Día',
+        widget=forms.Select(attrs={'class': SELECT_CLASS}),
+    )
+
     def __init__(self, *args, medico=None, **kwargs):
         self.medico = medico
         super().__init__(*args, **kwargs)
 
     class Meta:
-        from citas.models import HorarioMedico
         model = HorarioMedico
         fields = ('dia_semana', 'hora_inicio', 'hora_fin')
         widgets = {
-            'dia_semana': forms.Select(attrs={'class': SELECT_CLASS}),
             'hora_inicio': forms.TimeInput(attrs={'class': INPUT_CLASS, 'type': 'time'}),
             'hora_fin': forms.TimeInput(attrs={'class': INPUT_CLASS, 'type': 'time'}),
         }
-        labels = {'dia_semana': 'Día', 'hora_inicio': 'Hora de inicio', 'hora_fin': 'Hora de fin'}
+        labels = {'hora_inicio': 'Hora de inicio', 'hora_fin': 'Hora de fin'}
 
     def clean(self):
         cleaned_data = super().clean()

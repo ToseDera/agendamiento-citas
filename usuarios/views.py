@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from .decorators import admin_required, es_administrador
 from .forms import HorarioMedicoForm, MedicoEditForm, RegistroForm, RegistroMedicoForm
@@ -23,7 +24,8 @@ def registro(request):
 def inicio(request):
     if es_administrador(request.user):
         return redirect('panel_home')
-    return render(request, 'inicio.html')
+    es_paciente = request.user.groups.filter(name='Paciente').exists()
+    return render(request, 'inicio.html', {'es_paciente': es_paciente})
 
 
 @admin_required
@@ -70,6 +72,17 @@ def medico_edit(request, pk):
 def medico_toggle(request, pk):
     medico = get_object_or_404(Medico, pk=pk)
     if request.method == 'POST':
+        if medico.activo:
+            tiene_citas_futuras = medico.citas.filter(
+                estado__nombre='confirmada', fecha__gte=timezone.localdate(),
+            ).exists()
+            if tiene_citas_futuras:
+                messages.error(
+                    request,
+                    'No se puede desactivar: el médico tiene citas confirmadas próximas.',
+                )
+                return redirect('panel_medicos')
+
         medico.activo = not medico.activo
         medico.save(update_fields=['activo'])
         medico.usuario.is_active = medico.activo

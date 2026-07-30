@@ -7,8 +7,13 @@ from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from citas.models import Especialidad, HorarioMedico
+from datetime import timedelta
 
+from django.utils import timezone
+
+from citas.models import Cita, EstadoCita, Especialidad, HorarioMedico
+
+from .htmlform_utils import datos_formulario_reales, opciones_reales_de_select
 from .models import Medico, TipoDocumento, Usuario
 
 
@@ -124,6 +129,31 @@ class RegistroTests(TestCase):
 
         self.assertNotContains(response, 'value="corta"')
 
+    def test_registro_ida_y_vuelta_con_los_campos_reales_del_html(self):
+        respuesta_get = self.client.get(reverse('registro'))
+        html = respuesta_get.content.decode()
+        datos = datos_formulario_reales(html)
+        # tipo_documento trae por defecto el placeholder en blanco de Django
+        # (ModelChoiceField.empty_label); un usuario real sí debe elegir uno.
+        datos['tipo_documento'] = opciones_reales_de_select(html, 'tipo_documento')[0]
+        datos.update({
+            'nombre': 'Carla',
+            'apellido': 'Ruiz',
+            'fecha_nacimiento': '1992-04-01',
+            'numero_documento': '1000777777',
+            'correo': 'carla.ruiz@example.com',
+            'telefono': '3007777777',
+            'password1': 'ClaveSegura123',
+            'password2': 'ClaveSegura123',
+        })
+
+        respuesta_post = self.client.post(reverse('registro'), datos)
+        self.assertRedirects(respuesta_post, reverse('login'))
+
+        usuario = Usuario.objects.get(numero_documento='1000777777')
+        self.assertEqual(usuario.username, '1000777777')
+        self.assertTrue(usuario.groups.filter(name='Paciente').exists())
+
 
 class LoginTests(TestCase):
     def setUp(self):
@@ -149,6 +179,17 @@ class InicioViewTests(TestCase):
     def test_usuario_anonimo_es_redirigido_a_login(self):
         response = self.client.get(reverse('inicio'))
         self.assertRedirects(response, f"{reverse('login')}?next={reverse('inicio')}")
+
+    def test_paciente_ve_el_enlace_para_agendar_cita_en_inicio(self):
+        tipo_documento = TipoDocumento.objects.get(nombre='Cédula de ciudadanía')
+        paciente = crear_usuario('9100000001', tipo_documento)
+        paciente.groups.add(Group.objects.get(name='Paciente'))
+        self.client.login(username='9100000001', password='ClaveSegura123')
+
+        response = self.client.get(reverse('inicio'))
+
+        self.assertContains(response, 'Agendar cita')
+        self.assertContains(response, reverse('agendar_especialidades'))
 
 
 class UsuarioManagerTests(TestCase):
@@ -283,6 +324,33 @@ class PanelMedicoRegistroTests(TestCase):
                 self.client.post(reverse('panel_medico_nuevo'), datos)
         self.assertFalse(Usuario.objects.filter(numero_documento='3000000077').exists())
 
+    def test_hu11_ida_y_vuelta_con_los_campos_reales_del_html(self):
+        respuesta_get = self.client.get(reverse('panel_medico_nuevo'))
+        html = respuesta_get.content.decode()
+        datos = datos_formulario_reales(html)
+        # tipo_documento y especialidad traen el placeholder en blanco de
+        # Django por defecto; un admin real sí debe elegir uno de cada uno.
+        datos['tipo_documento'] = opciones_reales_de_select(html, 'tipo_documento')[0]
+        datos['especialidad'] = opciones_reales_de_select(html, 'especialidad')[0]
+        datos.update({
+            'nombre': 'Marta',
+            'apellido': 'Lopez',
+            'fecha_nacimiento': '1982-07-20',
+            'numero_documento': '3000000088',
+            'correo': 'marta.lopez@example.com',
+            'telefono': '3000000089',
+            'registro_medico': 'RM-888',
+            'password1': 'ClaveSegura123',
+            'password2': 'ClaveSegura123',
+        })
+
+        respuesta_post = self.client.post(reverse('panel_medico_nuevo'), datos)
+        self.assertRedirects(respuesta_post, reverse('panel_medicos'))
+
+        usuario = Usuario.objects.get(numero_documento='3000000088')
+        self.assertTrue(usuario.groups.filter(name='Medico').exists())
+        self.assertTrue(Medico.objects.filter(usuario=usuario).exists())
+
 
 class PanelMedicoEdicionTests(TestCase):
     """HU-12: editar/desactivar médicos."""
@@ -311,6 +379,23 @@ class PanelMedicoEdicionTests(TestCase):
 
         self.client.logout()
         self.assertFalse(self.client.login(username='4000000001', password='ClaveSegura123'))
+
+    def test_hu12_no_se_puede_desactivar_medico_con_citas_confirmadas_futuras(self):
+        paciente = crear_usuario('4000000002', self.tipo_documento)
+        estado_confirmada = EstadoCita.objects.get(nombre='confirmada')
+        Cita.objects.create(
+            paciente=paciente, medico=self.medico, estado=estado_confirmada,
+            fecha=timezone.localdate() + timedelta(days=3),
+            hora_inicio='08:00', hora_fin='08:30',
+        )
+
+        response = self.client.post(reverse('panel_medico_toggle', args=[self.medico.pk]))
+        self.assertRedirects(response, reverse('panel_medicos'))
+
+        self.medico.refresh_from_db()
+        self.medico_usuario.refresh_from_db()
+        self.assertTrue(self.medico.activo)
+        self.assertTrue(self.medico_usuario.is_active)
 
     def test_hu12_editar_datos_y_especialidad_del_medico(self):
         otra_especialidad = Especialidad.objects.get(nombre='Odontología')
@@ -363,6 +448,20 @@ class PanelMedicoHorarioTests(TestCase):
         response = self.client.post(url, {'dia_semana': 1, 'hora_inicio': '10:00', 'hora_fin': '10:00'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.medico.horarios.count(), 1)
+
+    def test_hu14_ida_y_vuelta_con_los_campos_reales_del_html(self):
+        url = reverse('panel_medico_horarios', args=[self.medico.pk])
+        respuesta_get = self.client.get(url)
+        html = respuesta_get.content.decode()
+        datos = datos_formulario_reales(html)
+        # dia_semana trae el placeholder en blanco por defecto (el campo del
+        # modelo no tiene default); un admin real sí debe elegir un día.
+        datos['dia_semana'] = opciones_reales_de_select(html, 'dia_semana')[0]
+        datos.update({'hora_inicio': '14:00', 'hora_fin': '16:00'})
+
+        respuesta_post = self.client.post(url, datos)
+        self.assertRedirects(respuesta_post, url)
+        self.assertEqual(self.medico.horarios.count(), 2)
 
 
 @override_settings(DEBUG=True)

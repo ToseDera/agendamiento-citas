@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Confirmar cita - MedSync{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center p-margin-mobile md:p-margin-desktop">
+<div class="max-w-md w-full bg-surface-container-lowest p-stack-lg rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)]">
+<h1 class="font-headline-lg text-headline-lg text-primary mb-stack-md">Confirmar cita</h1>
+
+<div class="bg-surface-container rounded-lg p-stack-md mb-stack-lg">
+<p class="font-label-md text-label-md text-on-surface">{{ medico.usuario.get_full_name }}</p>
+<p class="font-body-md text-body-md text-on-surface-variant">{{ medico.especialidad.nombre }}</p>
+<p class="font-body-md text-body-md text-on-surface-variant">{{ fecha|date:"l j \d\e F, Y" }}</p>
+<p class="font-body-md text-body-md text-on-surface-variant">{{ hora_inicio|time:"H:i" }} - {{ hora_fin|time:"H:i" }}</p>
+</div>
+
+{% if form.non_field_errors %}
+<div class="mb-6 rounded-lg bg-error-container px-4 py-3">
+{% for error in form.non_field_errors %}
+<p class="font-label-md text-label-md text-error">{{ error }}</p>
+{% endfor %}
+</div>
+{% endif %}
+
+<form method="post">
+{% csrf_token %}
+{{ form.fecha }}
+{{ form.hora_inicio }}
+<div class="mb-stack-lg">
+<label class="block font-label-md text-label-md text-on-surface mb-stack-sm" for="{{ form.motivo_consulta.id_for_label }}">{{ form.motivo_consulta.label }}</label>
+{{ form.motivo_consulta }}
+{% for error in form.motivo_consulta.errors %}
+<p class="mt-1 font-label-sm text-label-sm text-error">{{ error }}</p>
+{% endfor %}
+</div>
+<button class="w-full bg-primary text-on-primary py-3 rounded-lg font-label-md text-label-md font-semibold hover:bg-[#013a6b] transition-colors" type="submit">Confirmar cita</button>
+</form>
+</div>
+</div>
+{% endblock %}

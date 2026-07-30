@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Horarios de {{ medico.usuario.get_full_name }} - MedSync{% endblock %}
+
+{% block content %}
+<div class="min-h-screen p-margin-mobile md:p-margin-desktop">
+<div class="max-w-container-max mx-auto">
+<a class="font-label-md text-label-md text-primary hover:underline" href="{% url 'agendar_medicos' medico.especialidad.pk %}">&larr; Médicos de {{ medico.especialidad.nombre }}</a>
+<h1 class="font-headline-lg text-headline-lg text-primary mt-stack-sm mb-stack-sm">{{ medico.usuario.get_full_name }}</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mb-stack-lg">Elige un horario disponible.</p>
+
+{% if slots_por_dia %}
+<div class="flex flex-col gap-stack-lg">
+{% for fecha, slots in slots_por_dia.items %}
+<div class="bg-surface-container-lowest p-stack-lg rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)]">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-stack-md">{{ fecha|date:"l j \d\e F" }}</h2>
+<div class="flex flex-wrap gap-stack-sm">
+{% for slot in slots %}
+<a class="bg-surface-container hover:bg-primary hover:text-on-primary text-on-surface font-label-md text-label-md py-2 px-4 rounded-lg transition-colors" href="{% url 'agendar_confirmar' medico.pk %}?fecha={{ slot.fecha|date:'Y-m-d' }}&hora_inicio={{ slot.hora_inicio|time:'H:i' }}">{{ slot.hora_inicio|time:"H:i" }}</a>
+{% endfor %}
+</div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<p class="font-body-md text-body-md text-on-surface-variant">No hay horarios disponibles para este médico en los próximos días.</p>
+{% endif %}
+</div>
+</div>
+{% endblock %}

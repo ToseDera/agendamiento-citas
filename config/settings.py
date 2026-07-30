@@ -137,3 +137,7 @@ AUTH_USER_MODEL = 'usuarios.Usuario'
 LOGIN_REDIRECT_URL = 'inicio'
 LOGOUT_REDIRECT_URL = 'login'
 LOGIN_URL = 'login'
+
+# Sesiones
+SESSION_COOKIE_AGE = 3600          # 1 hora
+SESSION_SAVE_EVERY_REQUEST = True  # el contador se reinicia con cada actividad
