@@ -20,6 +20,7 @@ cd proyectoPython
 El `venv/` no viaja en el repo (está en `.gitignore`), cada quien crea el suyo.
 
 **Windows (PowerShell / Git Bash):**
+
 ```bash
 python -m venv venv
 source venv/Scripts/activate   # Git Bash
@@ -27,6 +28,7 @@ source venv/Scripts/activate   # Git Bash
 ```
 
 **macOS / Linux:**
+
 ```bash
 python -m venv venv
 source venv/bin/activate
@@ -76,6 +78,7 @@ python manage.py migrate
 ```
 
 Esto crea las tablas y, además, siembra automáticamente (vía migración de datos):
+
 - Catálogo `TipoDocumento`: Cédula de ciudadanía, Tarjeta de identidad, Cédula de extranjería.
 - Grupos de Django: `Administrador`, `Medico`, `Paciente`.
 
@@ -89,11 +92,11 @@ python manage.py seed_dev
 
 Comando idempotente (correrlo varias veces no duplica nada) que solo funciona con `DEBUG=True`. Crea:
 
-| Rol | Cédula (username) | Contraseña |
-|---|---|---|
-| Administrador (superusuario, grupo `Administrador`) | `9999999999` | `admin123` |
-| Paciente de prueba (grupo `Paciente`) | `8888888888` | `paciente123` |
-| Médico de prueba (grupo `Medico`, especialidad Medicina general) | `7777777777` | `medico123` |
+| Rol                                                                | Cédula (username) | Contraseña     |
+| ------------------------------------------------------------------ | ------------------ | --------------- |
+| Administrador (superusuario, grupo`Administrador`)               | `9999999999`     | `admin123`    |
+| Paciente de prueba (grupo`Paciente`)                             | `8888888888`     | `paciente123` |
+| Médico de prueba (grupo`Medico`, especialidad Medicina general) | `7777777777`     | `medico123`   |
 
 Usa `python manage.py seed_dev --sin-extra` si solo quieres el admin, sin el paciente ni el médico de prueba.
 
