@@ -1,4 +1,4 @@
-# MedSync
+# MediClick
 
 Sistema de agendación de citas médicas. Backend en Django 6, base de datos PostgreSQL.
 

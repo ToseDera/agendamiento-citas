@@ -1,60 +1,92 @@
 {% extends "base.html" %}
 
-{% block title %}Médicos - Panel MedSync{% endblock %}
+{% block title %}Médicos - Panel MediClick{% endblock %}
 
 {% block content %}
-<div class="min-h-screen p-margin-mobile md:p-margin-desktop">
-<div class="max-w-container-max mx-auto">
-{% include "panel/_nav.html" %}
-
-<div class="flex items-center justify-between mb-stack-md">
-<h1 class="font-headline-lg text-headline-lg text-primary">Médicos</h1>
-<a class="bg-primary text-on-primary py-2 px-4 rounded-lg font-label-md text-label-md font-semibold hover:bg-[#013a6b] transition-colors" href="{% url 'panel_medico_nuevo' %}">Registrar médico</a>
+<!-- Header Area -->
+<header class="flex flex-col gap-sm">
+<!-- Breadcrumb -->
+<nav aria-label="Breadcrumb" class="flex text-label-sm font-label-sm text-tertiary-container items-center gap-2">
+<a class="hover:text-primary transition-colors" href="{% url 'panel_home' %}">Panel</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-on-surface-variant font-medium">Médicos</span>
+</nav>
+<div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-navy">Médicos</h1>
+<a href="{% url 'panel_medico_nuevo' %}" class="bg-[#3A7BD5] hover:bg-primary-container text-white font-label-md text-label-md px-6 py-3 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 w-full md:w-auto active:scale-95">
+<span class="material-symbols-outlined text-[20px]">add</span>
+Registrar médico
+</a>
 </div>
-
-<div class="bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] overflow-hidden">
-<table class="w-full text-left">
-<thead class="bg-surface-container">
-<tr>
-<th class="px-4 py-3 font-label-md text-label-md text-on-surface">Nombre</th>
-<th class="px-4 py-3 font-label-md text-label-md text-on-surface">Cédula</th>
-<th class="px-4 py-3 font-label-md text-label-md text-on-surface">Especialidad</th>
-<th class="px-4 py-3 font-label-md text-label-md text-on-surface">Estado</th>
-<th class="px-4 py-3 font-label-md text-label-md text-on-surface">Acciones</th>
+</header>
+<!-- Table Container -->
+<div class="bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(8,26,61,0.05)] border border-light-blue overflow-hidden flex flex-col">
+<!-- Table Wrapper for responsive scrolling -->
+<div class="w-full overflow-x-auto">
+<table class="w-full text-left border-collapse min-w-[600px]">
+<thead>
+<tr class="bg-light-blue-table border-b border-light-blue">
+<th class="font-label-md text-label-md text-on-surface-variant py-4 px-md whitespace-nowrap" scope="col">Nombre</th>
+<th class="font-label-md text-label-md text-on-surface-variant py-4 px-md whitespace-nowrap" scope="col">Cédula</th>
+<th class="font-label-md text-label-md text-on-surface-variant py-4 px-md whitespace-nowrap" scope="col">Especialidad</th>
+<th class="font-label-md text-label-md text-on-surface-variant py-4 px-md whitespace-nowrap" scope="col">Estado</th>
+<th class="font-label-md text-label-md text-on-surface-variant py-4 px-md text-right whitespace-nowrap" scope="col">Acciones</th>
 </tr>
 </thead>
-<tbody>
+<tbody class="divide-y divide-light-blue bg-white">
 {% for medico in medicos %}
-<tr class="border-t border-outline-variant">
-<td class="px-4 py-3 font-body-md text-body-md text-on-surface">{{ medico.usuario.get_full_name }}</td>
-<td class="px-4 py-3 font-body-md text-body-md text-on-surface">{{ medico.usuario.numero_documento }}</td>
-<td class="px-4 py-3 font-body-md text-body-md text-on-surface">{{ medico.especialidad.nombre }}</td>
-<td class="px-4 py-3 font-body-md text-body-md">
+<tr class="hover-row transition-colors group">
+<td class="py-4 px-md text-on-surface font-medium flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="stethoscope">stethoscope</span>
+</div>
+{{ medico.usuario.get_full_name }}
+</td>
+<td class="py-4 px-md text-on-surface-variant">{{ medico.usuario.numero_documento }}</td>
+<td class="py-4 px-md text-on-surface-variant">{{ medico.especialidad.nombre }}</td>
+<td class="py-4 px-md">
 {% if medico.activo %}
-<span class="text-secondary font-label-sm text-label-sm">Activo</span>
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#e8f5e9] text-[#1a7f5a]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#1a7f5a]"></span>
+Activo
+</span>
 {% else %}
-<span class="text-error font-label-sm text-label-sm">Inactivo</span>
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#ffebee] text-[#c0392b]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#c0392b]"></span>
+Inactivo
+</span>
 {% endif %}
 </td>
-<td class="px-4 py-3 flex flex-wrap gap-stack-sm">
-<a class="font-label-sm text-label-sm text-primary hover:underline" href="{% url 'panel_medico_editar' medico.pk %}">Editar</a>
-<a class="font-label-sm text-label-sm text-primary hover:underline" href="{% url 'panel_medico_horarios' medico.pk %}">Horario</a>
-<form action="{% url 'panel_medico_toggle' medico.pk %}" method="post">
+<td class="py-4 px-md text-right">
+<div class="flex items-center justify-end gap-2">
+<a href="{% url 'panel_medico_horarios' medico.pk %}" class="text-secondary hover:bg-surface-container-low p-2 rounded-md transition-colors" title="Horarios">
+<span class="material-symbols-outlined text-[20px]">calendar_month</span>
+</a>
+<a href="{% url 'panel_medico_editar' medico.pk %}" class="text-primary hover:bg-surface-container-low p-2 rounded-md transition-colors" title="Editar">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</a>
+<form action="{% url 'panel_medico_toggle' medico.pk %}" method="post" class="inline m-0">
 {% csrf_token %}
-<button class="font-label-sm text-label-sm text-error hover:underline" type="submit">
-{% if medico.activo %}Desactivar{% else %}Activar{% endif %}
+<button type="submit" class="text-tertiary-container hover:bg-surface-container-low p-2 rounded-md transition-colors" title="{% if medico.activo %}Desactivar{% else %}Activar{% endif %}">
+<span class="material-symbols-outlined text-[20px]">{% if medico.activo %}block{% else %}check_circle{% endif %}</span>
 </button>
 </form>
+</div>
 </td>
 </tr>
 {% empty %}
 <tr>
-<td class="px-4 py-3 font-body-md text-body-md text-on-surface-variant" colspan="5">No hay médicos registrados.</td>
+<td class="py-4 px-md text-on-surface-variant text-center" colspan="5">No hay médicos registrados.</td>
 </tr>
 {% endfor %}
 </tbody>
 </table>
 </div>
+{% if medicos %}
+<!-- Table Footer / Summary -->
+<div class="px-md py-4 border-t border-light-blue bg-white flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Total: {{ medicos|length }} resultados</span>
 </div>
+{% endif %}
 </div>
 {% endblock %}

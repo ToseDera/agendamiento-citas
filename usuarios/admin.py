@@ -12,12 +12,12 @@ class UsuarioAdmin(UserAdmin):
     )
     list_filter = UserAdmin.list_filter + ('tipo_documento',)
     fieldsets = UserAdmin.fieldsets + (
-        ('Datos de MedSync', {
+        ('Datos de MediClick', {
             'fields': ('tipo_documento', 'numero_documento', 'fecha_nacimiento', 'telefono'),
         }),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
-        ('Datos de MedSync', {
+        ('Datos de MediClick', {
             'fields': ('tipo_documento', 'numero_documento', 'fecha_nacimiento', 'telefono', 'email'),
         }),
     )

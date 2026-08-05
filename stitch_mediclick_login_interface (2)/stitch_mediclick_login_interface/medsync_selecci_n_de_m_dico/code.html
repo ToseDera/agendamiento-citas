@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MedSync - Select Doctor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#faf8ff",
+                        "tertiary-container": "#627788",
+                        "surface-variant": "#d9e2ff",
+                        "on-primary-fixed": "#001b3d",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed-variant": "#004a79",
+                        "on-secondary-fixed": "#001d34",
+                        "on-background": "#081a3d",
+                        "secondary-fixed": "#d0e4ff",
+                        "on-surface-variant": "#424752",
+                        "surface-tint": "#055db6",
+                        "surface": "#faf8ff",
+                        "surface-container-high": "#e1e8ff",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-container": "#fcfcff",
+                        "inverse-surface": "#202f53",
+                        "on-secondary": "#ffffff",
+                        "surface-container-low": "#f2f3ff",
+                        "on-surface": "#081a3d",
+                        "secondary-container": "#8fc5ff",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#4a5e6e",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#9bcbff",
+                        "primary-container": "#3174ce",
+                        "on-primary-container": "#fefcff",
+                        "tertiary-fixed": "#cfe5f8",
+                        "secondary": "#236296",
+                        "inverse-on-surface": "#edf0ff",
+                        "primary-fixed": "#d6e3ff",
+                        "on-primary": "#ffffff",
+                        "surface-container": "#e9edff",
+                        "outline-variant": "#c2c6d4",
+                        "surface-container-highest": "#d9e2ff",
+                        "on-secondary-container": "#055285",
+                        "tertiary-fixed-dim": "#b4c9dc",
+                        "on-tertiary-fixed-variant": "#354958",
+                        "on-tertiary-fixed": "#071e2b",
+                        "surface-dim": "#cdd9ff",
+                        "primary-fixed-dim": "#a9c7ff",
+                        "on-primary-fixed-variant": "#00468c",
+                        "surface-bright": "#faf8ff",
+                        "inverse-primary": "#a9c7ff",
+                        "outline": "#727783",
+                        "primary": "#005bb2"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "24px",
+                        "xs": "4px",
+                        "gutter": "24px",
+                        "lg": "48px",
+                        "xl": "80px",
+                        "sm": "12px",
+                        "margin-mobile": "16px",
+                        "base": "8px",
+                        "margin-desktop": "64px"
+                    },
+                    "fontFamily": {
+                        "headline-xl": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-xl": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #F6FBFF; }
+        .custom-card-shadow { box-shadow: 0px 4px 20px rgba(29, 45, 80, 0.05); }
+        .custom-card-hover { box-shadow: 0px 12px 32px rgba(29, 45, 80, 0.1); border-color: #3A7BD5 !important; }
+        .bg-navy { background-color: #1D2D50; }
+        .text-navy { color: #1D2D50; }
+        .text-muted { color: #4a5568; }
+        .bg-primary-custom { background-color: #3A7BD5; }
+        .text-primary-custom { color: #3A7BD5; }
+        .border-accent { border-color: #8EC5FF; }
+        .bg-accent-light { background-color: #D6ECFF; }
+    </style>
+</head>
+<body class="font-body-md text-navy antialiased min-h-screen flex flex-col">
+<!-- Top Navigation -->
+<header class="bg-navy text-white sticky top-0 z-50 shadow-md h-20 flex items-center px-margin-mobile md:px-margin-desktop transition-all duration-300">
+<div class="max-w-7xl mx-auto w-full flex justify-between items-center">
+<a class="flex items-center gap-2" href="#">
+<img alt="MedSync Logo" class="h-10 object-contain w-auto" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCheRY8uSMoAti4lkYRe7Oj2OsfixnWRF7stn3swVy5zG3zo2ZD_-zMzK5MTKDL5xGZmt2C5hbNcF1HWJ6oedzYCJFPrd696C1xVxRQ2npVa_ceGUJQA5lWEccfnH_HIxB9BnWrQYlRQ_zMrst41jWhBwqPl0Nh71fgsGwpQRaC5viqmPUDhVmjDI2uMdHLDanSkTRMYVD1mRomESSMeGyFNaHcxjkW2ESSqIisFbcx-H6m4YN3YVph7ccVkHWDXvqM3-k"/>
+</a>
+<nav class="hidden md:flex items-center gap-8">
+<a class="font-label-md text-white/80 hover:text-white transition-colors" href="#">Mis Citas</a>
+<a class="font-label-md text-white/80 hover:text-white transition-colors" href="#">Clínicas</a>
+<a class="font-label-md text-white/80 hover:text-white transition-colors" href="#">Ayuda</a>
+<div class="flex items-center gap-4 border-l border-white/20 pl-8">
+<button class="text-white hover:text-white/80 transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="flex items-center gap-2 text-white hover:text-white/80 transition-colors">
+<div class="w-8 h-8 rounded-full bg-accent-light text-navy flex items-center justify-center font-bold text-sm">
+                            JD
+                        </div>
+</button>
+</div>
+</nav>
+<button class="md:hidden text-white">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow flex flex-col items-center py-lg px-margin-mobile md:px-margin-desktop w-full max-w-7xl mx-auto">
+<!-- Breadcrumb & Header -->
+<div class="w-full mb-md">
+<a class="inline-flex items-center gap-2 text-primary-custom hover:opacity-80 transition-opacity font-label-md mb-md" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="arrow_back">arrow_back</span>
+                Especialidades
+            </a>
+<div class="mb-lg">
+<h1 class="font-headline-xl text-navy mb-xs">Cardiología</h1>
+<p class="font-body-lg text-muted">Elige el médico con el que quieres agendar.</p>
+</div>
+</div>
+<!-- Doctor Grid -->
+<div class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Doctor Card 1 -->
+<div class="bg-white rounded-xl border border-accent custom-card-shadow hover:custom-card-hover transition-all duration-300 p-md flex flex-col h-full cursor-pointer group">
+<div class="flex items-start gap-md mb-md">
+<div class="w-16 h-16 rounded-full bg-gradient-to-br from-[#8EC5FF] to-[#3A7BD5] flex items-center justify-center text-white font-headline-md shrink-0 shadow-inner">
+                        RG
+                    </div>
+<div>
+<h3 class="font-headline-md text-navy text-lg mb-1 group-hover:text-primary-custom transition-colors">Dr. Roberto García</h3>
+<p class="font-label-sm text-muted">Reg. 45291</p>
+</div>
+</div>
+<div class="mt-auto pt-md border-t border-accent/30 flex justify-end">
+<span class="inline-flex items-center gap-2 text-primary-custom font-label-md group-hover:translate-x-1 transition-transform">
+                        Ver horarios
+                        <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</span>
+</div>
+</div>
+<!-- Doctor Card 2 -->
+<div class="bg-white rounded-xl border border-accent custom-card-shadow hover:custom-card-hover transition-all duration-300 p-md flex flex-col h-full cursor-pointer group">
+<div class="flex items-start gap-md mb-md">
+<div class="w-16 h-16 rounded-full bg-gradient-to-br from-[#8EC5FF] to-[#3A7BD5] flex items-center justify-center text-white font-headline-md shrink-0 shadow-inner">
+                        AL
+                    </div>
+<div>
+<h3 class="font-headline-md text-navy text-lg mb-1 group-hover:text-primary-custom transition-colors">Dra. Ana López</h3>
+<p class="font-label-sm text-muted">Reg. 89102</p>
+</div>
+</div>
+<div class="mt-auto pt-md border-t border-accent/30 flex justify-end">
+<span class="inline-flex items-center gap-2 text-primary-custom font-label-md group-hover:translate-x-1 transition-transform">
+                        Ver horarios
+                        <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</span>
+</div>
+</div>
+<!-- Doctor Card 3 -->
+<div class="bg-white rounded-xl border border-accent custom-card-shadow hover:custom-card-hover transition-all duration-300 p-md flex flex-col h-full cursor-pointer group">
+<div class="flex items-start gap-md mb-md">
+<div class="w-16 h-16 rounded-full bg-gradient-to-br from-[#8EC5FF] to-[#3A7BD5] flex items-center justify-center text-white font-headline-md shrink-0 shadow-inner">
+                        CM
+                    </div>
+<div>
+<h3 class="font-headline-md text-navy text-lg mb-1 group-hover:text-primary-custom transition-colors">Dr. Carlos Mendoza</h3>
+<p class="font-label-sm text-muted">Reg. 33415</p>
+</div>
+</div>
+<div class="mt-auto pt-md border-t border-accent/30 flex justify-end">
+<span class="inline-flex items-center gap-2 text-primary-custom font-label-md group-hover:translate-x-1 transition-transform">
+                        Ver horarios
+                        <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</span>
+</div>
+</div>
+<!-- Doctor Card 4 -->
+<div class="bg-white rounded-xl border border-accent custom-card-shadow hover:custom-card-hover transition-all duration-300 p-md flex flex-col h-full cursor-pointer group">
+<div class="flex items-start gap-md mb-md">
+<div class="w-16 h-16 rounded-full bg-gradient-to-br from-[#8EC5FF] to-[#3A7BD5] flex items-center justify-center text-white font-headline-md shrink-0 shadow-inner">
+                        SV
+                    </div>
+<div>
+<h3 class="font-headline-md text-navy text-lg mb-1 group-hover:text-primary-custom transition-colors">Dra. Sofía Vargas</h3>
+<p class="font-label-sm text-muted">Reg. 56789</p>
+</div>
+</div>
+<div class="mt-auto pt-md border-t border-accent/30 flex justify-end">
+<span class="inline-flex items-center gap-2 text-primary-custom font-label-md group-hover:translate-x-1 transition-transform">
+                        Ver horarios
+                        <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</span>
+</div>
+</div>
+</div>
+</main>
+</body></html>

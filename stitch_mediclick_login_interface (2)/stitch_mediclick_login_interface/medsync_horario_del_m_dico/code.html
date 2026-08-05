@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Horario Médico - MedSync</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#b4c9dc",
+                        "secondary-fixed-dim": "#9bcbff",
+                        "surface-tint": "#055db6",
+                        "on-tertiary-fixed-variant": "#354958",
+                        "surface-container": "#e9edff",
+                        "outline": "#727783",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#e1e8ff",
+                        "on-primary-container": "#fefcff",
+                        "outline-variant": "#c2c6d4",
+                        "on-tertiary-fixed": "#071e2b",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed": "#001b3d",
+                        "on-secondary-fixed": "#001d34",
+                        "primary-fixed": "#d6e3ff",
+                        "secondary": "#236296",
+                        "surface-container-highest": "#d9e2ff",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#a9c7ff",
+                        "background": "#faf8ff",
+                        "surface-variant": "#d9e2ff",
+                        "on-error-container": "#93000a",
+                        "primary-container": "#3174ce",
+                        "on-primary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#627788",
+                        "surface-dim": "#cdd9ff",
+                        "on-background": "#081a3d",
+                        "surface-bright": "#faf8ff",
+                        "on-secondary-fixed-variant": "#004a79",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "secondary-container": "#8fc5ff",
+                        "on-primary-fixed-variant": "#00468c",
+                        "surface-container-low": "#f2f3ff",
+                        "tertiary-fixed": "#cfe5f8",
+                        "surface": "#faf8ff",
+                        "tertiary": "#4a5e6e",
+                        "inverse-on-surface": "#edf0ff",
+                        "primary": "#005bb2",
+                        "inverse-surface": "#202f53",
+                        "secondary-fixed": "#d0e4ff",
+                        "on-secondary-container": "#055285",
+                        "inverse-primary": "#a9c7ff",
+                        "on-tertiary-container": "#fcfcff",
+                        "on-surface-variant": "#424752",
+                        "on-surface": "#081a3d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "sm": "12px",
+                        "margin-mobile": "16px",
+                        "md": "24px",
+                        "margin-desktop": "64px",
+                        "lg": "48px",
+                        "gutter": "24px",
+                        "xl": "80px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-xl": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-xl": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #F6FBFF; /* Brand specific override for clinical feel */
+        }
+    </style>
+</head>
+<body class="antialiased text-on-surface">
+<!-- TopNavBar -->
+<nav class="bg-secondary dark:bg-secondary-fixed-dim text-on-secondary dark:text-on-secondary-fixed font-headline-md text-headline-md font-body-md text-body-md font-label-md text-label-md docked full-width top-0 shadow-sm flex justify-between items-center w-full px-margin-desktop h-16 sticky z-50">
+<div class="flex items-center gap-md">
+<span class="font-headline-md text-headline-md font-bold text-on-secondary dark:text-on-secondary-fixed tracking-tight">MedSync</span>
+<div class="hidden md:flex items-center gap-sm ml-lg">
+<a class="text-on-secondary/80 dark:text-on-secondary-fixed/80 pb-1 hover:text-on-secondary dark:hover:text-on-secondary-fixed transition-colors" href="#">Panel</a>
+<a class="text-on-secondary/80 dark:text-on-secondary-fixed/80 pb-1 hover:text-on-secondary dark:hover:text-on-secondary-fixed transition-colors" href="#">Especialidades</a>
+<a class="text-on-secondary border-b-2 border-on-secondary dark:text-on-secondary-fixed dark:border-on-secondary-fixed pb-1 hover:text-on-secondary dark:hover:text-on-secondary-fixed transition-colors opacity-90 transition-all duration-200" href="#">Médicos</a>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="font-label-md text-label-md text-on-secondary hover:text-white transition-colors flex items-center gap-xs">
+                Cerrar sesión
+                <span class="material-symbols-outlined text-[18px]" data-icon="logout">logout</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden border border-outline-variant/30 flex-shrink-0">
+<img alt="Logo MedSync" class="w-full h-full object-cover" data-alt="A small, professional headshot of a clinic administrator in a clean, modern medical setting. Soft, natural lighting. Professional attire. Bright, clinical aesthetic. 50-100 words detailed description." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLpCDEOThAICQYdnEM-0DyQxknt1N3uZfr5GUhfB4JThjZgd30jR6sOEKcyOmEKueX9cKINBezet0qUTnFVrkqa-tHKrlZX5evjGm9RpqflUa0VVUQ0j2E6-KsTlguLJlvy9gAvcj6PwUbbT3TfrdMtdq1UuzcHVv-zgMANWZlIXorFjVEimjG1h9ma08V63fnYqvYN7FbLcb-dWc2B-wV659oSpnscFn3a818D8mkThtyIzgjLPUYzQ"/>
+</div>
+</div>
+</nav>
+<!-- TopAppBar (Breadcrumb) -->
+<div class="bg-surface-container-low dark:bg-surface-container-lowest text-primary dark:text-primary-fixed font-label-sm text-label-sm font-body-md text-body-md full-width border-b border-outline-variant dark:border-outline flex items-center w-full px-margin-desktop py-base">
+<div class="flex items-center gap-xs text-on-surface-variant">
+<a class="hover:text-primary transition-colors" href="#">Panel</a>
+<span class="material-symbols-outlined text-[16px]" data-icon="chevron_right">chevron_right</span>
+<a class="hover:text-primary transition-colors" href="#">Médicos</a>
+<span class="material-symbols-outlined text-[16px]" data-icon="chevron_right">chevron_right</span>
+<span class="text-primary font-semibold underline">Horario</span>
+</div>
+</div>
+<!-- Main Content Canvas -->
+<main class="max-w-[1400px] mx-auto px-margin-mobile md:px-margin-desktop py-lg flex flex-col gap-lg">
+<!-- Header Section -->
+<header class="flex flex-col gap-xs">
+<h1 class="font-headline-xl text-headline-xl text-on-background">Horario de Dr. Alejandro Rivera</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Cardiología</p>
+</header>
+<!-- 2-Column Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+<!-- LEFT COLUMN: Schedule Table -->
+<div class="lg:col-span-8 flex flex-col gap-md">
+<div class="bg-surface-container-lowest rounded-xl border border-primary-fixed shadow-[0px_4px_20px_rgba(35,98,150,0.05)] overflow-hidden">
+<div class="px-md py-sm bg-surface-bright border-b border-primary-fixed/50 flex justify-between items-center">
+<h2 class="font-headline-md text-headline-md text-on-surface">Bloques de Horario</h2>
+<span class="material-symbols-outlined text-tertiary" data-icon="calendar_month">calendar_month</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-primary-fixed/50 bg-surface-container/30">
+<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant font-semibold">Día</th>
+<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant font-semibold">Inicio</th>
+<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant font-semibold">Fin</th>
+<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant font-semibold text-right">Acciones</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface">
+<!-- Row 1 -->
+<tr class="border-b border-primary-fixed/30 hover:bg-surface-container-low/50 transition-colors">
+<td class="px-md py-sm">
+<span class="inline-flex items-center px-sm py-xs rounded-full bg-primary-fixed text-on-primary-fixed font-label-md text-label-md">Lunes</span>
+</td>
+<td class="px-md py-sm">08:00</td>
+<td class="px-md py-sm">12:00</td>
+<td class="px-md py-sm text-right">
+<button aria-label="Eliminar" class="text-error hover:text-on-error-container transition-colors inline-flex items-center justify-center p-xs rounded hover:bg-error-container/50 focus:outline-none focus:ring-2 focus:ring-error">
+<span class="material-symbols-outlined text-[20px]" data-icon="delete">delete</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="border-b border-primary-fixed/30 hover:bg-surface-container-low/50 transition-colors">
+<td class="px-md py-sm">
+<span class="inline-flex items-center px-sm py-xs rounded-full bg-[#E8F5E9] text-[#1B5E20] font-label-md text-label-md">Martes</span>
+</td>
+<td class="px-md py-sm">09:00</td>
+<td class="px-md py-sm">14:00</td>
+<td class="px-md py-sm text-right">
+<button aria-label="Eliminar" class="text-error hover:text-on-error-container transition-colors inline-flex items-center justify-center p-xs rounded hover:bg-error-container/50 focus:outline-none focus:ring-2 focus:ring-error">
+<span class="material-symbols-outlined text-[20px]" data-icon="delete">delete</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="border-b border-primary-fixed/30 hover:bg-surface-container-low/50 transition-colors">
+<td class="px-md py-sm">
+<span class="inline-flex items-center px-sm py-xs rounded-full bg-[#E8F5E9] text-[#1B5E20] font-label-md text-label-md">Martes</span>
+</td>
+<td class="px-md py-sm">16:00</td>
+<td class="px-md py-sm">19:00</td>
+<td class="px-md py-sm text-right">
+<button aria-label="Eliminar" class="text-error hover:text-on-error-container transition-colors inline-flex items-center justify-center p-xs rounded hover:bg-error-container/50 focus:outline-none focus:ring-2 focus:ring-error">
+<span class="material-symbols-outlined text-[20px]" data-icon="delete">delete</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="px-md py-sm">
+<span class="inline-flex items-center px-sm py-xs rounded-full bg-[#FFF3E0] text-[#E65100] font-label-md text-label-md">Jueves</span>
+</td>
+<td class="px-md py-sm">08:00</td>
+<td class="px-md py-sm">13:00</td>
+<td class="px-md py-sm text-right">
+<button aria-label="Eliminar" class="text-error hover:text-on-error-container transition-colors inline-flex items-center justify-center p-xs rounded hover:bg-error-container/50 focus:outline-none focus:ring-2 focus:ring-error">
+<span class="material-symbols-outlined text-[20px]" data-icon="delete">delete</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: Add Block Form -->
+<div class="lg:col-span-4 flex flex-col gap-md sticky top-24">
+<div class="bg-surface-container-lowest rounded-xl border border-primary-fixed shadow-[0px_12px_32px_rgba(35,98,150,0.1)] p-md flex flex-col gap-md">
+<div class="flex items-center gap-sm pb-sm border-b border-primary-fixed/50">
+<span class="material-symbols-outlined text-primary" data-icon="add_circle">add_circle</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Agregar bloque</h3>
+</div>
+<form class="flex flex-col gap-md">
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface" for="dia">Día</label>
+<div class="relative">
+<select class="w-full h-[56px] px-sm bg-surface-container-lowest border border-primary-fixed rounded-lg text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary appearance-none cursor-pointer" id="dia" name="dia">
+<option disabled="" selected="" value="">Seleccione un día</option>
+<option value="lunes">Lunes</option>
+<option value="martes">Martes</option>
+<option value="miercoles">Miércoles</option>
+<option value="jueves">Jueves</option>
+<option value="viernes">Viernes</option>
+<option value="sabado">Sábado</option>
+</select>
+<div class="absolute inset-y-0 right-0 flex items-center pr-sm pointer-events-none text-outline">
+<span class="material-symbols-outlined" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface" for="hora_inicio">Hora de inicio</label>
+<input class="w-full h-[56px] px-sm bg-surface-container-lowest border border-primary-fixed rounded-lg text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" id="hora_inicio" name="hora_inicio" type="time" value="08:00"/>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface" for="hora_fin">Hora de fin</label>
+<input class="w-full h-[56px] px-sm bg-error-container border border-error rounded-lg text-on-surface font-body-md text-body-md focus:outline-none focus:border-error focus:ring-1 focus:ring-error" id="hora_fin" name="hora_fin" type="time" value="07:00"/>
+<p class="font-label-sm text-label-sm text-error flex items-center gap-xs mt-xs">
+<span class="material-symbols-outlined text-[14px]" data-icon="error">error</span>
+                                La hora de fin debe ser posterior a la de inicio.
+                            </p>
+</div>
+<button class="w-full h-[56px] bg-primary text-on-primary font-label-md text-label-md rounded-lg flex items-center justify-center gap-sm mt-sm hover:bg-primary/90 transition-colors focus:outline-none focus:ring-4 focus:ring-primary-fixed shadow-[0px_4px_20px_rgba(58,123,213,0.15)]" type="button">
+                            Agregar
+                        </button>
+</form>
+</div>
+</div>
+</div>
+</main>
+</body></html>

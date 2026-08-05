@@ -1,18 +1,59 @@
 {% extends "base.html" %}
 
-{% block title %}Acceso denegado - MedSync{% endblock %}
+{% block title %}Acceso denegado - MediClick{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center p-margin-mobile md:p-margin-desktop">
-<div class="max-w-md w-full bg-surface-container-lowest p-stack-lg rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] text-center">
-<div class="flex items-center justify-center mb-stack-md">
-<span class="material-symbols-outlined text-error text-[48px]">block</span>
-</div>
-<h1 class="font-headline-lg text-headline-lg text-on-surface mb-stack-md">Acceso denegado</h1>
-<div class="rounded-lg bg-error-container px-4 py-3 mb-stack-lg">
-<p class="font-label-md text-label-md text-error">No tiene permisos de administrador para acceder a esta página.</p>
-</div>
-<a class="inline-block bg-primary text-on-primary py-3 px-6 rounded-lg font-label-md text-label-md font-semibold hover:bg-[#013a6b] transition-colors" href="{% url 'inicio' %}">Volver a inicio</a>
-</div>
+<div class="bg-f6fbff text-on-surface font-body-md min-h-screen flex items-center justify-center relative overflow-hidden w-full">
+    <!-- Background Image -->
+    <div class="absolute inset-0 z-0 opacity-10" data-alt="A serene, modern medical clinic hallway. Soft, diffused lighting creating a calm atmosphere. Minimalist white walls with subtle blue accents. Clean, sterile, and professional environment. Focus on depth and architectural lines." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBxZN4j8v2E7sLmB9pg7bKq1EKdVmz9DT9NRfgiD3bTndDnbWVhvHiD2gvmySP0vGVs1aGh6lvcNkWzeIsmeqaN3dUjN1Jl5Zmuqzf4d4OeYUCpIYnf2b2Lnxf8UIkfuhpcBddZKiYtutfyBZtG8wbX96a7okMRPwOzOICGPxBtfhg2wVp7KugkJxM52lxVh4RLjP2OXYf9jjqpChDn-RFl_TdMPGXOpG7X-CQrinzK997QJi18BMQbZuYDlyL82nf9Tj0'); background-size: cover; background-position: center;"></div>
+    <!-- Central Container -->
+    <div class="relative z-10 w-full px-margin-mobile md:px-0">
+        <!-- 403 Error Card -->
+        <main class="max-w-[500px] w-full mx-auto bg-surface-container-lowest border border-d6ecff rounded-xl shadow-soft p-md md:p-lg text-center relative overflow-hidden">
+            <!-- Decorative Background 403 -->
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[150px] font-bold text-8ec5ff opacity-10 select-none z-0">
+                403
+            </div>
+            <div class="relative z-10 flex flex-col items-center">
+                <!-- Icon -->
+                <div class="w-16 h-16 rounded-full bg-error-container/30 flex items-center justify-center mb-sm">
+                    <span class="material-symbols-outlined text-[32px] text-c0392b" style="font-variation-settings: 'FILL' 1;">
+                        gpp_bad
+                    </span>
+                </div>
+                <!-- Heading -->
+                <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-1d2d50 mb-xs">
+                    Acceso denegado
+                </h1>
+                <!-- Subtext -->
+                <p class="font-body-md text-body-md text-on-surface-variant mb-md">
+                    No tienes permisos de administrador para acceder a esta página.
+                </p>
+                <!-- Error Info Box -->
+                <div class="w-full bg-fee2e2 border-l-4 border-c0392b p-sm rounded-r-DEFAULT text-left mb-lg">
+                    <div class="flex items-start gap-xs">
+                        <span class="material-symbols-outlined text-c0392b text-[20px] mt-[2px]">
+                            error
+                        </span>
+                        <div>
+                            <span class="block font-label-md text-label-md text-c0392b font-bold">Error de Autorización</span>
+                            <span class="block font-label-sm text-label-sm text-c0392b mt-1">El nivel de su cuenta actual no cumple con los requisitos de seguridad para visualizar el contenido solicitado. Contacte a soporte si cree que esto es un error.</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Action Button -->
+                <a class="inline-flex items-center justify-center gap-xs bg-3a7bd5 hover:bg-primary-container text-on-primary font-label-md text-label-md py-sm px-md rounded-DEFAULT transition-colors duration-200 w-full sm:w-auto h-[48px]" href="{% url 'inicio' %}">
+                    <span class="material-symbols-outlined text-[20px]">
+                        arrow_back
+                    </span>
+                    Volver al inicio
+                </a>
+                <!-- Brand Anchor -->
+                <div class="mt-lg">
+                    <span class="font-headline-sm text-headline-sm font-semibold text-secondary opacity-50">MediClick</span>
+                </div>
+            </div>
+        </main>
+    </div>
 </div>
 {% endblock %}

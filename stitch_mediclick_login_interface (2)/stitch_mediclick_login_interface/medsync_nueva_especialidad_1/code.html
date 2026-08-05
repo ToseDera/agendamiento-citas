@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MedSync - Nueva Especialidad</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "background": "#faf8ff",
+                      "on-secondary-fixed": "#001d34",
+                      "surface-bright": "#faf8ff",
+                      "tertiary-container": "#627788",
+                      "surface-container": "#e9edff",
+                      "surface": "#faf8ff",
+                      "outline-variant": "#c2c6d4",
+                      "on-tertiary-container": "#fcfcff",
+                      "secondary-container": "#8fc5ff",
+                      "on-tertiary": "#ffffff",
+                      "on-tertiary-fixed": "#071e2b",
+                      "inverse-primary": "#a9c7ff",
+                      "surface-container-low": "#f2f3ff",
+                      "surface-container-highest": "#d9e2ff",
+                      "primary-container": "#3174ce",
+                      "primary": "#005bb2",
+                      "outline": "#727783",
+                      "surface-container-high": "#e1e8ff",
+                      "on-background": "#081a3d",
+                      "secondary-fixed": "#d0e4ff",
+                      "on-primary-fixed-variant": "#00468c",
+                      "surface-tint": "#055db6",
+                      "on-secondary": "#ffffff",
+                      "surface-variant": "#d9e2ff",
+                      "on-tertiary-fixed-variant": "#354958",
+                      "on-primary-fixed": "#001b3d",
+                      "on-primary-container": "#fefcff",
+                      "on-error": "#ffffff",
+                      "inverse-on-surface": "#edf0ff",
+                      "surface-dim": "#cdd9ff",
+                      "surface-container-lowest": "#ffffff",
+                      "on-primary": "#ffffff",
+                      "secondary": "#236296",
+                      "on-surface-variant": "#424752",
+                      "on-error-container": "#93000a",
+                      "error": "#ba1a1a",
+                      "primary-fixed": "#d6e3ff",
+                      "on-secondary-container": "#055285",
+                      "secondary-fixed-dim": "#9bcbff",
+                      "on-surface": "#081a3d",
+                      "on-secondary-fixed-variant": "#004a79",
+                      "tertiary": "#4a5e6e",
+                      "primary-fixed-dim": "#a9c7ff",
+                      "inverse-surface": "#202f53",
+                      "tertiary-fixed-dim": "#b4c9dc",
+                      "tertiary-fixed": "#cfe5f8",
+                      "error-container": "#ffdad6"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "base": "8px",
+                      "lg": "48px",
+                      "gutter": "24px",
+                      "margin-mobile": "16px",
+                      "xs": "4px",
+                      "xl": "80px",
+                      "margin-desktop": "64px",
+                      "sm": "12px",
+                      "md": "24px"
+              },
+              "fontFamily": {
+                      "headline-lg-mobile": ["Inter"],
+                      "headline-lg": ["Inter"],
+                      "headline-xl": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "body-md": ["Inter"],
+                      "label-sm": ["Inter"],
+                      "label-md": ["Inter"],
+                      "body-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "headline-xl": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+              },
+              "boxShadow": {
+                "soft": "0 4px 20px rgba(0, 0, 0, 0.05)",
+                "modal": "0 12px 32px rgba(0, 0, 0, 0.1)"
+              }
+          }
+          }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#F6FBFF] text-[#1D2D50] antialiased min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="w-full bg-[#1D2D50] shadow-sm flex-none z-10">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-full mx-auto">
+<div class="flex items-center gap-6">
+<div class="font-headline-md text-headline-md text-white flex items-center gap-2">
+<img alt="MedSync Logo" class="h-8 object-contain w-auto" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqU-06W11qBkFasm5DaMlyCLuK0x1_qG89XMFWKc1zPbWo291A181rOXEZ6ObTBb0nrONlgWLmIhYFvy33JonRb7zLkeTWsqYkO5OfLYCuOMr4y5ZBT72Y3SyTxhFh_AuoxWOszLN9_2RNcbAUVk6hBPzKv7qxxIYO3uVyrEbf9jFVmJyLafNGUxhj5jVpSsHAkbLAPQKh3n-tcfb4W86D6sTHgMCqHxAE3H1aQqU8I9EYWQV5Bb_XrAhEk8eJ9RSwfd0"/>
+                    MedSync
+                </div>
+<nav class="hidden md:flex gap-6 items-center font-body-md text-body-md">
+<a class="text-white/80 hover:text-white transition-colors hover:bg-white/10 rounded-lg px-3 py-1" href="#">Panel</a>
+<a class="text-[#8EC5FF] font-bold border-b-2 border-[#8EC5FF] pb-1" href="#">Especialidades</a>
+<a class="text-white/80 hover:text-white transition-colors hover:bg-white/10 rounded-lg px-3 py-1" href="#">Médicos</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="font-label-md text-label-md text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition-all px-3 py-1.5 active:scale-95 duration-150">Cerrar sesión</button>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow flex flex-col p-margin-mobile md:p-gutter max-w-[1200px] w-full mx-auto relative pb-xl">
+<!-- Breadcrumb -->
+<nav aria-label="Breadcrumb" class="flex items-center text-sm font-label-md text-[#627788] mb-8">
+<ol class="flex items-center space-x-2">
+<li><a class="hover:text-[#3A7BD5] transition-colors" href="#">Panel</a></li>
+<li class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-[16px] mx-1">chevron_right</span>
+<a class="hover:text-[#3A7BD5] transition-colors" href="#">Especialidades</a>
+</li>
+<li aria-current="page" class="flex items-center space-x-2 text-[#1D2D50] font-semibold">
+<span class="material-symbols-outlined text-[16px] mx-1 text-[#627788]">chevron_right</span>
+                    Nueva especialidad
+                </li>
+</ol>
+</nav>
+<!-- Form Card Container -->
+<div class="w-full max-w-[480px] mx-auto bg-white rounded-xl shadow-soft border border-[#c3daf5] p-md">
+<div class="mb-6">
+<h1 class="font-headline-md text-headline-md text-[#1D2D50] mb-2">Nueva especialidad</h1>
+<p class="font-body-md text-body-md text-[#627788]">Añade una nueva especialidad médica al sistema.</p>
+</div>
+<form class="space-y-6">
+<!-- Nombre -->
+<div>
+<label class="block font-label-md text-label-md text-[#1D2D50] mb-1" for="nombre">Nombre</label>
+<input class="w-full h-14 bg-white border border-[#c3daf5] rounded-lg px-4 font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-[#8EC5FF] focus:border-[#3A7BD5] transition-all" id="nombre" name="nombre" placeholder="Ej. Cardiología" required="" type="text"/>
+</div>
+<!-- Descripción -->
+<div>
+<label class="block font-label-md text-label-md text-[#1D2D50] mb-1" for="descripcion">Descripción</label>
+<textarea class="w-full bg-white border border-[#c3daf5] rounded-lg p-4 font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-[#8EC5FF] focus:border-[#3A7BD5] transition-all resize-none" id="descripcion" name="descripcion" placeholder="Breve descripción de la especialidad..." rows="3"></textarea>
+</div>
+<!-- Duración de la cita -->
+<div>
+<label class="block font-label-md text-label-md text-[#1D2D50] mb-1" for="duracion">Duración de la cita (minutos)</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#627788]">schedule</span>
+<input class="w-full h-14 bg-white border border-[#c3daf5] rounded-lg pl-12 pr-4 font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-[#8EC5FF] focus:border-[#3A7BD5] transition-all" id="duracion" min="5" name="duracion" required="" step="5" type="number" value="30"/>
+</div>
+</div>
+<!-- Activa Toggle -->
+<div class="flex items-center justify-between py-2 border-t border-b border-[#D6ECFF] border-opacity-50">
+<div>
+<span class="block font-label-md text-label-md text-[#1D2D50]">Activa</span>
+<span class="block font-label-sm text-label-sm text-[#627788] font-normal">Disponible para agendar citas</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#8EC5FF] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10b981]"></div>
+</label>
+</div>
+<!-- Actions -->
+<div class="pt-4 flex flex-col gap-3">
+<button class="w-full h-14 bg-[#3A7BD5] hover:bg-[#2e62aa] text-white font-label-md text-label-md rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 active:scale-[0.98]" type="submit">
+                        Guardar
+                    </button>
+<button class="w-full h-12 text-[#627788] hover:text-[#1D2D50] bg-transparent hover:bg-[#e9edff] font-label-md text-label-md rounded-lg transition-all" type="button">
+                        Cancelar
+                    </button>
+</div>
+</form>
+</div>
+</main>
+<!-- Mobile BottomNav / Fallback structure if needed by JSON -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#1D2D50] border-t border-[#001b3d] px-4 py-2 flex justify-around items-center z-20 pb-safe">
+<a class="flex flex-col items-center gap-1 text-white/70 hover:text-white p-2" href="#">
+<span class="material-symbols-outlined text-[24px]">dashboard</span>
+<span class="font-label-sm text-[10px]">Panel</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-[#8EC5FF] p-2" href="#">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+<span class="font-label-sm text-[10px] font-bold">Especialidades</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-white/70 hover:text-white p-2" href="#">
+<span class="material-symbols-outlined text-[24px]">stethoscope</span>
+<span class="font-label-sm text-[10px]">Médicos</span>
+</a>
+</nav>
+</body></html>

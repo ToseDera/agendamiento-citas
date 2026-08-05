@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MedSync - Select Time Slot</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#3174ce",
+                    "on-error-container": "#93000a",
+                    "on-secondary-fixed": "#001d34",
+                    "secondary-container": "#8fc5ff",
+                    "tertiary-fixed-dim": "#b4c9dc",
+                    "outline-variant": "#c2c6d4",
+                    "on-primary-fixed": "#001b3d",
+                    "on-error": "#ffffff",
+                    "on-tertiary-fixed": "#071e2b",
+                    "outline": "#727783",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed-variant": "#354958",
+                    "surface-container-low": "#f2f3ff",
+                    "surface-container-high": "#e1e8ff",
+                    "on-tertiary-container": "#fcfcff",
+                    "tertiary": "#4a5e6e",
+                    "tertiary-fixed": "#cfe5f8",
+                    "surface-bright": "#faf8ff",
+                    "background": "#faf8ff",
+                    "on-background": "#081a3d",
+                    "primary-fixed-dim": "#a9c7ff",
+                    "inverse-on-surface": "#edf0ff",
+                    "tertiary-container": "#627788",
+                    "inverse-primary": "#a9c7ff",
+                    "surface-variant": "#d9e2ff",
+                    "on-secondary-container": "#055285",
+                    "surface-container-highest": "#d9e2ff",
+                    "on-primary-fixed-variant": "#00468c",
+                    "surface-tint": "#055db6",
+                    "primary": "#005bb2",
+                    "on-primary-container": "#fefcff",
+                    "surface": "#faf8ff",
+                    "on-secondary": "#ffffff",
+                    "secondary": "#236296",
+                    "inverse-surface": "#202f53",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed-dim": "#9bcbff",
+                    "on-surface-variant": "#424752",
+                    "surface-dim": "#cdd9ff",
+                    "primary-fixed": "#d6e3ff",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed": "#d0e4ff",
+                    "on-primary": "#ffffff",
+                    "on-surface": "#081a3d",
+                    "surface-container": "#e9edff",
+                    "on-secondary-fixed-variant": "#004a79"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "64px",
+                    "xs": "4px",
+                    "md": "24px",
+                    "lg": "48px",
+                    "base": "8px",
+                    "xl": "80px",
+                    "gutter": "24px",
+                    "margin-mobile": "16px",
+                    "sm": "12px"
+            },
+            "fontFamily": {
+                    "headline-lg": [
+                            "Inter"
+                    ],
+                    "body-lg": [
+                            "Inter"
+                    ],
+                    "label-sm": [
+                            "Inter"
+                    ],
+                    "headline-xl": [
+                            "Inter"
+                    ],
+                    "label-md": [
+                            "Inter"
+                    ],
+                    "headline-lg-mobile": [
+                            "Inter"
+                    ],
+                    "body-md": [
+                            "Inter"
+                    ],
+                    "headline-md": [
+                            "Inter"
+                    ]
+            },
+            "fontSize": {
+                    "headline-lg": [
+                            "32px",
+                            {
+                                    "lineHeight": "40px",
+                                    "letterSpacing": "-0.01em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-lg": [
+                            "18px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-sm": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "headline-xl": [
+                            "48px",
+                            {
+                                    "lineHeight": "56px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "label-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "letterSpacing": "0.01em",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "headline-lg-mobile": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-md": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-md": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "fontWeight": "600"
+                            }
+                    ]
+            }
+        },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #F6FBFF; }
+        .ambient-shadow { box-shadow: 0px 4px 20px rgba(8, 26, 61, 0.05); }
+        .slot-chip { transition: all 0.2s ease-in-out; }
+    </style>
+</head>
+<body class="min-h-screen text-on-surface antialiased flex flex-col">
+<!-- TopAppBar from JSON (Suppressed for Transactional/Task-focused flow, but keeping simplified version as requested in prompt) -->
+<header class="bg-[#1D2D50] w-full flex justify-between items-center px-margin-mobile md:px-margin-desktop h-14 md:h-16 shadow-sm sticky top-0 z-50">
+<div class="font-headline-md text-headline-md font-bold text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+            MedSync
+        </div>
+<div class="hidden md:flex gap-4">
+<!-- Trailing Icons -->
+<button class="text-white hover:opacity-80 transition-opacity focus:outline-none">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-white hover:opacity-80 transition-opacity focus:outline-none">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<main class="flex-grow w-full max-w-5xl mx-auto px-margin-mobile md:px-margin-desktop py-md md:py-lg flex flex-col gap-lg">
+<!-- Header Section -->
+<section class="flex flex-col gap-sm">
+<a class="inline-flex items-center gap-2 text-primary font-label-md text-label-md hover:underline mb-2 w-fit focus:outline-none" href="#">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                Médicos de Cardiología
+            </a>
+<div class="flex items-start md:items-center gap-md bg-white p-md rounded-xl ambient-shadow border border-[#D6ECFF]">
+<div class="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden bg-surface-variant shrink-0 relative">
+<img class="w-full h-full object-cover" data-alt="Professional headshot of a mature, confident male cardiologist with grey hair, wearing a white coat and stethoscope over a blue shirt, smiling warmly. Bright, clean clinical background with soft natural lighting, high-resolution, modern clinical style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnXhFsj6K_5afhggTvZ2IPMdlwqQL-XyI6USC5wWycqa6TxcIlvlXemAEYussBBDudP6upws3udekOoc9OWSkvEslRmDDCNAAy4HOH5TCl87eYUnOX2k3TtRw755YS2UtFcryHQOJLzephUK12oEe15Xq0V7iCVRhkBtB8pXYP2tjVwxFOfa19gwCgO8sfr2RoAzxHnfDfdfhGg_am5dMMY4ft7lZLcn7s5JSFlDxziubXtZyb_knPpw"/>
+</div>
+<div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-[#1D2D50]">Dr. Alejandro Rivera</h1>
+<p class="font-body-md text-body-md text-outline flex items-center gap-1 mt-xs">
+<span class="material-symbols-outlined text-[16px]">stethoscope</span>
+                        Cardiología
+                    </p>
+</div>
+</div>
+<div class="mt-md">
+<h2 class="font-headline-md text-headline-md text-[#1D2D50]">Elige un horario disponible.</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs">Selecciona la fecha y hora para tu consulta.</p>
+</div>
+</section>
+<!-- Availability Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
+<!-- Day Card 1 -->
+<div class="bg-white rounded-xl p-md ambient-shadow border border-[#D6ECFF] flex flex-col gap-md">
+<div class="flex items-center gap-2 border-b border-surface-variant pb-sm">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<h3 class="font-label-md text-label-md text-[#1D2D50] font-semibold text-lg">Lunes 5 de agosto</h3>
+</div>
+<div class="flex flex-wrap gap-sm">
+<button class="slot-chip h-[44px] px-4 rounded-full bg-[#D6ECFF] text-[#1D2D50] font-label-md text-label-md hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">09:00 AM</button>
+<button class="slot-chip h-[44px] px-4 rounded-full bg-[#D6ECFF] text-[#1D2D50] font-label-md text-label-md hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">09:30 AM</button>
+<button class="slot-chip h-[44px] px-4 rounded-full bg-[#D6ECFF] text-[#1D2D50] font-label-md text-label-md hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">10:00 AM</button>
+<button class="slot-chip h-[44px] px-4 rounded-full bg-[#D6ECFF] text-[#1D2D50] font-label-md text-label-md hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">11:30 AM</button>
+</div>
+</div>
+<!-- Day Card 2 -->
+<div class="bg-white rounded-xl p-md ambient-shadow border border-[#D6ECFF] flex flex-col gap-md">
+<div class="flex items-center gap-2 border-b border-surface-variant pb-sm">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<h3 class="font-label-md text-label-md text-[#1D2D50] font-semibold text-lg">Martes 6 de agosto</h3>
+</div>
+<div class="flex flex-wrap gap-sm">
+<button class="slot-chip h-[44px] px-4 rounded-full bg-[#D6ECFF] text-[#1D2D50] font-label-md text-label-md hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">08:00 AM</button>
+<button class="slot-chip h-[44px] px-4 rounded-full bg-[#D6ECFF] text-[#1D2D50] font-label-md text-label-md hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">14:00 PM</button>
+<button class="slot-chip h-[44px] px-4 rounded-full bg-[#D6ECFF] text-[#1D2D50] font-label-md text-label-md hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">15:30 PM</button>
+<button class="slot-chip h-[44px] px-4 rounded-full bg-[#D6ECFF] text-[#1D2D50] font-label-md text-label-md hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">16:00 PM</button>
+</div>
+</div>
+<!-- Day Card 3 -->
+<div class="bg-white rounded-xl p-md ambient-shadow border border-[#D6ECFF] flex flex-col gap-md">
+<div class="flex items-center gap-2 border-b border-surface-variant pb-sm">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<h3 class="font-label-md text-label-md text-[#1D2D50] font-semibold text-lg">Miércoles 7 de agosto</h3>
+</div>
+<div class="flex flex-wrap gap-sm">
+<button class="slot-chip h-[44px] px-4 rounded-full bg-[#D6ECFF] text-[#1D2D50] font-label-md text-label-md hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">10:00 AM</button>
+<button class="slot-chip h-[44px] px-4 rounded-full bg-[#D6ECFF] text-[#1D2D50] font-label-md text-label-md hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">10:30 AM</button>
+<button class="slot-chip h-[44px] px-4 rounded-full bg-[#D6ECFF] text-[#1D2D50] font-label-md text-label-md hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">11:00 AM</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer from JSON -->
+<footer class="bg-surface-container-lowest border-t border-outline-variant w-full flex flex-col md:flex-row justify-between items-center px-margin-mobile md:px-margin-desktop py-md gap-sm mt-auto">
+<div class="font-headline-md text-headline-md text-primary flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+            MedSync
+        </div>
+<div class="flex flex-wrap justify-center gap-4">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors focus:outline-none" href="#">Privacy Policy</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors focus:outline-none" href="#">Terms of Service</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors focus:outline-none" href="#">Help Center</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors focus:outline-none" href="#">Contact Us</a>
+</div>
+<div class="font-label-md text-label-md text-on-surface-variant">
+            © 2024 MedSync. Professional Medical Care.
+        </div>
+</footer>
+<script>
+        // Simple interaction for slot selection
+        document.querySelectorAll('.slot-chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                // Deselect all others
+                document.querySelectorAll('.slot-chip').forEach(c => {
+                    c.classList.remove('bg-primary', 'text-white');
+                    c.classList.add('bg-[#D6ECFF]', 'text-[#1D2D50]');
+                });
+                // Select this one
+                this.classList.remove('bg-[#D6ECFF]', 'text-[#1D2D50]');
+                this.classList.add('bg-primary', 'text-white');
+                
+                // Simulate proceeding to next step after brief delay
+                setTimeout(() => {
+                    // Logic to proceed would go here
+                    console.log('Slot selected:', this.innerText);
+                }, 400);
+            });
+        });
+    </script>
+</body></html>

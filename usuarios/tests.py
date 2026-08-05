@@ -32,7 +32,7 @@ def crear_usuario(numero_documento, tipo_documento, **kwargs):
 
 class RegistroTests(TestCase):
     def setUp(self):
-        self.tipo_documento = TipoDocumento.objects.get(nombre='Cédula de ciudadanía')
+        self.tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
 
     def datos_registro(self, **overrides):
         datos = {
@@ -65,7 +65,7 @@ class RegistroTests(TestCase):
         response = self.client.get(reverse('registro'))
         self.assertContains(
             response,
-            f'<option value="{self.tipo_documento.pk}">Cédula de ciudadanía</option>',
+            f'<option value="{self.tipo_documento.pk}">Cédula de Ciudadanía (CC)</option>',
             html=True,
         )
 
@@ -157,7 +157,7 @@ class RegistroTests(TestCase):
 
 class LoginTests(TestCase):
     def setUp(self):
-        self.tipo_documento = TipoDocumento.objects.get(nombre='Cédula de ciudadanía')
+        self.tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
         self.usuario = Usuario.objects.create_user(
             username='1000123456',
             password='ClaveSegura123',
@@ -181,7 +181,7 @@ class InicioViewTests(TestCase):
         self.assertRedirects(response, f"{reverse('login')}?next={reverse('inicio')}")
 
     def test_paciente_ve_el_enlace_para_agendar_cita_en_inicio(self):
-        tipo_documento = TipoDocumento.objects.get(nombre='Cédula de ciudadanía')
+        tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
         paciente = crear_usuario('9100000001', tipo_documento)
         paciente.groups.add(Group.objects.get(name='Paciente'))
         self.client.login(username='9100000001', password='ClaveSegura123')
@@ -194,11 +194,11 @@ class InicioViewTests(TestCase):
 
 class UsuarioManagerTests(TestCase):
     def test_create_superuser_resuelve_tipo_documento_pasado_como_string(self):
-        tipo_documento = TipoDocumento.objects.get(nombre='Cédula de ciudadanía')
+        tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
 
         usuario = Usuario.objects.create_superuser(
             username='999888777',
-            email='admin@medsync.test',
+            email='admin@mediclick.test',
             password='AdminSeguro123',
             tipo_documento=str(tipo_documento.pk),
             fecha_nacimiento='1990-01-01',
@@ -213,7 +213,7 @@ class PanelAccesoTests(TestCase):
     """HU-10 y seguridad del panel: solo Administrador entra, nunca 200 para otros."""
 
     def setUp(self):
-        self.tipo_documento = TipoDocumento.objects.get(nombre='Cédula de ciudadanía')
+        self.tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
         self.admin = crear_usuario('1111111111', self.tipo_documento)
         self.admin.groups.add(Group.objects.get(name='Administrador'))
         self.paciente = crear_usuario('2222222222', self.tipo_documento)
@@ -265,7 +265,7 @@ class PanelMedicoRegistroTests(TestCase):
     """HU-11: registrar médicos desde el panel del Administrador."""
 
     def setUp(self):
-        self.tipo_documento = TipoDocumento.objects.get(nombre='Cédula de ciudadanía')
+        self.tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
         self.especialidad = Especialidad.objects.get(nombre='Medicina general')
         self.admin = crear_usuario('1111111111', self.tipo_documento)
         self.admin.groups.add(Group.objects.get(name='Administrador'))
@@ -356,7 +356,7 @@ class PanelMedicoEdicionTests(TestCase):
     """HU-12: editar/desactivar médicos."""
 
     def setUp(self):
-        self.tipo_documento = TipoDocumento.objects.get(nombre='Cédula de ciudadanía')
+        self.tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
         self.especialidad = Especialidad.objects.get(nombre='Medicina general')
         self.admin = crear_usuario('1111111111', self.tipo_documento)
         self.admin.groups.add(Group.objects.get(name='Administrador'))
@@ -420,7 +420,7 @@ class PanelMedicoHorarioTests(TestCase):
     """HU-14: horario recurrente del médico, gestionado desde el panel."""
 
     def setUp(self):
-        self.tipo_documento = TipoDocumento.objects.get(nombre='Cédula de ciudadanía')
+        self.tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
         self.especialidad = Especialidad.objects.get(nombre='Medicina general')
         self.admin = crear_usuario('1111111111', self.tipo_documento)
         self.admin.groups.add(Group.objects.get(name='Administrador'))

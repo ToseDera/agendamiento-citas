@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Médicos - MedSync Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary": "#ffffff",
+                    "surface-container": "#e9edff",
+                    "on-background": "#081a3d",
+                    "secondary-fixed": "#d0e4ff",
+                    "on-secondary": "#ffffff",
+                    "surface-variant": "#d9e2ff",
+                    "secondary-container": "#8fc5ff",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-container": "#fcfcff",
+                    "on-secondary-fixed-variant": "#004a79",
+                    "on-error": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-container": "#3174ce",
+                    "primary-fixed-dim": "#a9c7ff",
+                    "primary": "#005bb2",
+                    "surface-container-high": "#e1e8ff",
+                    "on-primary-fixed-variant": "#00468c",
+                    "on-tertiary-fixed": "#071e2b",
+                    "tertiary-fixed-dim": "#b4c9dc",
+                    "surface-bright": "#faf8ff",
+                    "primary-fixed": "#d6e3ff",
+                    "background": "#faf8ff",
+                    "inverse-surface": "#202f53",
+                    "tertiary-fixed": "#cfe5f8",
+                    "secondary-fixed-dim": "#9bcbff",
+                    "tertiary-container": "#627788",
+                    "surface-dim": "#cdd9ff",
+                    "surface": "#faf8ff",
+                    "on-surface": "#081a3d",
+                    "on-primary-fixed": "#001b3d",
+                    "inverse-on-surface": "#edf0ff",
+                    "on-tertiary-fixed-variant": "#354958",
+                    "outline": "#727783",
+                    "on-error-container": "#93000a",
+                    "on-secondary-container": "#055285",
+                    "surface-container-highest": "#d9e2ff",
+                    "tertiary": "#4a5e6e",
+                    "secondary": "#236296",
+                    "on-tertiary": "#ffffff",
+                    "on-surface-variant": "#424752",
+                    "on-primary-container": "#fefcff",
+                    "inverse-primary": "#a9c7ff",
+                    "outline-variant": "#c2c6d4",
+                    "on-secondary-fixed": "#001d34",
+                    "surface-tint": "#055db6",
+                    "surface-container-low": "#f2f3ff",
+                    "error": "#ba1a1a",
+                    // Added custom colors from prompt constraint where they don't map perfectly to tokens, 
+                    // though trying to use tokens where possible.
+                    "app-bg": "#F6FBFF", 
+                    "app-nav": "#1D2D50",
+                    "app-btn": "#3A7BD5",
+                    "app-btn-sec": "#D6ECFF"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xs": "4px",
+                    "md": "24px",
+                    "margin-mobile": "16px",
+                    "base": "8px",
+                    "sm": "12px",
+                    "xl": "80px",
+                    "margin-desktop": "64px",
+                    "gutter": "24px",
+                    "lg": "48px"
+            },
+            "fontFamily": {
+                    "label-sm": ["Inter", "sans-serif"],
+                    "headline-xl": ["Inter", "sans-serif"],
+                    "body-md": ["Inter", "sans-serif"],
+                    "headline-md": ["Inter", "sans-serif"],
+                    "label-md": ["Inter", "sans-serif"],
+                    "headline-lg-mobile": ["Inter", "sans-serif"],
+                    "headline-lg": ["Inter", "sans-serif"],
+                    "body-lg": ["Inter", "sans-serif"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-xl": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body {
+            background-color: #F6FBFF; /* Specific background from prompt */
+        }
+        
+        /* Ambient Shadows */
+        .card-shadow {
+            box-shadow: 0px 4px 20px rgba(8, 26, 61, 0.05); /* Using on-background for neutral tint */
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface antialiased min-h-screen flex flex-col">
+<!-- TopNavBar Component -->
+<!-- JSON Specs: style_bg_color: bg-secondary dark:bg-on-secondary-fixed-variant (overriding with specific prompt #1D2D50), 
+         style_shell_layout: flex justify-between items-center w-full px-margin-desktop py-4 -->
+<header class="bg-[#1D2D50] text-on-primary docked full-width top-0 shadow-sm flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 sticky z-50">
+<!-- Brand -->
+<div class="flex items-center gap-sm cursor-pointer active:scale-95 transition-transform">
+<img alt="MedSync Logo" class="h-8 md:h-10 object-contain brightness-0 invert" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBp3hHXQWDotoV69SETZVGVCKlySVskkvcEg2Fs_88gUXfFwc2_OJlzcetQmjYaWPaYF5lXCZWgEnBHzMtt312SERc1INEXRu3vNBi93dnmI8yfho5k6QElUuMtrZCv2KQKTurk6m7pYPgECHA1lyiMcFQcQRfNh4V-S30ju7auL2zqi1RmdpDVP7LBohbaZWnKvHRAJkJ_aqJMt8NmIaKVAFY9kIIbAYUfSDRvbp7jnnzMirt2vEG-gtpkTOzjS9gBYr4"/>
+</div>
+<!-- Desktop Navigation -->
+<nav class="hidden md:flex items-center gap-lg">
+<a class="text-on-primary/80 font-medium font-label-md text-label-md hover:text-on-primary hover:bg-primary-container/20 transition-colors px-3 py-2 rounded-md" href="#">Panel</a>
+<a class="text-on-primary/80 font-medium font-label-md text-label-md hover:text-on-primary hover:bg-primary-container/20 transition-colors px-3 py-2 rounded-md" href="#">Especialidades</a>
+<a class="text-on-primary border-b-2 border-on-primary pb-1 font-bold font-label-md text-label-md hover:text-on-primary hover:bg-primary-container/20 transition-colors px-3 py-2" href="#">Médicos</a>
+</nav>
+<!-- Trailing Action -->
+<div class="hidden md:flex items-center">
+<button class="font-label-md text-label-md text-on-primary hover:text-on-primary hover:bg-primary-container/20 transition-colors px-4 py-2 rounded-md cursor-pointer active:scale-95 transition-transform flex items-center gap-xs">
+                Cerrar Sesión
+             </button>
+</div>
+<!-- Mobile Menu Toggle -->
+<button class="md:hidden text-on-primary p-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">menu</span>
+</button>
+</header>
+<!-- Main Content Layout -->
+<main class="flex-1 w-full max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop py-lg flex flex-col gap-md">
+<!-- Breadcrumb -->
+<nav aria-label="Breadcrumb" class="flex items-center text-on-surface-variant font-label-md text-label-md">
+<a class="hover:text-primary transition-colors" href="#">Panel</a>
+<span class="material-symbols-outlined mx-2 text-[16px]">chevron_right</span>
+<span class="font-semibold text-on-surface">Médicos</span>
+</nav>
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-md mb-sm">
+<div>
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">Médicos</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs">Gestión y administración del personal médico.</p>
+</div>
+<button class="bg-[#3A7BD5] hover:bg-primary-container text-white font-label-md text-label-md px-6 py-3 rounded-lg flex items-center justify-center gap-xs shadow-sm hover:shadow-md transition-all active:scale-95 w-full md:w-auto">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                Registrar médico
+            </button>
+</div>
+<!-- Data Table Card -->
+<div class="bg-white rounded-xl border border-[#D6ECFF] card-shadow overflow-hidden">
+<!-- Filters / Search (Optional enhancement for professional feel) -->
+<div class="p-md border-b border-[#D6ECFF] flex flex-col md:flex-row gap-sm justify-between items-center bg-[#F6FBFF]/50">
+<div class="relative w-full md:w-96">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-10 pr-4 py-3 bg-white border border-[#D6ECFF] rounded-lg font-body-md text-body-md focus:outline-none focus:border-[#3A7BD5] focus:ring-1 focus:ring-[#3A7BD5] transition-colors h-[48px]" placeholder="Buscar por nombre o cédula..." type="text"/>
+</div>
+<div class="flex gap-sm w-full md:w-auto">
+<button class="flex items-center gap-xs px-4 py-2 border border-[#D6ECFF] bg-white rounded-lg font-label-md text-label-md text-on-surface hover:bg-[#F6FBFF] transition-colors w-full md:w-auto justify-center">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                        Filtros
+                    </button>
+</div>
+</div>
+<!-- Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-[#D6ECFF] font-label-md text-label-md text-[#1D2D50]">
+<tr>
+<th class="px-md py-4 font-semibold whitespace-nowrap">Nombre</th>
+<th class="px-md py-4 font-semibold whitespace-nowrap">Cédula</th>
+<th class="px-md py-4 font-semibold whitespace-nowrap">Especialidad</th>
+<th class="px-md py-4 font-semibold whitespace-nowrap">Estado</th>
+<th class="px-md py-4 font-semibold text-right whitespace-nowrap">Acciones</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface divide-y divide-[#D6ECFF] bg-white">
+<!-- Row 1 -->
+<tr class="hover:bg-[#F6FBFF]/50 transition-colors group">
+<td class="px-md py-4 whitespace-nowrap">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-[#D6ECFF] flex items-center justify-center text-[#1D2D50] font-bold font-label-md">
+                                        CA
+                                    </div>
+<span class="font-medium">Dr. Camilo Arboleda</span>
+</div>
+</td>
+<td class="px-md py-4 whitespace-nowrap text-on-surface-variant">1023456789</td>
+<td class="px-md py-4 whitespace-nowrap">Cardiología</td>
+<td class="px-md py-4 whitespace-nowrap">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    Activo
+                                </span>
+</td>
+<td class="px-md py-4 whitespace-nowrap text-right">
+<div class="flex items-center justify-end gap-sm font-label-md text-label-md">
+<button class="text-primary hover:text-primary-container transition-colors p-1 flex items-center gap-xs" title="Editar">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+<span class="hidden lg:inline">Editar</span>
+</button>
+<button class="text-primary hover:text-primary-container transition-colors p-1 flex items-center gap-xs" title="Horario">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+<span class="hidden lg:inline">Horario</span>
+</button>
+<button class="text-error hover:text-on-error-container transition-colors p-1 flex items-center gap-xs" title="Desactivar">
+<span class="material-symbols-outlined text-[18px]">block</span>
+<span class="hidden lg:inline">Desactivar</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-[#F6FBFF]/50 transition-colors group">
+<td class="px-md py-4 whitespace-nowrap">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-[#D6ECFF] flex items-center justify-center text-[#1D2D50] font-bold font-label-md">
+                                        MR
+                                    </div>
+<span class="font-medium">Dra. María Rodríguez</span>
+</div>
+</td>
+<td class="px-md py-4 whitespace-nowrap text-on-surface-variant">1098765432</td>
+<td class="px-md py-4 whitespace-nowrap">Pediatría</td>
+<td class="px-md py-4 whitespace-nowrap">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    Activo
+                                </span>
+</td>
+<td class="px-md py-4 whitespace-nowrap text-right">
+<div class="flex items-center justify-end gap-sm font-label-md text-label-md">
+<button class="text-primary hover:text-primary-container transition-colors p-1 flex items-center gap-xs" title="Editar">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+<span class="hidden lg:inline">Editar</span>
+</button>
+<button class="text-primary hover:text-primary-container transition-colors p-1 flex items-center gap-xs" title="Horario">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+<span class="hidden lg:inline">Horario</span>
+</button>
+<button class="text-error hover:text-on-error-container transition-colors p-1 flex items-center gap-xs" title="Desactivar">
+<span class="material-symbols-outlined text-[18px]">block</span>
+<span class="hidden lg:inline">Desactivar</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-[#F6FBFF]/50 transition-colors group">
+<td class="px-md py-4 whitespace-nowrap">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-[#D6ECFF] flex items-center justify-center text-[#1D2D50] font-bold font-label-md">
+                                        JP
+                                    </div>
+<span class="font-medium">Dr. Juan Pérez</span>
+</div>
+</td>
+<td class="px-md py-4 whitespace-nowrap text-on-surface-variant">1122334455</td>
+<td class="px-md py-4 whitespace-nowrap">Neurología</td>
+<td class="px-md py-4 whitespace-nowrap">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+                                    Inactivo
+                                </span>
+</td>
+<td class="px-md py-4 whitespace-nowrap text-right">
+<div class="flex items-center justify-end gap-sm font-label-md text-label-md">
+<button class="text-primary hover:text-primary-container transition-colors p-1 flex items-center gap-xs" title="Editar">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+<span class="hidden lg:inline">Editar</span>
+</button>
+<button class="text-primary hover:text-primary-container transition-colors p-1 flex items-center gap-xs" title="Horario">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+<span class="hidden lg:inline">Horario</span>
+</button>
+<button class="text-primary hover:text-primary-container transition-colors p-1 flex items-center gap-xs" title="Activar">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+<span class="hidden lg:inline">Activar</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="p-md border-t border-[#D6ECFF] flex items-center justify-between bg-white">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Mostrando 1 a 3 de 24 médicos</span>
+<div class="flex gap-xs">
+<button class="w-8 h-8 flex items-center justify-center rounded border border-[#D6ECFF] text-on-surface-variant hover:bg-[#F6FBFF] disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded bg-[#3A7BD5] text-white font-label-sm text-label-sm">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-[#D6ECFF] text-on-surface hover:bg-[#F6FBFF] font-label-sm text-label-sm">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-[#D6ECFF] text-on-surface hover:bg-[#F6FBFF] font-label-sm text-label-sm">3</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-[#D6ECFF] text-on-surface-variant hover:bg-[#F6FBFF]">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

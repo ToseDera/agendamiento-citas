@@ -1,9 +1,14 @@
 from datetime import date
 
+# pyrefly: ignore [missing-import]
 from django import forms
+# pyrefly: ignore [missing-import]
 from django.contrib.auth.forms import UserCreationForm
+# pyrefly: ignore [missing-import]
 from django.contrib.auth.models import Group
+# pyrefly: ignore [missing-import]
 from django.core.exceptions import ValidationError
+# pyrefly: ignore [missing-import]
 from django.db import transaction
 
 from citas.models import DIAS_SEMANA, Especialidad, HorarioMedico
@@ -90,10 +95,6 @@ class RegistroForm(UserCreationForm):
 
     def clean_numero_documento(self):
         numero_documento = self.cleaned_data['numero_documento']
-        if not numero_documento.isdigit():
-            raise ValidationError('El número de documento solo debe contener dígitos.')
-        if not (6 <= len(numero_documento) <= 15):
-            raise ValidationError('El número de documento debe tener entre 6 y 15 dígitos.')
         if Usuario.objects.filter(username=numero_documento).exists():
             raise ValidationError('Ya existe una cuenta con este número de documento.')
         return numero_documento
@@ -108,10 +109,44 @@ class RegistroForm(UserCreationForm):
         cleaned_data = super().clean()
         tipo_documento = cleaned_data.get('tipo_documento')
         numero_documento = cleaned_data.get('numero_documento')
-        if tipo_documento and numero_documento and Usuario.objects.filter(
-            tipo_documento=tipo_documento, numero_documento=numero_documento,
-        ).exists():
-            self.add_error('numero_documento', 'Ya existe una cuenta con este número de documento.')
+        
+        if tipo_documento and numero_documento:
+            if Usuario.objects.filter(
+                tipo_documento=tipo_documento, numero_documento=numero_documento,
+            ).exists():
+                self.add_error('numero_documento', 'Ya existe una cuenta con este número de documento.')
+                
+            doc_name = tipo_documento.nombre
+            length = len(numero_documento)
+            
+            if doc_name == 'Cédula de Ciudadanía (CC)':
+                if not numero_documento.isdigit():
+                    self.add_error('numero_documento', 'La Cédula de Ciudadanía solo debe contener números.')
+                elif not (5 <= length <= 10):
+                    self.add_error('numero_documento', 'La Cédula de Ciudadanía debe tener entre 5 y 10 dígitos.')
+            elif doc_name == 'Tarjeta de Identidad (TI)':
+                if not numero_documento.isdigit():
+                    self.add_error('numero_documento', 'La Tarjeta de Identidad solo debe contener números.')
+                elif not (10 <= length <= 11):
+                    self.add_error('numero_documento', 'La Tarjeta de Identidad debe tener entre 10 y 11 dígitos.')
+            elif doc_name == 'Cédula de Extranjería (CE)':
+                if not numero_documento.isdigit():
+                    self.add_error('numero_documento', 'La Cédula de Extranjería solo debe contener números.')
+                elif not (6 <= length <= 8):
+                    self.add_error('numero_documento', 'La Cédula de Extranjería debe tener entre 6 y 8 dígitos.')
+            elif doc_name == 'Permiso Especial (PPT)':
+                if not numero_documento.isdigit():
+                    self.add_error('numero_documento', 'El Permiso Especial solo debe contener números.')
+                elif not (6 <= length <= 8):
+                    self.add_error('numero_documento', 'El Permiso Especial debe tener entre 6 y 8 dígitos.')
+            elif doc_name == 'Pasaporte (PA)':
+                if not numero_documento.isalnum():
+                    self.add_error('numero_documento', 'El Pasaporte solo debe contener letras y números.')
+                elif not (6 <= length <= 16):
+                    self.add_error('numero_documento', 'El Pasaporte debe tener entre 6 y 16 caracteres.')
+                else:
+                    cleaned_data['numero_documento'] = numero_documento.upper()
+                    
         return cleaned_data
 
     def save(self, commit=True):

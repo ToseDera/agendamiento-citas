@@ -1,26 +1,45 @@
 {% extends "base.html" %}
 
-{% block title %}Agendar cita - MedSync{% endblock %}
+{% block title %}Agendar Cita - Especialidades | MedSync{% endblock %}
 
 {% block content %}
-<div class="min-h-screen p-margin-mobile md:p-margin-desktop">
-<div class="max-w-container-max mx-auto">
-<h1 class="font-headline-lg text-headline-lg text-primary mb-stack-sm">Agendar una cita</h1>
-<p class="font-body-md text-body-md text-on-surface-variant mb-stack-lg">Elige la especialidad que necesitas.</p>
+<div class="max-w-4xl mx-auto mb-lg text-center md:text-left">
+<h1 class="font-headline-xl text-headline-xl text-on-background mb-sm">Agendar una cita</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Elige la especialidad que necesitas.</p>
+</div>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-stack-md">
+<!-- Specialty Grid Bento Style -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter max-w-6xl mx-auto">
 {% for especialidad in especialidades %}
-<a class="block p-stack-lg bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_10px_30px_rgba(0,0,0,0.1)] transition-shadow" href="{% url 'agendar_medicos' especialidad.pk %}">
-<h2 class="font-headline-md text-headline-md text-on-surface mb-stack-sm">{{ especialidad.nombre }}</h2>
-{% if especialidad.descripcion %}
-<p class="font-body-md text-body-md text-on-surface-variant mb-stack-sm">{{ especialidad.descripcion }}</p>
+<!-- Card -->
+<a href="{% url 'agendar_medicos' especialidad.pk %}" class="bg-surface-container-lowest rounded-xl p-md text-left flex flex-col justify-between h-full shadow-[0_4px_20px_rgba(8,26,61,0.05)] hover:-translate-y-1 hover:border-[#3A7BD5] hover:shadow-[0_12px_32px_rgba(8,26,61,0.1)] transition-all duration-300 border border-transparent focus:outline-none focus:ring-2 focus:ring-primary block cursor-pointer">
+<div>
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">
+{% if 'cardio' in especialidad.nombre|lower %}cardiology
+{% elif 'neur' in especialidad.nombre|lower %}psychiatry
+{% elif 'orto' in especialidad.nombre|lower %}orthopedics
+{% elif 'oftal' in especialidad.nombre|lower %}visibility
+{% elif 'pediat' in especialidad.nombre|lower %}child_care
+{% elif 'derma' in especialidad.nombre|lower %}dermatology
+{% else %}medical_services
 {% endif %}
-<p class="font-label-sm text-label-sm text-secondary">Duración: {{ especialidad.duracion_cita_min }} min</p>
+</span>
+</div>
+<span class="bg-[#D6ECFF] text-[#3A7BD5] px-3 py-1 rounded-full font-label-sm text-label-sm">{{ especialidad.duracion_cita_min }} min</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-2">{{ especialidad.nombre }}</h3>
+{% if especialidad.descripcion %}
+<p class="font-body-md text-body-md text-on-surface-variant">{{ especialidad.descripcion }}</p>
+{% endif %}
+</div>
 </a>
 {% empty %}
+<div class="col-span-1 md:col-span-2 lg:col-span-3 text-center py-lg bg-surface-container-lowest rounded-xl shadow-soft">
+<span class="material-symbols-outlined text-[48px] text-tertiary mb-4">event_busy</span>
 <p class="font-body-md text-body-md text-on-surface-variant">No hay especialidades disponibles por el momento.</p>
+</div>
 {% endfor %}
-</div>
-</div>
 </div>
 {% endblock %}

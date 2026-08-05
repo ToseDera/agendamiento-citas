@@ -3,119 +3,234 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>{% block title %}MedSync{% endblock %}</title>
+<title>{% block title %}MediClick{% endblock %}</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    "colors": {
-                        "primary-fixed-dim": "#a9c7ff",
-                        "secondary-fixed": "#7af6eb",
-                        "surface-variant": "#d8e3fa",
-                        "secondary": "#006a64",
-                        "on-tertiary": "#ffffff",
-                        "on-error-container": "#93000a",
-                        "surface": "#f9f9ff",
-                        "secondary-container": "#77f4e8",
-                        "primary": "#00478d",
-                        "surface-container-lowest": "#ffffff",
-                        "tertiary-fixed": "#dfe3e7",
-                        "tertiary": "#43484c",
-                        "surface-bright": "#f9f9ff",
-                        "on-surface": "#111c2c",
-                        "on-primary-fixed": "#001b3d",
-                        "error": "#ba1a1a",
-                        "tertiary-fixed-dim": "#c3c7cb",
-                        "on-primary-container": "#c8daff",
-                        "primary-container": "#005eb8",
-                        "inverse-primary": "#a9c7ff",
-                        "surface-container-high": "#dee8ff",
-                        "surface-tint": "#005db6",
-                        "on-error": "#ffffff",
-                        "background": "#f9f9ff",
-                        "on-surface-variant": "#424752",
-                        "on-tertiary-container": "#d6dade",
-                        "on-tertiary-fixed": "#171c1f",
-                        "outline-variant": "#c2c6d4",
-                        "inverse-surface": "#263142",
-                        "surface-container": "#e7eeff",
-                        "on-secondary-fixed": "#00201d",
-                        "on-primary": "#ffffff",
-                        "on-secondary-fixed-variant": "#00504b",
-                        "primary-fixed": "#d6e3ff",
-                        "on-primary-fixed-variant": "#00468c",
-                        "on-background": "#111c2c",
-                        "surface-dim": "#cfdaf1",
-                        "on-secondary": "#ffffff",
-                        "outline": "#727783",
-                        "surface-container-low": "#f0f3ff",
-                        "surface-container-highest": "#d8e3fa",
-                        "error-container": "#ffdad6",
-                        "tertiary-container": "#5b6063",
-                        "secondary-fixed-dim": "#5adacf",
-                        "on-tertiary-fixed-variant": "#43474b",
-                        "on-secondary-container": "#006f68",
-                        "inverse-on-surface": "#ebf1ff"
-                    },
-                    "borderRadius": {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
-                    },
-                    "spacing": {
-                        "unit": "4px",
-                        "stack-md": "16px",
-                        "gutter": "24px",
-                        "stack-sm": "8px",
-                        "stack-lg": "32px",
-                        "margin-mobile": "16px",
-                        "margin-desktop": "40px",
-                        "container-max": "1280px"
-                    },
-                    "fontFamily": {
-                        "label-md": ["Inter"],
-                        "headline-lg-mobile": ["Inter"],
-                        "label-sm": ["Inter"],
-                        "headline-md": ["Inter"],
-                        "headline-lg": ["Inter"],
-                        "body-lg": ["Inter"],
-                        "body-md": ["Inter"],
-                        "display-lg": ["Inter"]
-                    },
-                    "fontSize": {
-                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500" }],
-                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
-                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "600" }],
-                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
-                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
-                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
-                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
-                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
-                    }
-                }
-            }
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "surface-bright": "#faf8ff",
+                "on-primary": "#ffffff",
+                "secondary-fixed-dim": "#9bcbff",
+                "primary": "#005bb2",
+                "on-tertiary-fixed-variant": "#354958",
+                "tertiary-fixed-dim": "#b4c9dc",
+                "on-secondary-container": "#055285",
+                "on-primary-container": "#fefcff",
+                "secondary": "#236296",
+                "on-primary-fixed": "#001b3d",
+                "secondary-fixed": "#d0e4ff",
+                "inverse-on-surface": "#edf0ff",
+                "surface": "#faf8ff",
+                "inverse-primary": "#a9c7ff",
+                "tertiary-fixed": "#cfe5f8",
+                "primary-fixed-dim": "#a9c7ff",
+                "surface-container-highest": "#d9e2ff",
+                "surface-container-low": "#f2f3ff",
+                "tertiary-container": "#627788",
+                "on-primary-fixed-variant": "#00468c",
+                "error": "#ba1a1a",
+                "surface-variant": "#d9e2ff",
+                "surface-dim": "#cdd9ff",
+                "primary-fixed": "#d6e3ff",
+                "on-secondary-fixed": "#001d34",
+                "on-surface-variant": "#424752",
+                "on-error": "#ffffff",
+                "on-secondary": "#ffffff",
+                "surface-tint": "#055db6",
+                "background": "#faf8ff",
+                "tertiary": "#4a5e6e",
+                "on-error-container": "#93000a",
+                "surface-container": "#e9edff",
+                "primary-container": "#3174ce",
+                "outline": "#727783",
+                "on-tertiary-fixed": "#071e2b",
+                "on-surface": "#081a3d",
+                "on-tertiary-container": "#fcfcff",
+                "on-tertiary": "#ffffff",
+                "on-secondary-fixed-variant": "#004a79",
+                "surface-container-high": "#e1e8ff",
+                "inverse-surface": "#202f53",
+                "error-container": "#ffdad6",
+                "outline-variant": "#c2c6d4",
+                "surface-container-lowest": "#ffffff",
+                "secondary-container": "#8fc5ff",
+                "on-background": "#081a3d",
+                "brand-primary": "#3A7BD5"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "xs": "4px",
+                "margin-desktop": "64px",
+                "lg": "48px",
+                "margin-mobile": "16px",
+                "gutter": "24px",
+                "base": "8px",
+                "xl": "80px",
+                "sm": "12px",
+                "md": "24px"
+        },
+        "fontFamily": {
+                "headline-md": ["Inter"],
+                "headline-xl": ["Inter"],
+                "body-md": ["Inter"],
+                "headline-lg-mobile": ["Inter"],
+                "label-md": ["Inter"],
+                "label-sm": ["Inter"],
+                "headline-lg": ["Inter"],
+                "body-lg": ["Inter"]
         }
-    </script>
+      }
+    }
+  }
+</script>
 <style>
-        body { font-family: 'Inter', sans-serif; }
-    </style>
+        /* Shared utility classes from 403 design */
+        .shadow-soft { box-shadow: 0px 4px 20px rgba(8, 26, 61, 0.05); }
+        .bg-f6fbff { background-color: #F6FBFF; }
+        .text-1d2d50 { color: #1D2D50; }
+        .text-8ec5ff { color: #8EC5FF; }
+        .text-c0392b { color: #c0392b; }
+        .bg-fee2e2 { background-color: #fee2e2; }
+        .border-c0392b { border-color: #c0392b; }
+        .bg-3a7bd5 { background-color: #3A7BD5; }
+        .border-d6ecff { border-color: #D6ECFF; }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #F6FBFF;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* Global styling for Django generated form fields */
+        main input[type="text"], 
+        main input[type="date"], 
+        main select, 
+        main input[type="tel"], 
+        main input[type="email"], 
+        main input[type="password"],
+        main input[type="time"],
+        main input[type="number"] {
+            border: 1px solid #c2c6d4; /* outline-variant */
+            border-radius: 0.5rem;
+            height: 56px;
+            padding-left: 1rem;
+            padding-right: 1rem;
+            width: 100%;
+            transition: all 0.2s ease-in-out;
+            background-color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            color: #081a3d;
+        }
+        main input:focus, main select:focus {
+            outline: none;
+            border-color: #3174ce; /* primary-container */
+            box-shadow: 0 0 0 4px #8fc5ff; /* secondary-container */
+        }
+        .input-icon-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            color: #727783; /* outline */
+            pointer-events: none;
+        }
+        .input-icon-wrapper input {
+            padding-left: 3rem !important;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.25rem;
+            color: #081a3d; /* on-surface */
+        }
+</style>
 {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-background text-on-background min-h-screen">
+<body class="bg-background min-h-screen font-body-md text-on-surface antialiased">
+<div class="flex flex-col min-h-screen">
+{% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'registro' %}
+<!-- TopNavBar -->
+<header class="bg-[#1D2D50] shadow-sm sticky top-0 z-50">
+<div class="flex justify-between items-center h-20 w-full px-margin-mobile md:px-margin-desktop mx-auto max-w-[1440px]">
+<!-- Brand -->
+<div class="flex items-center gap-sm">
+<img class="h-16 md:h-20 object-contain drop-shadow-md" data-alt="MediClick logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkzLopG8aIBnR-OOFRTCDDqw3qEWmZ0Wq4w5I3XCvtX-B3H5PexrWNHYLqBSxi9p9UylyG8pDDcWOClOZVdRGQeIXINXpi-5GwpA0JblKrZ5BriJfXRj82c5Xz4hTJ1Su-ZeCOhlTNdFa2VCd_sug9jjr5dTTuEs3aFneJcn17skr_oI04MJm4lzzyXbSflS3ct60SSMRi8eKTIDJ0xT0OPDTNFtZyJ0-T-weruiJmypifc16sMWqRwNa7fR7fVTcQTkE"/>
+<span class="font-headline-md text-headline-md font-bold text-white hidden sm:block">MediClick</span>
+</div>
+<!-- Desktop Navigation -->
+<nav class="hidden md:flex items-center gap-lg">
+{% if user.is_authenticated and user.rol == 'ADMINISTRADOR' %}
+<a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if request.resolver_match.url_name == 'inicio' or request.resolver_match.url_name == 'panel_home' %}border-b-2 border-white{% endif %}" href="{% url 'inicio' %}">Panel</a>
+<a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if 'especialidad' in request.resolver_match.url_name %}border-b-2 border-white{% endif %}" href="{% url 'panel_especialidades' %}">Especialidades</a>
+<a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if 'medico' in request.resolver_match.url_name %}border-b-2 border-white{% endif %}" href="{% url 'panel_medicos' %}">Médicos</a>
+{% elif user.is_authenticated %}
+<a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if request.resolver_match.url_name == 'inicio' %}border-b-2 border-white{% endif %}" href="{% url 'inicio' %}">Inicio</a>
+<a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if 'agendar_' in request.resolver_match.url_name %}border-b-2 border-white{% endif %}" href="{% url 'agendar_especialidades' %}">Especialidades</a>
+{% endif %}
+</nav>
+<!-- Actions -->
+<div class="flex items-center">
+{% if user.is_authenticated %}
+<form action="{% url 'logout' %}" method="post" class="m-0 p-0 hidden md:block">
+    {% csrf_token %}
+    <button type="submit" class="px-6 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10 transition-colors font-label-md text-label-md focus:ring-2 focus:ring-primary-fixed focus:outline-none">
+        Cerrar sesión
+    </button>
+</form>
+{% else %}
+<a href="{% url 'login' %}" class="px-6 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10 transition-colors font-label-md text-label-md focus:ring-2 focus:ring-primary-fixed focus:outline-none hidden md:block">Iniciar sesión</a>
+{% endif %}
+<button class="md:hidden text-white p-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">menu</span>
+</button>
+</div>
+</div>
+</header>
+{% endif %}
+
 {% if messages %}
-<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop pt-stack-md flex flex-col gap-stack-sm">
+<div class="w-full max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop pt-stack-md flex flex-col gap-sm mt-4">
 {% for message in messages %}
-<div class="rounded-lg px-4 py-3 font-label-md text-label-md{% if message.tags == 'success' %} bg-secondary-container text-on-secondary-container{% elif message.tags == 'error' %} bg-error-container text-error{% elif message.tags == 'warning' %} bg-tertiary-container text-on-tertiary-container{% else %} bg-surface-container text-on-surface-variant{% endif %}">
+<div class="rounded-lg px-4 py-3 font-label-md text-label-md{% if message.tags == 'success' %} bg-[#e8f5e9] text-[#1a7f5a]{% elif message.tags == 'error' %} bg-[#ffebee] text-[#c0392b]{% elif message.tags == 'warning' %} bg-tertiary-container text-on-tertiary-container{% else %} bg-surface-container text-on-surface-variant{% endif %}">
 {{ message }}
 </div>
 {% endfor %}
 </div>
 {% endif %}
+
+<!-- Main Content -->
+<main class="flex-grow w-full {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'registro' %}max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop py-md md:py-xl{% endif %}">
 {% block content %}{% endblock %}
+</main>
+
+{% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'registro' %}
+<!-- Footer -->
+<footer class="bg-background dark:bg-surface-dim border-t border-outline-variant w-full mt-auto">
+<div class="flex flex-col md:flex-row justify-between items-center py-lg px-margin-mobile md:px-margin-desktop mx-auto max-w-[1440px]">
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-4 md:mb-0">© 2026 MediClick Clinical Order. All rights reserved.</p>
+<div class="flex items-center gap-md">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Soporte</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Privacidad</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Términos</a>
+</div>
+</div>
+</footer>
+{% endif %}
+</div>
 </body>
 </html>
