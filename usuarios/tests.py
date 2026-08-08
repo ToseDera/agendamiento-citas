@@ -174,6 +174,18 @@ class LoginTests(TestCase):
         })
         self.assertRedirects(response, reverse('inicio'))
 
+    def test_login_ida_y_vuelta_con_los_campos_reales_del_html(self):
+        respuesta_get = self.client.get(reverse('login'))
+        html = respuesta_get.content.decode()
+        datos = datos_formulario_reales(html)
+        datos.update({
+            'username': '1000123456',
+            'password': 'ClaveSegura123',
+        })
+
+        respuesta_post = self.client.post(reverse('login'), datos)
+        self.assertRedirects(respuesta_post, reverse('inicio'))
+
 
 class InicioViewTests(TestCase):
     def test_usuario_anonimo_es_redirigido_a_login(self):
