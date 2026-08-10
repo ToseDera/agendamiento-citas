@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 from django import forms
 
 from usuarios.forms import INPUT_CLASS
@@ -13,7 +14,7 @@ class EspecialidadForm(forms.ModelForm):
             'nombre': forms.TextInput(attrs={'class': INPUT_CLASS}),
             'descripcion': forms.TextInput(attrs={'class': INPUT_CLASS}),
             'duracion_cita_min': forms.NumberInput(attrs={'class': INPUT_CLASS, 'min': 10, 'max': 120}),
-            'activa': forms.CheckboxInput(attrs={'class': 'h-5 w-5 rounded border-outline-variant text-primary'}),
+            'activa': forms.CheckboxInput(attrs={'class': 'peer sr-only'}),
         }
         labels = {
             'nombre': 'Nombre',

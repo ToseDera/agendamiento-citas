@@ -57,8 +57,8 @@
 <!-- Duración de la cita -->
 <div>
 <label class="block font-label-md text-label-md text-[#1D2D50] mb-1" for="{{ form.duracion_cita_min.id_for_label }}">Duración de la cita (minutos)</label>
-<div class="relative">
-<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#627788] z-10">schedule</span>
+<div class="input-icon-wrapper relative">
+<span class="material-symbols-outlined input-icon">schedule</span>
 {{ form.duracion_cita_min }}
 </div>
 {% for error in form.duracion_cita_min.errors %}
