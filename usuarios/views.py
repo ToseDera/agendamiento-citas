@@ -24,8 +24,7 @@ def registro(request):
 def inicio(request):
     if es_administrador(request.user):
         return redirect('panel_home')
-    es_paciente = request.user.groups.filter(name='Paciente').exists()
-    return render(request, 'inicio.html', {'es_paciente': es_paciente})
+    return render(request, 'inicio.html')
 
 
 @admin_required

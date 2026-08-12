@@ -1,17 +1,25 @@
 {% extends "base.html" %}
 
-{% block title %}{% if modo == 'editar' %}Editar médico{% else %}Registrar médico{% endif %} - Panel MedSync{% endblock %}
+{% block title %}{% if modo == 'editar' %}Editar médico{% else %}Registrar médico{% endif %} - Panel MediClick{% endblock %}
 
 {% block content %}
-<div class="min-h-screen p-margin-mobile md:p-margin-desktop">
-<div class="max-w-container-max mx-auto">
-{% include "panel/_nav.html" %}
+<div class="w-full max-w-[760px] mx-auto flex flex-col gap-lg">
+<!-- Header Section -->
+<div class="flex flex-col gap-sm">
+<!-- Breadcrumb -->
+<nav class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-xs">
+<a class="hover:text-primary transition-colors" href="{% url 'inicio' %}">Panel</a>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<a class="hover:text-primary transition-colors" href="{% url 'panel_medicos' %}">Médicos</a>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="text-on-surface">{% if modo == 'editar' %}Editar médico{% else %}Registrar médico{% endif %}</span>
+</nav>
+<!-- Title -->
+<h1 class="font-headline-lg text-headline-lg text-[#1D2D50]">{% if modo == 'editar' %}Editar médico{% else %}Registrar médico{% endif %}</h1>
+</div>
 
-<h1 class="font-headline-lg text-headline-lg text-primary mb-stack-lg">
-{% if modo == 'editar' %}Editar médico{% else %}Registrar médico{% endif %}
-</h1>
-
-<div class="max-w-xl bg-surface-container-lowest p-stack-lg rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)]">
+<!-- Form Card -->
+<div class="bg-surface-container-lowest rounded-xl shadow-soft p-lg w-full border border-[#D6ECFF]">
 {% if form.non_field_errors %}
 <div class="mb-6 rounded-lg bg-error-container px-4 py-3">
 {% for error in form.non_field_errors %}
@@ -19,21 +27,49 @@
 {% endfor %}
 </div>
 {% endif %}
-
-<form method="post">
+<form method="post" class="flex flex-col gap-md">
 {% csrf_token %}
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
 {% for field in form %}
-<div class="mb-stack-md">
-<label class="block font-label-md text-label-md text-on-surface mb-stack-sm" for="{{ field.id_for_label }}">{{ field.label }}</label>
+<div class="flex flex-col gap-xs {% if field.name == 'correo' or field.name == 'especialidad' or field.name == 'registro_medico' %}md:col-span-2{% endif %}">
+<div class="flex justify-between items-center">
+<label class="font-label-md text-label-md text-on-surface-variant" for="{{ field.id_for_label }}">{{ field.label }}</label>
+{% if field.name == 'registro_medico' or field.name == 'telefono' %}
+<span class="font-label-sm text-label-sm text-outline">Opcional</span>
+{% endif %}
+</div>
+
+<div class="relative flex items-center">
+{% if field.name == 'correo' %}
+<span class="material-symbols-outlined absolute left-sm text-on-surface-variant pointer-events-none z-10">mail</span>
+{% elif field.name == 'telefono' %}
+<span class="material-symbols-outlined absolute left-sm text-on-surface-variant pointer-events-none z-10">call</span>
+{% elif 'password' in field.name %}
+<span class="material-symbols-outlined absolute left-sm text-on-surface-variant pointer-events-none z-10">lock</span>
+{% endif %}
 {{ field }}
+{% if field.name == 'tipo_documento' or field.name == 'especialidad' %}
+{% endif %}
+</div>
+
 {% for error in field.errors %}
 <p class="mt-1 font-label-sm text-label-sm text-error">{{ error }}</p>
 {% endfor %}
 </div>
 {% endfor %}
-<button class="w-full bg-primary text-on-primary py-3 rounded-lg font-label-md text-label-md font-semibold hover:bg-[#013a6b] transition-colors" type="submit">Guardar</button>
-</form>
 </div>
+
+<!-- Action Button -->
+<div class="mt-sm flex flex-col md:flex-row gap-4">
+<button class="w-full md:flex-1 h-[56px] rounded-lg bg-[#3A7BD5] text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors shadow-sm flex items-center justify-center gap-xs" type="submit">
+Guardar
+</button>
+<a href="{% url 'panel_medicos' %}" class="w-full md:flex-1 h-[56px] rounded-lg border border-[#D6ECFF] text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low transition-colors flex items-center justify-center gap-xs">
+Cancelar
+</a>
+</div>
+</form>
 </div>
 </div>
 {% endblock %}

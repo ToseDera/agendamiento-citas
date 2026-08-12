@@ -36,18 +36,31 @@ SELECT_CLASS = (
 )
 
 
+class SelectTipoDocumento(forms.Select):
+    """<select> de TipoDocumento que expone data-codigo en cada <option>,
+    para que el JS de ayuda en el cliente pueda bifurcar por código (CC,
+    TI, CE, PPT, PA) en vez de por el texto visible de la opción."""
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
+        tipo_documento = getattr(value, 'instance', None)
+        if tipo_documento is not None and tipo_documento.codigo:
+            option['attrs']['data-codigo'] = tipo_documento.codigo
+        return option
+
+
 class RegistroForm(UserCreationForm):
     nombre = forms.CharField(
         max_length=150, label='Nombres',
-        widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'autocomplete': 'given-name'}),
+        widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'autocomplete': 'given-name', 'placeholder': 'Ej. Juan'}),
     )
     apellido = forms.CharField(
         max_length=150, label='Apellidos',
-        widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'autocomplete': 'family-name'}),
+        widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'autocomplete': 'family-name', 'placeholder': 'Ej. Pérez'}),
     )
     correo = forms.EmailField(
         label='Correo electrónico',
-        widget=forms.EmailInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'email'}),
+        widget=forms.EmailInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'email', 'placeholder': 'ejemplo@correo.com'}),
     )
     fecha_nacimiento = forms.DateField(
         label='Fecha de nacimiento',
@@ -56,23 +69,23 @@ class RegistroForm(UserCreationForm):
     tipo_documento = forms.ModelChoiceField(
         queryset=TipoDocumento.objects.all(), label='Tipo de documento',
         empty_label='Seleccione tipo de documento',
-        widget=forms.Select(attrs={'class': SELECT_CLASS}),
+        widget=SelectTipoDocumento(attrs={'class': SELECT_CLASS}),
     )
     numero_documento = forms.CharField(
         max_length=25, label='Número de documento',
-        widget=forms.TextInput(attrs={'class': INPUT_CLASS}),
+        widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'Ej. 1234567890'}),
     )
     telefono = forms.CharField(
         max_length=15, label='Teléfono', required=False,
-        widget=forms.TextInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'tel', 'type': 'tel'}),
+        widget=forms.TextInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'tel', 'type': 'tel', 'placeholder': 'Ej. 3001234567'}),
     )
     password1 = forms.CharField(
         label='Contraseña', strip=False,
-        widget=forms.PasswordInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'new-password'}),
+        widget=forms.PasswordInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'new-password', 'placeholder': '••••••••'}),
     )
     password2 = forms.CharField(
         label='Confirmar contraseña', strip=False,
-        widget=forms.PasswordInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'new-password'}),
+        widget=forms.PasswordInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'new-password', 'placeholder': '••••••••'}),
     )
 
     class Meta:
@@ -90,10 +103,6 @@ class RegistroForm(UserCreationForm):
 
     def clean_numero_documento(self):
         numero_documento = self.cleaned_data['numero_documento']
-        if not numero_documento.isdigit():
-            raise ValidationError('El número de documento solo debe contener dígitos.')
-        if not (6 <= len(numero_documento) <= 15):
-            raise ValidationError('El número de documento debe tener entre 6 y 15 dígitos.')
         if Usuario.objects.filter(username=numero_documento).exists():
             raise ValidationError('Ya existe una cuenta con este número de documento.')
         return numero_documento
@@ -108,10 +117,49 @@ class RegistroForm(UserCreationForm):
         cleaned_data = super().clean()
         tipo_documento = cleaned_data.get('tipo_documento')
         numero_documento = cleaned_data.get('numero_documento')
-        if tipo_documento and numero_documento and Usuario.objects.filter(
-            tipo_documento=tipo_documento, numero_documento=numero_documento,
-        ).exists():
-            self.add_error('numero_documento', 'Ya existe una cuenta con este número de documento.')
+        
+        if tipo_documento and numero_documento:
+            if Usuario.objects.filter(
+                tipo_documento=tipo_documento, numero_documento=numero_documento,
+            ).exists():
+                self.add_error('numero_documento', 'Ya existe una cuenta con este número de documento.')
+                
+            codigo = tipo_documento.codigo
+            length = len(numero_documento)
+
+            if codigo == 'CC':
+                if not numero_documento.isdigit():
+                    self.add_error('numero_documento', 'La Cédula de Ciudadanía solo debe contener números.')
+                elif not (5 <= length <= 10):
+                    self.add_error('numero_documento', 'La Cédula de Ciudadanía debe tener entre 5 y 10 dígitos.')
+            elif codigo == 'TI':
+                if not numero_documento.isdigit():
+                    self.add_error('numero_documento', 'La Tarjeta de Identidad solo debe contener números.')
+                elif not (10 <= length <= 11):
+                    self.add_error('numero_documento', 'La Tarjeta de Identidad debe tener entre 10 y 11 dígitos.')
+            elif codigo == 'CE':
+                if not numero_documento.isdigit():
+                    self.add_error('numero_documento', 'La Cédula de Extranjería solo debe contener números.')
+                elif not (6 <= length <= 8):
+                    self.add_error('numero_documento', 'La Cédula de Extranjería debe tener entre 6 y 8 dígitos.')
+            elif codigo == 'PPT':
+                if not numero_documento.isdigit():
+                    self.add_error('numero_documento', 'El Permiso Especial solo debe contener números.')
+                elif not (6 <= length <= 8):
+                    self.add_error('numero_documento', 'El Permiso Especial debe tener entre 6 y 8 dígitos.')
+            elif codigo == 'PA':
+                if not numero_documento.isalnum():
+                    self.add_error('numero_documento', 'El Pasaporte solo debe contener letras y números.')
+                elif not (6 <= length <= 16):
+                    self.add_error('numero_documento', 'El Pasaporte debe tener entre 6 y 16 caracteres.')
+                else:
+                    cleaned_data['numero_documento'] = numero_documento.upper()
+            else:
+                if not numero_documento.isdigit():
+                    self.add_error('numero_documento', 'El número de documento solo debe contener números.')
+                elif not (5 <= length <= 16):
+                    self.add_error('numero_documento', 'El número de documento debe tener entre 5 y 16 dígitos.')
+
         return cleaned_data
 
     def save(self, commit=True):
@@ -141,7 +189,7 @@ class RegistroMedicoForm(RegistroForm):
     )
     registro_medico = forms.CharField(
         max_length=30, required=False, label='Registro profesional',
-        widget=forms.TextInput(attrs={'class': INPUT_CLASS}),
+        widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'Ej. 12345-RM'}),
     )
 
     class Meta(RegistroForm.Meta):
@@ -167,19 +215,19 @@ class MedicoEditForm(forms.ModelForm):
 
     nombre = forms.CharField(
         max_length=150, label='Nombres',
-        widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'autocomplete': 'given-name'}),
+        widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'autocomplete': 'given-name', 'placeholder': 'Ej. Juan'}),
     )
     apellido = forms.CharField(
         max_length=150, label='Apellidos',
-        widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'autocomplete': 'family-name'}),
+        widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'autocomplete': 'family-name', 'placeholder': 'Ej. Pérez'}),
     )
     correo = forms.EmailField(
         label='Correo electrónico',
-        widget=forms.EmailInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'email'}),
+        widget=forms.EmailInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'email', 'placeholder': 'ejemplo@correo.com'}),
     )
     telefono = forms.CharField(
         max_length=15, label='Teléfono', required=False,
-        widget=forms.TextInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'tel', 'type': 'tel'}),
+        widget=forms.TextInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'tel', 'type': 'tel', 'placeholder': 'Ej. 3001234567'}),
     )
     especialidad = forms.ModelChoiceField(
         queryset=None, label='Especialidad',
@@ -188,7 +236,7 @@ class MedicoEditForm(forms.ModelForm):
     )
     registro_medico = forms.CharField(
         max_length=30, required=False, label='Registro profesional',
-        widget=forms.TextInput(attrs={'class': INPUT_CLASS}),
+        widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'Ej. 12345-RM'}),
     )
 
     class Meta:

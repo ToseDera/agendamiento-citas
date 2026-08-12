@@ -31,7 +31,7 @@ class Command(BaseCommand):
         if not settings.DEBUG:
             raise CommandError('seed_dev solo puede ejecutarse con DEBUG=True.')
 
-        tipo_documento = TipoDocumento.objects.filter(nombre='Cédula de ciudadanía').first()
+        tipo_documento = TipoDocumento.objects.filter(nombre='Cédula de Ciudadanía (CC)').first()
         if tipo_documento is None:
             raise CommandError('No existe el catálogo TipoDocumento. Corre "migrate" primero.')
 
@@ -48,7 +48,7 @@ class Command(BaseCommand):
 
         admin = Usuario.objects.create_superuser(
             username=ADMIN_CEDULA,
-            email='admin.dev@medsync.local',
+            email='admin.dev@mediclick.local',
             password=ADMIN_PASSWORD,
             tipo_documento=tipo_documento,
             numero_documento=ADMIN_CEDULA,
@@ -67,7 +67,7 @@ class Command(BaseCommand):
 
         paciente = Usuario.objects.create_user(
             username=PACIENTE_CEDULA,
-            email='paciente.dev@medsync.local',
+            email='paciente.dev@mediclick.local',
             password=PACIENTE_PASSWORD,
             tipo_documento=tipo_documento,
             numero_documento=PACIENTE_CEDULA,
@@ -94,7 +94,7 @@ class Command(BaseCommand):
             'fecha_nacimiento': '1985-03-20',
             'tipo_documento': tipo_documento.pk,
             'numero_documento': MEDICO_CEDULA,
-            'correo': 'medico.dev@medsync.local',
+            'correo': 'medico.dev@mediclick.local',
             'telefono': '',
             'especialidad': especialidad.pk,
             'registro_medico': 'RM-DEV-001',

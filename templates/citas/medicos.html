@@ -1,26 +1,46 @@
 {% extends "base.html" %}
 
-{% block title %}Médicos de {{ especialidad.nombre }} - MedSync{% endblock %}
+{% block title %}Médicos de {{ especialidad.nombre }} - MediClick{% endblock %}
 
 {% block content %}
-<div class="min-h-screen p-margin-mobile md:p-margin-desktop">
-<div class="max-w-container-max mx-auto">
-<a class="font-label-md text-label-md text-primary hover:underline" href="{% url 'agendar_especialidades' %}">&larr; Especialidades</a>
-<h1 class="font-headline-lg text-headline-lg text-primary mt-stack-sm mb-stack-sm">{{ especialidad.nombre }}</h1>
-<p class="font-body-md text-body-md text-on-surface-variant mb-stack-lg">Elige el médico con el que quieres agendar.</p>
+<div class="w-full mb-md max-w-7xl mx-auto">
+<a class="inline-flex items-center gap-2 text-[#3A7BD5] hover:opacity-80 transition-opacity font-label-md mb-md" href="{% url 'agendar_especialidades' %}">
+<span class="material-symbols-outlined text-sm">arrow_back</span>
+Especialidades
+</a>
+<div class="mb-lg">
+<h1 class="font-headline-xl text-headline-xl text-[#1D2D50] mb-xs">{{ especialidad.nombre }}</h1>
+<p class="font-body-lg text-body-lg text-[#4a5568]">Elige el médico con el que quieres agendar.</p>
+</div>
+</div>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-stack-md">
+<div class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter max-w-7xl mx-auto">
 {% for medico in medicos %}
-<a class="block p-stack-lg bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_10px_30px_rgba(0,0,0,0.1)] transition-shadow" href="{% url 'agendar_slots' medico.pk %}">
-<h2 class="font-headline-md text-headline-md text-on-surface mb-stack-sm">{{ medico.usuario.get_full_name }}</h2>
+<!-- Doctor Card -->
+<a class="bg-white rounded-xl border border-[#8EC5FF] shadow-[0px_4px_20px_rgba(29,45,80,0.05)] hover:shadow-[0px_12px_32px_rgba(29,45,80,0.1)] hover:border-[#3A7BD5] transition-all duration-300 p-md flex flex-col h-full cursor-pointer group block" href="{% url 'agendar_slots' medico.pk %}">
+<div class="flex items-start gap-md mb-md">
+<div class="w-16 h-16 rounded-full bg-gradient-to-br from-[#8EC5FF] to-[#3A7BD5] flex items-center justify-center text-white font-headline-md shrink-0 shadow-inner uppercase">
+{{ medico.usuario.first_name|make_list|first|default:'' }}{{ medico.usuario.last_name|make_list|first|default:'' }}
+</div>
+<div>
+<h3 class="font-headline-md text-[#1D2D50] text-lg mb-1 group-hover:text-[#3A7BD5] transition-colors">{{ medico.usuario.get_full_name }}</h3>
 {% if medico.registro_medico %}
-<p class="font-label-sm text-label-sm text-on-surface-variant">Registro: {{ medico.registro_medico }}</p>
+<p class="font-label-sm text-label-sm text-[#4a5568]">Reg. {{ medico.registro_medico }}</p>
 {% endif %}
+</div>
+</div>
+<div class="mt-auto pt-md border-t border-[#8EC5FF]/30 flex justify-end">
+<span class="inline-flex items-center gap-2 text-[#3A7BD5] font-label-md group-hover:translate-x-1 transition-transform">
+Ver horarios
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</span>
+</div>
 </a>
 {% empty %}
-<p class="font-body-md text-body-md text-on-surface-variant">No hay médicos disponibles para esta especialidad por el momento.</p>
+<div class="col-span-1 md:col-span-2 lg:col-span-3 text-center py-lg bg-white rounded-xl shadow-soft border border-[#8EC5FF]/30">
+<span class="material-symbols-outlined text-[48px] text-[#627788] mb-4">search_off</span>
+<p class="font-body-md text-body-md text-[#4a5568]">No hay médicos disponibles para esta especialidad por el momento.</p>
+</div>
 {% endfor %}
-</div>
-</div>
 </div>
 {% endblock %}

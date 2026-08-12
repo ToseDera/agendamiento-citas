@@ -19,7 +19,7 @@ class EspecialidadPanelTests(TestCase):
     """HU-13: gestionar especialidades desde el panel del Administrador."""
 
     def setUp(self):
-        tipo_documento = TipoDocumento.objects.get(nombre='Cédula de ciudadanía')
+        tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
         self.admin = Usuario.objects.create_user(
             username='1111111111', password='ClaveSegura123', tipo_documento=tipo_documento,
             numero_documento='1111111111', fecha_nacimiento='1990-01-01', email='admin@example.com',
@@ -66,7 +66,7 @@ class EspecialidadPanelTests(TestCase):
         self.assertNotContains(response, 'Odontología')
 
     def test_hu13_no_se_puede_desactivar_especialidad_con_medico_activo(self):
-        tipo_documento = TipoDocumento.objects.get(nombre='Cédula de ciudadanía')
+        tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
         especialidad = Especialidad.objects.get(nombre='Pediatría')
         usuario_medico = Usuario.objects.create_user(
             username='6100000001', password='ClaveSegura123', tipo_documento=tipo_documento,
@@ -81,7 +81,7 @@ class EspecialidadPanelTests(TestCase):
         self.assertTrue(especialidad.activa)
 
     def test_hu13_especialidad_con_solo_medicos_inactivos_se_puede_desactivar(self):
-        tipo_documento = TipoDocumento.objects.get(nombre='Cédula de ciudadanía')
+        tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
         especialidad = Especialidad.objects.get(nombre='Pediatría')
         usuario_medico = Usuario.objects.create_user(
             username='6100000002', password='ClaveSegura123', tipo_documento=tipo_documento,
@@ -96,7 +96,7 @@ class EspecialidadPanelTests(TestCase):
         self.assertFalse(especialidad.activa)
 
     def test_hu13_reactivar_especialidad_nunca_se_bloquea(self):
-        tipo_documento = TipoDocumento.objects.get(nombre='Cédula de ciudadanía')
+        tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
         especialidad = Especialidad.objects.get(nombre='Pediatría')
         especialidad.activa = False
         especialidad.save(update_fields=['activa'])
@@ -118,7 +118,7 @@ class HorarioMedicoModelTests(TestCase):
     """HU-14: validaciones del modelo de horario recurrente."""
 
     def setUp(self):
-        tipo_documento = TipoDocumento.objects.get(nombre='Cédula de ciudadanía')
+        tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
         especialidad = Especialidad.objects.get(nombre='Medicina general')
         usuario = Usuario.objects.create_user(
             username='5000000001', password='ClaveSegura123', tipo_documento=tipo_documento,
@@ -145,7 +145,7 @@ class HorarioMedicoModelTests(TestCase):
 
 
 def crear_paciente_de_prueba(numero_documento):
-    tipo_documento = TipoDocumento.objects.get(nombre='Cédula de ciudadanía')
+    tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
     return Usuario.objects.create_user(
         username=numero_documento, password='ClaveSegura123', tipo_documento=tipo_documento,
         numero_documento=numero_documento, fecha_nacimiento='1995-01-01',
@@ -387,7 +387,7 @@ class AgendamientoViewTests(TestCase):
             hora_inicio='08:00', hora_fin='12:00',
         )
 
-        tipo_documento = TipoDocumento.objects.get(nombre='Cédula de ciudadanía')
+        tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
         self.paciente = Usuario.objects.create_user(
             username='8100000001', password='ClaveSegura123', tipo_documento=tipo_documento,
             numero_documento='8100000001', fecha_nacimiento='1995-01-01', email='paciente@example.com',

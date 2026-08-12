@@ -1,40 +1,82 @@
 {% extends "base.html" %}
 
-{% block title %}Confirmar cita - MedSync{% endblock %}
+{% block title %}Confirmar cita - MediClick{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center p-margin-mobile md:p-margin-desktop">
-<div class="max-w-md w-full bg-surface-container-lowest p-stack-lg rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)]">
-<h1 class="font-headline-lg text-headline-lg text-primary mb-stack-md">Confirmar cita</h1>
+<main class="flex-grow w-full px-margin-mobile py-8 flex justify-center mt-lg">
+<div class="w-full max-w-[480px] flex flex-col gap-6">
 
-<div class="bg-surface-container rounded-lg p-stack-md mb-stack-lg">
-<p class="font-label-md text-label-md text-on-surface">{{ medico.usuario.get_full_name }}</p>
-<p class="font-body-md text-body-md text-on-surface-variant">{{ medico.especialidad.nombre }}</p>
-<p class="font-body-md text-body-md text-on-surface-variant">{{ fecha|date:"l j \d\e F, Y" }}</p>
-<p class="font-body-md text-body-md text-on-surface-variant">{{ hora_inicio|time:"H:i" }} - {{ hora_fin|time:"H:i" }}</p>
+<div class="mb-4">
+<a class="inline-flex items-center gap-2 text-[#3A7BD5] font-label-md text-label-md hover:underline focus:outline-none" href="{% url 'agendar_slots' medico.pk %}">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+Volver a horarios
+</a>
+</div>
+
+<!-- Page Title -->
+<div class="text-center">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-[#1D2D50]">Confirmar cita</h1>
+<p class="font-body-md text-body-md text-[#424752] mt-2">Revisa los detalles antes de confirmar tu asistencia.</p>
+</div>
+
+<!-- Confirmation Summary Card -->
+<div class="bg-[#D6ECFF] rounded-xl p-md border-l-4 border-[#3A7BD5] shadow-[0px_4px_20px_rgba(29,45,80,0.05)] flex flex-col gap-4 relative overflow-hidden">
+<span class="material-symbols-outlined absolute -bottom-4 -right-4 text-white opacity-40 text-8xl pointer-events-none" style="font-variation-settings: 'FILL' 1;">stethoscope</span>
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 text-[#3A7BD5] shadow-sm uppercase font-bold text-lg">
+{{ medico.usuario.first_name|make_list|first|default:'' }}{{ medico.usuario.last_name|make_list|first|default:'' }}
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md-mobile text-[#1D2D50]">{{ medico.usuario.get_full_name }}</h2>
+<p class="font-label-md text-label-md text-[#236296]">{{ medico.especialidad.nombre }}</p>
+</div>
+</div>
+<div class="h-px bg-white/50 w-full my-2"></div>
+<div class="flex flex-col gap-3">
+<div class="flex items-center gap-3 text-[#1D2D50]">
+<span class="material-symbols-outlined text-[#3A7BD5]">calendar_month</span>
+<span class="font-body-md text-body-md">{{ fecha|date:"l j \d\e F, Y"|capfirst }}</span>
+</div>
+<div class="flex items-center gap-3 text-[#1D2D50]">
+<span class="material-symbols-outlined text-[#3A7BD5]">schedule</span>
+<span class="font-body-md text-body-md">{{ hora_inicio|time:"H:i" }} - {{ hora_fin|time:"H:i" }}</span>
+</div>
+</div>
 </div>
 
 {% if form.non_field_errors %}
-<div class="mb-6 rounded-lg bg-error-container px-4 py-3">
+<div class="mb-2 rounded-lg bg-[#ffdad6] px-4 py-3">
 {% for error in form.non_field_errors %}
-<p class="font-label-md text-label-md text-error">{{ error }}</p>
+<p class="font-label-md text-label-md text-[#ba1a1a]">{{ error }}</p>
 {% endfor %}
 </div>
 {% endif %}
 
-<form method="post">
+<!-- Form -->
+<form method="post" class="flex flex-col gap-4">
 {% csrf_token %}
 {{ form.fecha }}
 {{ form.hora_inicio }}
-<div class="mb-stack-lg">
-<label class="block font-label-md text-label-md text-on-surface mb-stack-sm" for="{{ form.motivo_consulta.id_for_label }}">{{ form.motivo_consulta.label }}</label>
+
+<!-- Form Card -->
+<div class="bg-white rounded-xl p-md shadow-[0px_4px_20px_rgba(29,45,80,0.05)] flex flex-col gap-4 border border-[#D6ECFF]">
+<label class="font-label-md text-label-md text-[#1D2D50] font-semibold" for="{{ form.motivo_consulta.id_for_label }}">{{ form.motivo_consulta.label }}</label>
 {{ form.motivo_consulta }}
 {% for error in form.motivo_consulta.errors %}
-<p class="mt-1 font-label-sm text-label-sm text-error">{{ error }}</p>
+<p class="mt-1 font-label-sm text-label-sm text-[#ba1a1a]">{{ error }}</p>
 {% endfor %}
 </div>
-<button class="w-full bg-primary text-on-primary py-3 rounded-lg font-label-md text-label-md font-semibold hover:bg-[#013a6b] transition-colors" type="submit">Confirmar cita</button>
+
+<!-- Button -->
+<div class="mt-4">
+<button class="w-full bg-[#3A7BD5] hover:bg-[#3174ce] text-white font-headline-md text-body-lg font-semibold py-4 rounded-xl shadow-md transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 group" type="submit">
+<span>Confirmar cita</span>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</button>
+<p class="text-center font-label-sm text-label-sm text-[#727783] mt-4">Al confirmar, aceptas nuestros términos y condiciones.</p>
+</div>
 </form>
+
 </div>
-</div>
+</main>
 {% endblock %}

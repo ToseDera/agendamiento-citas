@@ -27,3 +27,7 @@ media/
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Referencia de diseño: solo versionamos DESIGN.md y las capturas;
+# los code.html crudos exportados por la herramienta de diseño no.
+docs/diseno/*/code.html

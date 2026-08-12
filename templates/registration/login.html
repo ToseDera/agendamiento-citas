@@ -1,88 +1,121 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}MedSync - Iniciar Sesión{% endblock %}
+{% block title %}MediClick - Iniciar Sesión{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center p-margin-mobile md:p-margin-desktop">
-<!-- Split Layout Container -->
-<div class="w-full max-w-container-max mx-auto flex flex-col md:flex-row bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] overflow-hidden">
-<!-- Left Side: Login Form -->
-<div class="w-full md:w-1/2 p-stack-lg flex flex-col justify-center bg-surface-container-lowest">
-<!-- Header -->
-<div class="mb-stack-lg text-center md:text-left">
-<div class="flex items-center justify-center md:justify-start gap-stack-sm mb-stack-md text-primary">
-<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">medical_services</span>
-<h1 class="font-headline-md text-headline-md text-primary font-bold">MedSync</h1>
+<style>
+    /* Forzar estilos de inputs de Django en login */
+    .login-input input {
+        width: 100%;
+        height: 56px;
+        border: 1px solid #c2c6d4;
+        border-radius: 0.5rem;
+        padding-left: 3rem !important;
+        padding-right: 1rem;
+        transition: all 0.2s ease-in-out;
+        background-color: #ffffff;
+        font-family: 'Inter', sans-serif;
+        font-size: 16px;
+        color: #081a3d;
+    }
+    .login-input input:focus {
+        outline: none;
+        border-color: #3174ce;
+        box-shadow: 0 0 0 4px #8fc5ff;
+    }
+</style>
+<main class="min-h-screen w-full relative flex items-center">
+<!-- Full-screen Background -->
+<div class="absolute inset-0 z-0">
+<img alt="Fondo médico" class="w-full h-full object-cover" src="{% static 'img/fondo-clinico.jpg' %}">
+<div class="absolute inset-0 bg-gradient-to-r from-brand-primary/90 via-brand-primary/70 to-transparent mix-blend-multiply"></div>
 </div>
-<h2 class="font-headline-md text-headline-md text-on-surface mb-stack-sm">Bienvenido de nuevo</h2>
-<p class="font-body-md text-body-md text-on-surface-variant">Inicia sesión para gestionar tus citas médicas.</p>
+<div class="container mx-auto px-margin-mobile lg:px-margin-desktop relative z-10 flex flex-col lg:flex-row items-center justify-between gap-xl">
+<!-- Left Side: Typography -->
+<div class="w-full lg:w-1/2 text-on-primary space-y-md"><img src="{% static 'img/mediclick-logo.png' %}" alt="MediClick Logo" class="w-[400px] object-contain mb-lg" style="background-color: transparent; mix-blend-mode: normal; filter: brightness(0) invert(1);">
+<h1 class="text-5xl lg:text-6xl font-bold text-on-primary leading-tight">SISTEMA DE PROGRAMACIÓN</h1>
+<p class="text-xl opacity-90 max-w-lg leading-relaxed">
+                Administra fichas, programas, instructores y asignaciones de formación de forma centralizada.
+            </p>
+</div>
+<!-- Right Side: Login Card -->
+<div class="w-full lg:w-[450px]">
+<div class="bg-surface-container-lowest rounded-xl shadow-xl p-md lg:p-lg">
+<!-- Header -->
+<div class="flex justify-center mb-lg">
+<img alt="MediClick Logo" class="h-16 object-contain" src="{% static 'img/mediclick-logo.png' %}">
 </div>
 
 {% if form.errors %}
-<div class="mb-stack-md rounded-lg bg-error-container px-4 py-3">
+<div class="mb-lg rounded-lg bg-error-container px-4 py-3">
 {% for field in form %}
 {% for error in field.errors %}
-<p class="font-label-md text-label-md text-error">{{ error }}</p>
+<p class="font-label-md text-error">{{ error }}</p>
 {% endfor %}
 {% endfor %}
 {% for error in form.non_field_errors %}
-<p class="font-label-md text-label-md text-error">{{ error }}</p>
+<p class="font-label-md text-error">{{ error }}</p>
 {% endfor %}
 </div>
 {% endif %}
 
 <!-- Form -->
-<form class="flex flex-col gap-stack-md" method="post">
+<form class="space-y-md" method="post">
 {% csrf_token %}
-<!-- ID Field -->
-<div>
-<label class="block font-label-md text-label-md text-on-surface mb-stack-sm" for="id_username">Cédula</label>
-<div class="relative">
-<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-opacity-50">badge</span>
-<input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-fixed-dim transition-all" id="id_username" name="username" placeholder="Ingresa tu número de cédula" required type="text"/>
+<!-- ID Input -->
+<div class="input-icon-wrapper login-input">
+<span class="material-symbols-outlined input-icon">badge</span>
+{{ form.username }}
 </div>
+<!-- Password Input -->
+<div class="input-icon-wrapper relative login-input">
+<span class="material-symbols-outlined input-icon">lock</span>
+{{ form.password }}
+<button class="absolute inset-y-0 right-0 pr-sm flex items-center text-outline hover:text-on-surface transition-colors z-10" onclick="togglePassword()" type="button">
+<span class="material-symbols-outlined" id="visibility-icon">visibility</span>
+</button>
 </div>
-<!-- Password Field -->
-<div>
-<label class="block font-label-md text-label-md text-on-surface mb-stack-sm" for="id_password">Contraseña</label>
-<div class="relative">
-<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-opacity-50">lock</span>
-<input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-fixed-dim transition-all" id="id_password" name="password" placeholder="Ingresa tu contraseña" required type="password"/>
-</div>
-<div class="mt-2 text-right">
-<a class="font-label-sm text-label-sm text-primary hover:text-primary-container transition-colors" href="#">¿Olvidaste tu contraseña?</a>
-</div>
+<!-- Remember Me -->
+<div class="flex items-center">
+<input class="w-4 h-4 text-brand-primary bg-surface-container-lowest border-outline-variant rounded focus:ring-brand-primary focus:ring-2" id="remember" type="checkbox">
+<label class="ml-2 font-label-md text-on-surface-variant" for="remember">Recordarme</label>
 </div>
 <!-- Submit Button -->
-<button class="w-full bg-primary text-on-primary py-3 rounded-lg font-label-md text-label-md font-semibold hover:bg-[#013a6b] transition-colors mt-stack-sm shadow-sm flex items-center justify-center gap-2" type="submit">
-                    Iniciar Sesión
-                    <span class="material-symbols-outlined text-[20px]">login</span>
-</button>
-</form>
-<!-- Sign Up CTA -->
-<div class="mt-stack-lg text-center">
-<p class="font-body-md text-body-md text-on-surface-variant">
-                    ¿No tienes una cuenta?
-                    <a class="font-label-md text-label-md text-primary font-semibold hover:underline" href="{% url 'registro' %}">Regístrate aquí</a>
+<button class="w-full h-12 bg-brand-primary text-on-primary font-label-md rounded-lg hover:bg-brand-primary/90 transition-colors duration-300 shadow-sm flex items-center justify-center" type="submit">
+                        Iniciar Sesión
+                    </button>
+<!-- Forgot Password Link -->
+<div class="text-center mt-sm">
+<a class="font-label-md text-outline hover:text-on-surface transition-colors" href="#">¿Olvidaste tu contraseña?</a>
+</div>
+<div class="text-center mt-sm">
+<p class="font-body-md text-on-surface-variant text-sm">
+    ¿No tienes una cuenta?
+    <a class="font-label-md text-brand-primary font-semibold hover:underline" href="{% url 'registro' %}">Regístrate aquí</a>
 </p>
 </div>
-</div>
-<!-- Right Side: Imagery (Hidden on Mobile) -->
-<div class="hidden md:block md:w-1/2 relative bg-surface-variant">
-<div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{% static 'img/login-bg.jpg' %}')"></div>
-<!-- Gradient Overlay for readability if text was placed here, or just for mood -->
-<div class="absolute inset-0 bg-gradient-to-tr from-primary/80 to-transparent mix-blend-multiply opacity-40"></div>
-<!-- Optional overlay content to reinforce brand -->
-<div class="absolute bottom-stack-lg left-stack-lg right-stack-lg text-on-primary">
-<div class="flex items-center gap-2 mb-2">
-<span class="material-symbols-outlined text-secondary-fixed">verified_user</span>
-<span class="font-label-md text-label-md text-secondary-fixed font-semibold">Plataforma Segura</span>
-</div>
-<h3 class="font-headline-lg text-headline-lg font-bold mb-2">Tu salud, sincronizada.</h3>
-<p class="font-body-md text-body-md text-on-primary/90">Accede a tu historial, agenda citas y comunícate con tus especialistas de manera eficiente y compasiva.</p>
+</form>
+<!-- Footer -->
+<div class="text-center font-label-sm text-outline mt-lg">
+                    © 2026 MediClick. Todos los derechos reservados.
+                </div>
 </div>
 </div>
 </div>
-</div>
+</main>
+<script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('id_password');
+            const visibilityIcon = document.getElementById('visibility-icon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                visibilityIcon.textContent = 'visibility_off';
+            } else {
+                passwordInput.type = 'password';
+                visibilityIcon.textContent = 'visibility';
+            }
+        }
+</script>
 {% endblock %}

@@ -1,28 +1,37 @@
 {% extends "base.html" %}
 
-{% block title %}Panel de gestión - MedSync{% endblock %}
+{% block title %}Panel de gestión - MediClick{% endblock %}
 
 {% block content %}
-<div class="min-h-screen p-margin-mobile md:p-margin-desktop">
-<div class="max-w-container-max mx-auto">
-<div class="flex items-center justify-between mb-stack-lg">
-<h1 class="font-headline-lg text-headline-lg text-primary">Panel de gestión</h1>
-<form action="{% url 'logout' %}" method="post">
-{% csrf_token %}
-<button class="font-label-md text-label-md text-primary hover:underline" type="submit">Cerrar sesión</button>
-</form>
+<div class="mb-8">
+<h1 class="font-headline-xl text-3xl md:text-4xl font-bold text-[#1D2D50]">Panel de Administración</h1>
+<p class="font-body-lg text-lg text-on-surface-variant mt-2 max-w-2xl">Gestiona las especialidades médicas, el registro de doctores y la disponibilidad de horarios de la clínica.</p>
 </div>
-
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-stack-md">
-<a class="block p-stack-lg bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_10px_30px_rgba(0,0,0,0.1)] transition-shadow" href="{% url 'panel_especialidades' %}">
-<h2 class="font-headline-md text-headline-md text-on-surface mb-stack-sm">Especialidades</h2>
-<p class="font-body-md text-body-md text-on-surface-variant">Crear, editar y activar/desactivar especialidades médicas.</p>
+<!-- Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Card 1: Especialidades -->
+<a class="group flex flex-col bg-white rounded-2xl p-6 border border-[#D6ECFF] shadow-soft hover:shadow-[0_12px_32px_rgba(58,123,213,0.15)] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden" href="{% url 'panel_especialidades' %}">
+    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#3A7BD5] to-[#8EC5FF] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+    <div class="w-16 h-16 rounded-xl bg-[#F6FBFF] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+        <span class="material-symbols-outlined text-[#3A7BD5] text-4xl" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+    </div>
+    <h2 class="font-headline-lg text-2xl font-bold text-[#1D2D50] mb-2 group-hover:text-[#3A7BD5] transition-colors">Especialidades</h2>
+    <p class="font-body-md text-[#424752] flex-grow">Administra el catálogo de áreas médicas de la clínica. Puedes crear, editar y activar o desactivar especialidades.</p>
+    <div class="mt-6 flex items-center text-[#3A7BD5] font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-x-[-10px] group-hover:translate-x-0">
+        Ir a especialidades <span class="material-symbols-outlined ml-1">arrow_forward</span>
+    </div>
 </a>
-<a class="block p-stack-lg bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_10px_30px_rgba(0,0,0,0.1)] transition-shadow" href="{% url 'panel_medicos' %}">
-<h2 class="font-headline-md text-headline-md text-on-surface mb-stack-sm">Médicos</h2>
-<p class="font-body-md text-body-md text-on-surface-variant">Registrar médicos, editar sus datos y gestionar su horario.</p>
+<!-- Card 2: Médicos -->
+<a class="group flex flex-col bg-white rounded-2xl p-6 border border-[#D6ECFF] shadow-soft hover:shadow-[0_12px_32px_rgba(58,123,213,0.15)] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden" href="{% url 'panel_medicos' %}">
+    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#3A7BD5] to-[#8EC5FF] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+    <div class="w-16 h-16 rounded-xl bg-[#F6FBFF] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+        <span class="material-symbols-outlined text-[#3A7BD5] text-4xl" style="font-variation-settings: 'FILL' 1;">stethoscope</span>
+    </div>
+    <h2 class="font-headline-lg text-2xl font-bold text-[#1D2D50] mb-2 group-hover:text-[#3A7BD5] transition-colors">Doctores</h2>
+    <p class="font-body-md text-[#424752] flex-grow">Mantén el registro del personal médico actualizado. Asigna doctores a especialidades y gestiona sus horarios de atención.</p>
+    <div class="mt-6 flex items-center text-[#3A7BD5] font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-x-[-10px] group-hover:translate-x-0">
+        Ir a médicos <span class="material-symbols-outlined ml-1">arrow_forward</span>
+    </div>
 </a>
-</div>
-</div>
 </div>
 {% endblock %}
