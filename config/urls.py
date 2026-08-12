@@ -17,17 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from django.shortcuts import render
 from usuarios.views import inicio
-
-def test_403_view(request):
-    return render(request, '403.html')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('cuentas/', include('django.contrib.auth.urls')),
     path('', include('usuarios.urls')),
     path('', include('citas.urls')),
-    path('test-403/', test_403_view, name='test_403'),
     path('', inicio, name='inicio'),
 ]

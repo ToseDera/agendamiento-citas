@@ -29,8 +29,8 @@ class UsuarioAdmin(UserAdmin):
 
 @admin.register(TipoDocumento)
 class TipoDocumentoAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nombre')
-    search_fields = ('nombre',)
+    list_display = ('id', 'nombre', 'codigo')
+    search_fields = ('nombre', 'codigo')
 
 
 @admin.register(Medico)

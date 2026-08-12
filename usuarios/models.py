@@ -5,6 +5,7 @@ from django.db import models
 
 class TipoDocumento(models.Model):
     nombre = models.CharField(max_length=50, unique=True)
+    codigo = models.CharField(max_length=10, unique=True)
 
     class Meta:
         verbose_name = 'Tipo de documento'

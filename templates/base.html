@@ -170,12 +170,12 @@
 <!-- Brand -->
 <div class="flex items-center gap-sm">
 <a href="{% url 'inicio' %}" class="flex items-center">
-    <img class="h-16 md:h-20 object-contain drop-shadow-md" data-alt="MediClick logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkzLopG8aIBnR-OOFRTCDDqw3qEWmZ0Wq4w5I3XCvtX-B3H5PexrWNHYLqBSxi9p9UylyG8pDDcWOClOZVdRGQeIXINXpi-5GwpA0JblKrZ5BriJfXRj82c5Xz4hTJ1Su-ZeCOhlTNdFa2VCd_sug9jjr5dTTuEs3aFneJcn17skr_oI04MJm4lzzyXbSflS3ct60SSMRi8eKTIDJ0xT0OPDTNFtZyJ0-T-weruiJmypifc16sMWqRwNa7fR7fVTcQTkE" style="filter: brightness(0) invert(1);"/>
+    <img class="h-16 md:h-20 object-contain drop-shadow-md" alt="MediClick logo" src="{% static 'img/mediclick-logo.png' %}" style="filter: brightness(0) invert(1);"/>
 </a>
 </div>
 <!-- Desktop Navigation -->
 <nav class="hidden md:flex items-center gap-lg">
-{% if user.is_authenticated and user.rol == 'ADMINISTRADOR' %}
+{% if es_admin %}
 <a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if request.resolver_match.url_name == 'inicio' or request.resolver_match.url_name == 'panel_home' %}border-b-2 border-white{% endif %}" href="{% url 'inicio' %}">Panel</a>
 <a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if 'especialidad' in request.resolver_match.url_name %}border-b-2 border-white{% endif %}" href="{% url 'panel_especialidades' %}">Especialidades</a>
 <a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if 'medico' in request.resolver_match.url_name %}border-b-2 border-white{% endif %}" href="{% url 'panel_medicos' %}">Médicos</a>
@@ -196,9 +196,32 @@
 {% else %}
 <a href="{% url 'login' %}" class="px-6 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10 transition-colors font-label-md text-label-md focus:ring-2 focus:ring-primary-fixed focus:outline-none hidden md:block">Iniciar sesión</a>
 {% endif %}
-<button class="md:hidden text-white p-2">
+<!-- Mobile menu (details/summary: sin JS, siempre presente en el HTML servido) -->
+<details class="md:hidden relative">
+<summary class="list-none [&::-webkit-details-marker]:hidden cursor-pointer text-white p-2 flex items-center justify-center rounded-lg hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-primary-fixed" aria-label="Abrir menú">
 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">menu</span>
-</button>
+</summary>
+<div class="absolute right-0 mt-2 w-64 bg-[#1D2D50] border border-white/10 rounded-lg shadow-xl py-2 flex flex-col z-50">
+{% if es_admin %}
+<a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'inicio' %}">Panel</a>
+<a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'panel_especialidades' %}">Especialidades</a>
+<a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'panel_medicos' %}">Médicos</a>
+{% elif user.is_authenticated %}
+<a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'inicio' %}">Inicio</a>
+<a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'agendar_especialidades' %}">Especialidades</a>
+{% endif %}
+<div class="border-t border-white/10 mt-1 pt-1">
+{% if user.is_authenticated %}
+<form action="{% url 'logout' %}" method="post" class="m-0 p-0">
+    {% csrf_token %}
+    <button type="submit" class="w-full text-left px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10">Cerrar sesión</button>
+</form>
+{% else %}
+<a href="{% url 'login' %}" class="block px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10">Iniciar sesión</a>
+{% endif %}
+</div>
+</div>
+</details>
 </div>
 </div>
 </header>

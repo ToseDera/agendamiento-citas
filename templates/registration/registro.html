@@ -8,7 +8,7 @@
 {% block content %}
 <!-- Background Image Layer -->
 <div class="fixed inset-0 z-0">
-<div class="absolute inset-0 bg-cover bg-center" data-alt="A highly detailed background featuring medical diagrams and a stethoscope, rendered in soft, monochromatic tones with a focus on clinical precision and trust." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAbbqmtQDS39RVzG8MKK70Xj1GSCfJJiftiHR9MggBSHhnOpro7I5Cv4hcpPC87N0_lgbhHn4XPqF5M5uolxFTT_IHGONCzclyJ_ZNSf-SZgzRU0RU43a-DN6T4GvDrjpiGoHmx_TwaLOefLGzekvQie5a01sAMfAeBQ9F6LFiE_hC-6aonm88vrotMMdULKAmw1t5SGlfNyqxX7qLYVV2517S0zbEwO75S1EcEVMKKuBfOqTtdBCX4AW0XmqXL-Lb9HPU'); opacity: 0.15;"></div>
+<div class="absolute inset-0 bg-cover bg-center" data-alt="A highly detailed background featuring medical diagrams and a stethoscope, rendered in soft, monochromatic tones with a focus on clinical precision and trust." style="background-image: url('{% static 'img/fondo-clinico.jpg' %}'); opacity: 0.15;"></div>
 <div class="absolute inset-0 bg-gradient-to-br from-[#F6FBFF]/90 to-[#F6FBFF]/80"></div>
 </div>
 <!-- Main Content Canvas -->
@@ -16,7 +16,7 @@
 <div class="w-full max-w-[600px] bg-surface-container-lowest rounded-xl shadow-[0_12px_32px_rgba(8,26,61,0.1)] border border-primary-fixed p-md md:p-lg">
 <!-- Header Section -->
 <div class="text-center mb-xl">
-<img alt="MediClick Logo" class="h-16 mx-auto mb-md" data-alt="The MediClick corporate logo featuring a modern, blue heart and cursor motif, signifying digital health connectivity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3mttJtsY2JW_n7OVpEPbQnOCVKgcC_RtmWITq3dPTUTTdEP8cmsggP6lGISfSHI-jjfJBuyJ61-avdRmn1jyBl6X_tiruWRbT8SC45OaYRKlldU7iWSjloa7sqicmq7dUlFkCLws__x55QvhkFJ1HI6v7bHYXGpfy-XMyyjuUVb1J-bLitTOzY4eF7u16vw-yg0bmxK_swt6GNBjmGFBdhEy8f0ETBidv1DsDLniWr34BUuWlPnnxxgU2606-IonsNus"/>
+<img alt="MediClick Logo" class="h-16 mx-auto mb-md" src="{% static 'img/mediclick-logo.png' %}"/>
 <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-xs">
                     Crear nueva cuenta
                 </h1>
@@ -149,30 +149,32 @@
         const selectTipoDoc = document.getElementById('id_tipo_documento');
         const inputNumDoc = document.getElementById('id_numero_documento');
 
+        // Debe coincidir con las reglas de RegistroForm.clean() en usuarios/forms.py.
+        const REGLAS_POR_CODIGO = {
+            CC: { min: 5, max: 10, alfanumerico: false },
+            TI: { min: 10, max: 11, alfanumerico: false },
+            CE: { min: 6, max: 8, alfanumerico: false },
+            PPT: { min: 6, max: 8, alfanumerico: false },
+            PA: { min: 6, max: 16, alfanumerico: true },
+        };
+        // Tipo sin regla específica (o ninguno seleccionado aún): mismo
+        // fallback genérico del backend.
+        const REGLA_GENERICA = { min: 5, max: 16, alfanumerico: false };
+
         function updateDocumentRules() {
-            const selectedText = selectTipoDoc.options[selectTipoDoc.selectedIndex].text;
-            
-            // Default rules
-            inputNumDoc.removeAttribute('maxlength');
-            inputNumDoc.removeAttribute('pattern');
-            inputNumDoc.setAttribute('inputmode', 'text');
-            
-            if (selectedText.includes('Pasaporte')) {
-                // Alphanumeric, 6-16
-                inputNumDoc.setAttribute('maxlength', '16');
+            const opcionSeleccionada = selectTipoDoc.options[selectTipoDoc.selectedIndex];
+            const codigo = opcionSeleccionada ? opcionSeleccionada.dataset.codigo : undefined;
+            const regla = REGLAS_POR_CODIGO[codigo] || REGLA_GENERICA;
+
+            inputNumDoc.setAttribute('minlength', regla.min);
+            inputNumDoc.setAttribute('maxlength', regla.max);
+
+            if (regla.alfanumerico) {
+                inputNumDoc.removeAttribute('pattern');
                 inputNumDoc.setAttribute('inputmode', 'text');
             } else {
-                // Numeric for CC, TI, CE, PPT
-                inputNumDoc.setAttribute('inputmode', 'numeric');
                 inputNumDoc.setAttribute('pattern', '[0-9]*');
-                
-                if (selectedText.includes('Cédula de Ciudadanía')) {
-                    inputNumDoc.setAttribute('maxlength', '10');
-                } else if (selectedText.includes('Tarjeta de Identidad')) {
-                    inputNumDoc.setAttribute('maxlength', '11');
-                } else if (selectedText.includes('Cédula de Extranjería') || selectedText.includes('Permiso Especial')) {
-                    inputNumDoc.setAttribute('maxlength', '8');
-                }
+                inputNumDoc.setAttribute('inputmode', 'numeric');
             }
         }
 

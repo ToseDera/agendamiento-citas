@@ -79,7 +79,7 @@ python manage.py migrate
 
 Esto crea las tablas y, además, siembra automáticamente (vía migración de datos):
 
-- Catálogo `TipoDocumento`: Cédula de ciudadanía, Tarjeta de identidad, Cédula de extranjería.
+- Catálogo `TipoDocumento`: Cédula de Ciudadanía (CC), Tarjeta de Identidad (TI), Cédula de Extranjería (CE), Permiso Especial (PPT), Pasaporte (PA).
 - Grupos de Django: `Administrador`, `Medico`, `Paciente`.
 
 ## 6. Crear un superusuario
@@ -108,9 +108,9 @@ python manage.py createsuperuser
 
 Te pedirá, entre otros, dos campos que no son obvios en consola:
 
-- **Tipo documento**: pide el **id** del `TipoDocumento`, no el nombre. Con la siembra por defecto, **`1` = Cédula de ciudadanía**, `2` = Tarjeta de identidad, `3` = Cédula de extranjería. Si tienes dudas, consulta los ids reales con:
+- **Tipo documento**: pide el **id** del `TipoDocumento`, no el nombre. Consulta los ids reales (no asumas un orden fijo) con:
   ```bash
-  python manage.py shell -c "from usuarios.models import TipoDocumento; [print(t.pk, t.nombre) for t in TipoDocumento.objects.all()]"
+  python manage.py shell -c "from usuarios.models import TipoDocumento; [print(t.pk, t.codigo, t.nombre) for t in TipoDocumento.objects.all()]"
   ```
 - **Fecha de nacimiento**: formato `YYYY-MM-DD` (ej. `1990-05-10`).
 

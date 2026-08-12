@@ -1,11 +1,12 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Acceso denegado - MediClick{% endblock %}
 
 {% block content %}
 <div class="bg-f6fbff text-on-surface font-body-md min-h-screen flex items-center justify-center relative overflow-hidden w-full">
     <!-- Background Image -->
-    <div class="absolute inset-0 z-0 opacity-10" data-alt="A serene, modern medical clinic hallway. Soft, diffused lighting creating a calm atmosphere. Minimalist white walls with subtle blue accents. Clean, sterile, and professional environment. Focus on depth and architectural lines." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBxZN4j8v2E7sLmB9pg7bKq1EKdVmz9DT9NRfgiD3bTndDnbWVhvHiD2gvmySP0vGVs1aGh6lvcNkWzeIsmeqaN3dUjN1Jl5Zmuqzf4d4OeYUCpIYnf2b2Lnxf8UIkfuhpcBddZKiYtutfyBZtG8wbX96a7okMRPwOzOICGPxBtfhg2wVp7KugkJxM52lxVh4RLjP2OXYf9jjqpChDn-RFl_TdMPGXOpG7X-CQrinzK997QJi18BMQbZuYDlyL82nf9Tj0'); background-size: cover; background-position: center;"></div>
+    <div class="absolute inset-0 z-0 opacity-10" data-alt="A serene, modern medical clinic hallway. Soft, diffused lighting creating a calm atmosphere. Minimalist white walls with subtle blue accents. Clean, sterile, and professional environment. Focus on depth and architectural lines." style="background-image: url('{% static 'img/fondo-clinico.jpg' %}'); background-size: cover; background-position: center;"></div>
     <!-- Central Container -->
     <div class="relative z-10 w-full px-margin-mobile md:px-0">
         <!-- 403 Error Card -->

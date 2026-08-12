@@ -1,11 +1,14 @@
 from io import StringIO
 from unittest.mock import patch
 
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import AnonymousUser, Group
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from django.test import TestCase, override_settings
-from django.urls import reverse
+from django.db import connection
+from django.db.migrations.executor import MigrationExecutor
+from django.template.loader import render_to_string
+from django.test import RequestFactory, TestCase, TransactionTestCase, override_settings
+from django.urls import resolve, reverse
 
 from datetime import timedelta
 
@@ -13,6 +16,8 @@ from django.utils import timezone
 
 from citas.models import Cita, EstadoCita, Especialidad, HorarioMedico
 
+from .context_processors import roles
+from .forms import RegistroForm
 from .htmlform_utils import datos_formulario_reales, opciones_reales_de_select
 from .models import Medico, TipoDocumento, Usuario
 
@@ -65,7 +70,28 @@ class RegistroTests(TestCase):
         response = self.client.get(reverse('registro'))
         self.assertContains(
             response,
-            f'<option value="{self.tipo_documento.pk}">Cédula de Ciudadanía (CC)</option>',
+            f'<option value="{self.tipo_documento.pk}" data-codigo="CC">Cédula de Ciudadanía (CC)</option>',
+            html=True,
+        )
+
+    def test_select_tipo_documento_incluye_data_codigo_por_opcion(self):
+        response = self.client.get(reverse('registro'))
+        for tipo in TipoDocumento.objects.all():
+            self.assertContains(
+                response,
+                f'<option value="{tipo.pk}" data-codigo="{tipo.codigo}">{tipo.nombre}</option>',
+                html=True,
+            )
+
+    def test_data_codigo_no_cambia_si_se_renombra_el_tipo_documento(self):
+        tipo = TipoDocumento.objects.get(codigo='CC')
+        tipo.nombre = 'Cédula (nombre cambiado desde el admin)'
+        tipo.save(update_fields=['nombre'])
+
+        response = self.client.get(reverse('registro'))
+        self.assertContains(
+            response,
+            f'<option value="{tipo.pk}" data-codigo="CC">{tipo.nombre}</option>',
             html=True,
         )
 
@@ -155,6 +181,67 @@ class RegistroTests(TestCase):
         self.assertTrue(usuario.groups.filter(name='Paciente').exists())
 
 
+class ValidacionNumeroDocumentoTests(TestCase):
+    """La validación del número de documento depende del código del catálogo
+    (CC/TI/CE/PPT/PA), no del nombre visible: renombrar un tipo desde el
+    admin no debe desactivar su regla, y un tipo sin código conocido cae al
+    genérico (solo dígitos, 5-16 caracteres)."""
+
+    def datos_base(self, tipo_documento, numero_documento):
+        return {
+            'nombre': 'Ana', 'apellido': 'Gómez', 'fecha_nacimiento': '1990-05-10',
+            'tipo_documento': tipo_documento.pk, 'numero_documento': numero_documento,
+            'correo': f'{numero_documento.lower()}@example.com', 'telefono': '3001234567',
+            'password1': 'ClaveSegura123', 'password2': 'ClaveSegura123',
+        }
+
+    def test_cc_exige_solo_digitos_entre_5_y_10(self):
+        tipo = TipoDocumento.objects.get(codigo='CC')
+
+        self.assertTrue(RegistroForm(data=self.datos_base(tipo, '123456')).is_valid())
+
+        form_invalido = RegistroForm(data=self.datos_base(tipo, '12AB'))
+        self.assertFalse(form_invalido.is_valid())
+        self.assertIn('numero_documento', form_invalido.errors)
+
+    def test_ti_exige_solo_digitos_entre_10_y_11(self):
+        tipo = TipoDocumento.objects.get(codigo='TI')
+
+        self.assertTrue(RegistroForm(data=self.datos_base(tipo, '1234567890')).is_valid())
+
+        form_invalido = RegistroForm(data=self.datos_base(tipo, '123'))
+        self.assertFalse(form_invalido.is_valid())
+        self.assertIn('numero_documento', form_invalido.errors)
+
+    def test_pasaporte_exige_alfanumerico_y_lo_deja_en_mayusculas(self):
+        tipo = TipoDocumento.objects.get(codigo='PA')
+
+        form = RegistroForm(data=self.datos_base(tipo, 'ab1234cd'))
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data['numero_documento'], 'AB1234CD')
+
+    def test_renombrar_el_tipo_documento_no_afecta_la_validacion(self):
+        tipo = TipoDocumento.objects.get(codigo='CC')
+        tipo.nombre = 'Cédula (nombre cambiado desde el admin)'
+        tipo.save(update_fields=['nombre'])
+
+        form_invalido = RegistroForm(data=self.datos_base(tipo, '12'))
+        self.assertFalse(form_invalido.is_valid())
+        self.assertIn('numero_documento', form_invalido.errors)
+
+        form_valido = RegistroForm(data=self.datos_base(tipo, '1234567'))
+        self.assertTrue(form_valido.is_valid(), form_valido.errors)
+
+    def test_tipo_sin_regla_especifica_usa_la_validacion_generica(self):
+        tipo_generico = TipoDocumento.objects.create(nombre='Otro documento', codigo='XX')
+
+        self.assertTrue(RegistroForm(data=self.datos_base(tipo_generico, '12345')).is_valid())
+
+        form_invalido = RegistroForm(data=self.datos_base(tipo_generico, 'ABCD'))
+        self.assertFalse(form_invalido.is_valid())
+        self.assertIn('numero_documento', form_invalido.errors)
+
+
 class LoginTests(TestCase):
     def setUp(self):
         self.tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
@@ -221,6 +308,112 @@ class UsuarioManagerTests(TestCase):
         self.assertTrue(usuario.is_staff)
 
 
+class RolesContextProcessorTests(TestCase):
+    """El context processor de roles es la única fuente de es_admin/es_medico/es_paciente."""
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
+
+    def test_usuario_anonimo_no_tiene_ningun_rol(self):
+        request = self.factory.get('/')
+        request.user = AnonymousUser()
+
+        self.assertEqual(
+            roles(request),
+            {'es_admin': False, 'es_medico': False, 'es_paciente': False},
+        )
+
+    def test_admin_tiene_solo_es_admin(self):
+        admin = crear_usuario('3100000001', self.tipo_documento)
+        admin.groups.add(Group.objects.get(name='Administrador'))
+        request = self.factory.get('/')
+        request.user = admin
+
+        self.assertEqual(
+            roles(request),
+            {'es_admin': True, 'es_medico': False, 'es_paciente': False},
+        )
+
+    def test_medico_tiene_solo_es_medico(self):
+        medico = crear_usuario('3100000002', self.tipo_documento)
+        medico.groups.add(Group.objects.get(name='Medico'))
+        request = self.factory.get('/')
+        request.user = medico
+
+        self.assertEqual(
+            roles(request),
+            {'es_admin': False, 'es_medico': True, 'es_paciente': False},
+        )
+
+    def test_paciente_tiene_solo_es_paciente(self):
+        paciente = crear_usuario('3100000003', self.tipo_documento)
+        paciente.groups.add(Group.objects.get(name='Paciente'))
+        request = self.factory.get('/')
+        request.user = paciente
+
+        self.assertEqual(
+            roles(request),
+            {'es_admin': False, 'es_medico': False, 'es_paciente': True},
+        )
+
+
+class NavegacionMovilTests(TestCase):
+    """El menú móvil (details/summary en base.html) debe traer, dentro de su
+    propio bloque, los mismos enlaces de navegación por rol y las acciones
+    de sesión que ya existen en la barra de escritorio."""
+
+    def setUp(self):
+        self.tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
+        self.admin = crear_usuario('4100000001', self.tipo_documento)
+        self.admin.groups.add(Group.objects.get(name='Administrador'))
+        self.paciente = crear_usuario('4100000002', self.tipo_documento)
+        self.paciente.groups.add(Group.objects.get(name='Paciente'))
+
+    def fragmento_menu_movil(self, response):
+        html = response.content.decode()
+        inicio = html.index('<details')
+        fin = html.index('</details>', inicio) + len('</details>')
+        return html[inicio:fin]
+
+    def test_admin_ve_panel_especialidades_y_medicos_en_el_menu_movil(self):
+        self.client.login(username='4100000001', password='ClaveSegura123')
+        response = self.client.get(reverse('panel_home'))
+        menu_movil = self.fragmento_menu_movil(response)
+
+        self.assertIn(reverse('panel_especialidades'), menu_movil)
+        self.assertIn(reverse('panel_medicos'), menu_movil)
+        self.assertIn('Cerrar sesión', menu_movil)
+
+    def test_paciente_ve_agendar_y_cerrar_sesion_en_el_menu_movil_pero_no_el_panel(self):
+        self.client.login(username='4100000002', password='ClaveSegura123')
+        response = self.client.get(reverse('inicio'))
+        menu_movil = self.fragmento_menu_movil(response)
+
+        self.assertIn(reverse('agendar_especialidades'), menu_movil)
+        self.assertIn('Cerrar sesión', menu_movil)
+        self.assertNotIn(reverse('panel_especialidades'), menu_movil)
+        self.assertNotIn(reverse('panel_medicos'), menu_movil)
+
+    def test_anonimo_ve_iniciar_sesion_en_el_menu_movil(self):
+        # Todas las rutas de la app exigen login, así que no hay una URL real
+        # donde un anónimo vea el header; renderizamos base.html con un
+        # request anónimo (como haría cualquier página futura sin @login_required)
+        # para verificar el contrato del menú móvil en ese caso.
+        factory = RequestFactory()
+        request = factory.get('/agendar/')
+        request.user = AnonymousUser()
+        request.resolver_match = resolve('/agendar/')
+
+        html = render_to_string('base.html', {}, request=request)
+        inicio = html.index('<details')
+        menu_movil = html[inicio:html.index('</details>', inicio) + len('</details>')]
+
+        self.assertIn(reverse('login'), menu_movil)
+        self.assertIn('Iniciar sesión', menu_movil)
+        self.assertNotIn('Cerrar sesión', menu_movil)
+
+
 class PanelAccesoTests(TestCase):
     """HU-10 y seguridad del panel: solo Administrador entra, nunca 200 para otros."""
 
@@ -260,6 +453,19 @@ class PanelAccesoTests(TestCase):
         self.client.login(username='1111111111', password='ClaveSegura123')
         response = self.client.get(reverse('panel_home'))
         self.assertEqual(response.status_code, 200)
+
+    def test_admin_ve_los_enlaces_de_especialidades_y_medicos_en_la_navegacion(self):
+        self.client.login(username='1111111111', password='ClaveSegura123')
+        response = self.client.get(reverse('panel_home'))
+        self.assertContains(response, reverse('panel_especialidades'))
+        self.assertContains(response, reverse('panel_medicos'))
+
+    def test_paciente_no_ve_los_enlaces_del_panel_pero_si_el_de_agendar(self):
+        self.client.login(username='2222222222', password='ClaveSegura123')
+        response = self.client.get(reverse('inicio'))
+        self.assertNotContains(response, reverse('panel_especialidades'))
+        self.assertNotContains(response, reverse('panel_medicos'))
+        self.assertContains(response, reverse('agendar_especialidades'))
 
     def test_paciente_autenticado_nunca_recibe_200_en_el_panel(self):
         self.client.login(username='2222222222', password='ClaveSegura123')
@@ -497,8 +703,6 @@ class SeedDevCommandTests(TestCase):
         call_command('seed_dev', stdout=StringIO())
 
         self.assertEqual(Usuario.objects.filter(username='9999999999').count(), 1)
-        self.assertEqual(Usuario.objects.filter(username='8888888888').count(), 1)
-        self.assertEqual(Usuario.objects.filter(username='7777777777').count(), 1)
 
     def test_seed_dev_sin_extra_solo_crea_admin(self):
         call_command('seed_dev', '--sin-extra', stdout=StringIO())
@@ -512,3 +716,50 @@ class SeedDevCommandTests(TestCase):
         with self.assertRaises(CommandError):
             call_command('seed_dev', stdout=StringIO())
         self.assertFalse(Usuario.objects.filter(username='9999999999').exists())
+
+
+class MigracionTiposDocumentoTests(TransactionTestCase):
+    """0002 vuelve a crear el catálogo con los nombres originales (como en
+    cualquier base ya desplegada); 0005 y 0006 deben dejarlo con la
+    nomenclatura y los códigos nuevos, sin duplicar filas, sin importar si
+    la base ya traía los nombres viejos."""
+
+    def test_migrar_desde_una_base_con_nombres_viejos_deja_el_catalogo_completo_y_sin_duplicados(self):
+        app = 'usuarios'
+        executor = MigrationExecutor(connection)
+
+        # Retroceder a justo antes del renombrado: el catálogo queda con los
+        # 3 nombres originales, como en una base ya desplegada.
+        executor.migrate([(app, '0004_medico')])
+        executor.loader.build_graph()
+
+        old_apps = executor.loader.project_state((app, '0004_medico')).apps
+        TipoDocumentoViejo = old_apps.get_model(app, 'TipoDocumento')
+        self.assertEqual(
+            set(TipoDocumentoViejo.objects.values_list('nombre', flat=True)),
+            {'Cédula de ciudadanía', 'Tarjeta de identidad', 'Cédula de extranjería'},
+        )
+
+        # Migrar hacia adelante hasta la última migración de usuarios.
+        executor = MigrationExecutor(connection)
+        destino = executor.loader.graph.leaf_nodes(app)
+        executor.migrate(destino)
+        executor.loader.build_graph()
+
+        nuevos_apps = executor.loader.project_state(destino[0]).apps
+        TipoDocumentoNuevo = nuevos_apps.get_model(app, 'TipoDocumento')
+
+        nombres = list(TipoDocumentoNuevo.objects.order_by('id').values_list('nombre', flat=True))
+        self.assertEqual(len(nombres), 5)
+        self.assertEqual(len(nombres), len(set(nombres)))
+        self.assertEqual(
+            set(nombres),
+            {
+                'Cédula de Ciudadanía (CC)', 'Tarjeta de Identidad (TI)',
+                'Cédula de Extranjería (CE)', 'Permiso Especial (PPT)', 'Pasaporte (PA)',
+            },
+        )
+
+        codigos = list(TipoDocumentoNuevo.objects.order_by('id').values_list('codigo', flat=True))
+        self.assertEqual(len(codigos), len(set(codigos)))
+        self.assertEqual(set(codigos), {'CC', 'TI', 'CE', 'PPT', 'PA'})

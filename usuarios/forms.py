@@ -1,14 +1,9 @@
 from datetime import date
 
-# pyrefly: ignore [missing-import]
 from django import forms
-# pyrefly: ignore [missing-import]
 from django.contrib.auth.forms import UserCreationForm
-# pyrefly: ignore [missing-import]
 from django.contrib.auth.models import Group
-# pyrefly: ignore [missing-import]
 from django.core.exceptions import ValidationError
-# pyrefly: ignore [missing-import]
 from django.db import transaction
 
 from citas.models import DIAS_SEMANA, Especialidad, HorarioMedico
@@ -41,6 +36,19 @@ SELECT_CLASS = (
 )
 
 
+class SelectTipoDocumento(forms.Select):
+    """<select> de TipoDocumento que expone data-codigo en cada <option>,
+    para que el JS de ayuda en el cliente pueda bifurcar por código (CC,
+    TI, CE, PPT, PA) en vez de por el texto visible de la opción."""
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
+        tipo_documento = getattr(value, 'instance', None)
+        if tipo_documento is not None and tipo_documento.codigo:
+            option['attrs']['data-codigo'] = tipo_documento.codigo
+        return option
+
+
 class RegistroForm(UserCreationForm):
     nombre = forms.CharField(
         max_length=150, label='Nombres',
@@ -61,7 +69,7 @@ class RegistroForm(UserCreationForm):
     tipo_documento = forms.ModelChoiceField(
         queryset=TipoDocumento.objects.all(), label='Tipo de documento',
         empty_label='Seleccione tipo de documento',
-        widget=forms.Select(attrs={'class': SELECT_CLASS}),
+        widget=SelectTipoDocumento(attrs={'class': SELECT_CLASS}),
     )
     numero_documento = forms.CharField(
         max_length=25, label='Número de documento',
@@ -116,37 +124,42 @@ class RegistroForm(UserCreationForm):
             ).exists():
                 self.add_error('numero_documento', 'Ya existe una cuenta con este número de documento.')
                 
-            doc_name = tipo_documento.nombre
+            codigo = tipo_documento.codigo
             length = len(numero_documento)
-            
-            if doc_name == 'Cédula de Ciudadanía (CC)':
+
+            if codigo == 'CC':
                 if not numero_documento.isdigit():
                     self.add_error('numero_documento', 'La Cédula de Ciudadanía solo debe contener números.')
                 elif not (5 <= length <= 10):
                     self.add_error('numero_documento', 'La Cédula de Ciudadanía debe tener entre 5 y 10 dígitos.')
-            elif doc_name == 'Tarjeta de Identidad (TI)':
+            elif codigo == 'TI':
                 if not numero_documento.isdigit():
                     self.add_error('numero_documento', 'La Tarjeta de Identidad solo debe contener números.')
                 elif not (10 <= length <= 11):
                     self.add_error('numero_documento', 'La Tarjeta de Identidad debe tener entre 10 y 11 dígitos.')
-            elif doc_name == 'Cédula de Extranjería (CE)':
+            elif codigo == 'CE':
                 if not numero_documento.isdigit():
                     self.add_error('numero_documento', 'La Cédula de Extranjería solo debe contener números.')
                 elif not (6 <= length <= 8):
                     self.add_error('numero_documento', 'La Cédula de Extranjería debe tener entre 6 y 8 dígitos.')
-            elif doc_name == 'Permiso Especial (PPT)':
+            elif codigo == 'PPT':
                 if not numero_documento.isdigit():
                     self.add_error('numero_documento', 'El Permiso Especial solo debe contener números.')
                 elif not (6 <= length <= 8):
                     self.add_error('numero_documento', 'El Permiso Especial debe tener entre 6 y 8 dígitos.')
-            elif doc_name == 'Pasaporte (PA)':
+            elif codigo == 'PA':
                 if not numero_documento.isalnum():
                     self.add_error('numero_documento', 'El Pasaporte solo debe contener letras y números.')
                 elif not (6 <= length <= 16):
                     self.add_error('numero_documento', 'El Pasaporte debe tener entre 6 y 16 caracteres.')
                 else:
                     cleaned_data['numero_documento'] = numero_documento.upper()
-                    
+            else:
+                if not numero_documento.isdigit():
+                    self.add_error('numero_documento', 'El número de documento solo debe contener números.')
+                elif not (5 <= length <= 16):
+                    self.add_error('numero_documento', 'El número de documento debe tener entre 5 y 16 dígitos.')
+
         return cleaned_data
 
     def save(self, commit=True):

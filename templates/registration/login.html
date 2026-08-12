@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}MediClick - Iniciar Sesión{% endblock %}
 
@@ -27,12 +28,12 @@
 <main class="min-h-screen w-full relative flex items-center">
 <!-- Full-screen Background -->
 <div class="absolute inset-0 z-0">
-<img alt="Medical background" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhW1i8HzF1syRHhrHStRNPV6YPBlHKxRaHHPcJQ28FMHRXXMGV0asgu7kQb0j_zsEyf_2iLBHrMKL9FYXl_4SbGKlQ0Sa9fS2i_IwBdv2Mp1LckWMjFqxQijiwknd8iDUJyPlFqG1PHP4PKHYSN_DCcEDtevpTl_FCzUfX1f6SF3zr9iYAIzx_OxNX3RIwbO_iFlmbjEEamzOEg5DU1h0HNHdN5Dtr8Pc2r5BBjGyzj6OYRRqe4aWsknixXZxXzK7YZh0">
+<img alt="Fondo médico" class="w-full h-full object-cover" src="{% static 'img/fondo-clinico.jpg' %}">
 <div class="absolute inset-0 bg-gradient-to-r from-brand-primary/90 via-brand-primary/70 to-transparent mix-blend-multiply"></div>
 </div>
 <div class="container mx-auto px-margin-mobile lg:px-margin-desktop relative z-10 flex flex-col lg:flex-row items-center justify-between gap-xl">
 <!-- Left Side: Typography -->
-<div class="w-full lg:w-1/2 text-on-primary space-y-md"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuB45GDGJ578RIzbazmVSfEmkgeY7BU5WybUnDkJLXxukH8pYJpsJWevIMeQZ2fkvKZjNvo3RoZH0PPfqSZARLRTZg4Eu6ngddYh4upv-co0D6YWAQAZv14YIfr7nxVTc-CZHUmClhMljd1Z8jqgoLD5iZ9SzCebrElkHGOhLjSzl7bzWzIKmKqXTU0YJamzYB25e1lu_N5yhv0-GQM_sbZEGoR6NqeaRzY3DxlcB3kVMpCNnTKLOfAzd7yB7tH4bYgW5OY" alt="MediClick Logo" class="w-[400px] object-contain mb-lg" style="background-color: transparent; mix-blend-mode: normal; filter: brightness(0) invert(1);">
+<div class="w-full lg:w-1/2 text-on-primary space-y-md"><img src="{% static 'img/mediclick-logo.png' %}" alt="MediClick Logo" class="w-[400px] object-contain mb-lg" style="background-color: transparent; mix-blend-mode: normal; filter: brightness(0) invert(1);">
 <h1 class="text-5xl lg:text-6xl font-bold text-on-primary leading-tight">SISTEMA DE PROGRAMACIÓN</h1>
 <p class="text-xl opacity-90 max-w-lg leading-relaxed">
                 Administra fichas, programas, instructores y asignaciones de formación de forma centralizada.
@@ -43,7 +44,7 @@
 <div class="bg-surface-container-lowest rounded-xl shadow-xl p-md lg:p-lg">
 <!-- Header -->
 <div class="flex justify-center mb-lg">
-<img alt="MediClick Logo" class="h-16 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFvuDSY2RidgEv58ZcawJo2d3DZ15bMrNuHZTEduEA_f5p43Bau2hpwVXjXROJzr87sJ__vYzG4BiRSDmW233ErzHEeesmz39_9It8--ymWANlpdWKZfuPZQCIjtY7mdeioH3vKpnM-TE2UT7CSrK83OC0Ny1hsJN7S0vj55VxTz15FsEdDP6WeJ7p0sJgDlP9JLLzv4aFOAKrSBwnkDsBQXpxFJcnI55zldfhnJf6uzJQNNPGEfOSaTTR191ONVqtsSc">
+<img alt="MediClick Logo" class="h-16 object-contain" src="{% static 'img/mediclick-logo.png' %}">
 </div>
 
 {% if form.errors %}
