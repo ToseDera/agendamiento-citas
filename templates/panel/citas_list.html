@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Citas - Panel MediClick{% endblock %}
+
+{% block content %}
+<!-- Header Area -->
+<header class="flex flex-col gap-sm">
+<nav aria-label="Breadcrumb" class="flex text-label-sm font-label-sm text-tertiary-container items-center gap-2">
+<a class="hover:text-primary transition-colors" href="{% url 'panel_home' %}">Panel</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-on-surface-variant font-medium">Citas</span>
+</nav>
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-navy">Citas confirmadas próximas</h1>
+</header>
+<!-- Table Container -->
+<div class="bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(8,26,61,0.05)] border border-light-blue overflow-hidden flex flex-col mt-md">
+<div class="w-full overflow-x-auto">
+<table class="w-full text-left border-collapse min-w-[700px]">
+<thead>
+<tr class="bg-light-blue-table border-b border-light-blue">
+<th class="font-label-md text-label-md text-on-surface-variant py-4 px-md whitespace-nowrap" scope="col">Paciente</th>
+<th class="font-label-md text-label-md text-on-surface-variant py-4 px-md whitespace-nowrap" scope="col">Médico</th>
+<th class="font-label-md text-label-md text-on-surface-variant py-4 px-md whitespace-nowrap" scope="col">Fecha</th>
+<th class="font-label-md text-label-md text-on-surface-variant py-4 px-md whitespace-nowrap" scope="col">Hora</th>
+<th class="font-label-md text-label-md text-on-surface-variant py-4 px-md text-right whitespace-nowrap" scope="col">Acciones</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-light-blue bg-white">
+{% for cita in citas %}
+<tr class="hover-row transition-colors group">
+<td class="py-4 px-md text-on-surface font-medium">{{ cita.paciente.get_full_name }}</td>
+<td class="py-4 px-md text-on-surface-variant">{{ cita.medico.usuario.get_full_name }} · {{ cita.medico.especialidad.nombre }}</td>
+<td class="py-4 px-md text-on-surface-variant">{{ cita.fecha|date:"j \d\e F, Y" }}</td>
+<td class="py-4 px-md text-on-surface-variant">{{ cita.hora_inicio|time:"H:i" }}</td>
+<td class="py-4 px-md text-right">
+<form action="{% url 'panel_citas_cancelar' cita.pk %}" method="post" class="inline m-0">
+{% csrf_token %}
+<button type="submit" class="text-[#c0392b] hover:bg-error-container/50 p-2 rounded-md transition-colors inline-flex items-center gap-1" title="Cancelar cita">
+<span class="material-symbols-outlined text-[20px]">event_busy</span>
+</button>
+</form>
+</td>
+</tr>
+{% empty %}
+<tr>
+<td class="py-4 px-md text-on-surface-variant text-center" colspan="5">No hay citas confirmadas próximas.</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% if citas %}
+<div class="px-md py-4 border-t border-light-blue bg-white flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Total: {{ citas|length }} resultados</span>
+</div>
+{% endif %}
+</div>
+{% endblock %}

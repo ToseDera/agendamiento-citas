@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Mis excepciones de horario - Panel MediClick{% endblock %}
+
+{% block content %}
+<header class="flex flex-col md:flex-row md:items-center md:justify-between gap-xs mb-lg">
+<div>
+<h1 class="font-headline-xl text-headline-xl text-on-background">Mis excepciones de horario</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Bloquea un día completo o un rango de horas puntual (vacaciones, incapacidad, etc.).</p>
+</div>
+<a href="{% url 'medico_mi_horario' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[#8EC5FF] text-[#3A7BD5] font-label-md text-label-md hover:bg-[#F6FBFF] transition-colors w-fit">
+<span class="material-symbols-outlined text-[18px]">schedule</span>
+Mi horario
+</a>
+</header>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+<!-- LEFT COLUMN: Exceptions Table -->
+<div class="lg:col-span-8 flex flex-col gap-md">
+<div class="bg-surface-container-lowest rounded-xl border border-primary-fixed shadow-[0px_4px_20px_rgba(35,98,150,0.05)] overflow-hidden">
+<div class="px-md py-sm bg-surface-bright border-b border-primary-fixed/50 flex justify-between items-center">
+<h2 class="font-headline-md text-headline-md text-on-surface">Excepciones registradas</h2>
+<span class="material-symbols-outlined text-tertiary">event_busy</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-primary-fixed/50 bg-surface-container/30">
+<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant font-semibold">Fecha</th>
+<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant font-semibold">Rango</th>
+<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant font-semibold">Motivo</th>
+<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant font-semibold text-right">Acciones</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface">
+{% for excepcion in excepciones %}
+<tr class="border-b border-primary-fixed/30 hover:bg-surface-container-low/50 transition-colors">
+<td class="px-md py-sm">{{ excepcion.fecha|date:"j \d\e F, Y" }}</td>
+<td class="px-md py-sm">
+{% if excepcion.hora_inicio %}
+{{ excepcion.hora_inicio|time:"H:i" }} - {{ excepcion.hora_fin|time:"H:i" }}
+{% else %}
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#ffebee] text-[#c0392b]">Día completo</span>
+{% endif %}
+</td>
+<td class="px-md py-sm text-on-surface-variant">{{ excepcion.motivo|default:"—" }}</td>
+<td class="px-md py-sm text-right">
+<form action="{% url 'medico_mi_excepcion_eliminar' excepcion.pk %}" method="post" class="inline">
+{% csrf_token %}
+<button aria-label="Eliminar" type="submit" class="text-error hover:text-on-error-container transition-colors inline-flex items-center justify-center p-xs rounded hover:bg-error-container/50 focus:outline-none focus:ring-2 focus:ring-error">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</form>
+</td>
+</tr>
+{% empty %}
+<tr>
+<td class="px-md py-sm font-body-md text-body-md text-on-surface-variant text-center" colspan="4">Sin excepciones registradas.</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: Add Exception Form -->
+<div class="lg:col-span-4 flex flex-col gap-md sticky top-24">
+<div class="bg-surface-container-lowest rounded-xl border border-primary-fixed shadow-[0px_12px_32px_rgba(35,98,150,0.1)] p-md flex flex-col gap-md">
+<div class="flex items-center gap-sm pb-sm border-b border-primary-fixed/50">
+<span class="material-symbols-outlined text-primary">add_circle</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Nueva excepción</h3>
+</div>
+{% if form.non_field_errors %}
+<div class="rounded-lg bg-error-container px-4 py-3">
+{% for error in form.non_field_errors %}
+<p class="font-label-md text-label-md text-error">{{ error }}</p>
+{% endfor %}
+</div>
+{% endif %}
+<form method="post" class="flex flex-col gap-md">
+{% csrf_token %}
+{% for field in form %}
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface" for="{{ field.id_for_label }}">{{ field.label }}</label>
+{{ field }}
+{% for error in field.errors %}
+<p class="font-label-sm text-label-sm text-error flex items-center gap-xs mt-xs">
+<span class="material-symbols-outlined text-[14px]">error</span>
+{{ error }}
+</p>
+{% endfor %}
+</div>
+{% endfor %}
+<button class="w-full h-[56px] bg-primary text-on-primary font-label-md text-label-md rounded-lg flex items-center justify-center gap-sm mt-sm hover:bg-primary/90 transition-colors focus:outline-none focus:ring-4 focus:ring-primary-fixed shadow-[0px_4px_20px_rgba(58,123,213,0.15)]" type="submit">
+Registrar excepción
+</button>
+</form>
+</div>
+</div>
+</div>
+{% endblock %}

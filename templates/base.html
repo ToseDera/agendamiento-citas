@@ -179,14 +179,18 @@
 <a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if request.resolver_match.url_name == 'inicio' or request.resolver_match.url_name == 'panel_home' %}border-b-2 border-white{% endif %}" href="{% url 'inicio' %}">Panel</a>
 <a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if 'especialidad' in request.resolver_match.url_name %}border-b-2 border-white{% endif %}" href="{% url 'panel_especialidades' %}">Especialidades</a>
 <a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if 'medico' in request.resolver_match.url_name %}border-b-2 border-white{% endif %}" href="{% url 'panel_medicos' %}">Médicos</a>
-{% elif user.is_authenticated %}
-<a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if request.resolver_match.url_name == 'inicio' %}border-b-2 border-white{% endif %}" href="{% url 'inicio' %}">Inicio</a>
+{% elif es_medico %}
+<a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if 'medico_agenda' in request.resolver_match.url_name or 'medico_cita' in request.resolver_match.url_name or 'medico_marcar' in request.resolver_match.url_name or 'medico_comentario' in request.resolver_match.url_name %}border-b-2 border-white{% endif %}" href="{% url 'medico_agenda' %}">Mi agenda</a>
+<a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if 'horario' in request.resolver_match.url_name or 'excepcion' in request.resolver_match.url_name %}border-b-2 border-white{% endif %}" href="{% url 'medico_mi_horario' %}">Mi horario</a>
+{% elif es_paciente %}
+<a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if 'mis_citas' in request.resolver_match.url_name %}border-b-2 border-white{% endif %}" href="{% url 'mis_citas' %}">Inicio</a>
 <a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if 'agendar_' in request.resolver_match.url_name %}border-b-2 border-white{% endif %}" href="{% url 'agendar_especialidades' %}">Especialidades</a>
 {% endif %}
 </nav>
 <!-- Actions -->
-<div class="flex items-center">
+<div class="flex items-center gap-md">
 {% if user.is_authenticated %}
+<span class="hidden md:inline text-white/90 font-label-md text-label-md" title="{{ user.username }}">{{ user.get_full_name|default:user.username }}</span>
 <form action="{% url 'logout' %}" method="post" class="m-0 p-0 hidden md:block">
     {% csrf_token %}
     <button type="submit" class="px-6 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10 transition-colors font-label-md text-label-md focus:ring-2 focus:ring-primary-fixed focus:outline-none">
@@ -206,12 +210,16 @@
 <a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'inicio' %}">Panel</a>
 <a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'panel_especialidades' %}">Especialidades</a>
 <a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'panel_medicos' %}">Médicos</a>
-{% elif user.is_authenticated %}
-<a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'inicio' %}">Inicio</a>
+{% elif es_medico %}
+<a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'medico_agenda' %}">Mi agenda</a>
+<a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'medico_mi_horario' %}">Mi horario</a>
+{% elif es_paciente %}
+<a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'mis_citas' %}">Inicio</a>
 <a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'agendar_especialidades' %}">Especialidades</a>
 {% endif %}
 <div class="border-t border-white/10 mt-1 pt-1">
 {% if user.is_authenticated %}
+<div class="px-4 py-2 text-white/70 font-label-sm text-label-sm truncate" title="{{ user.username }}">{{ user.get_full_name|default:user.username }}</div>
 <form action="{% url 'logout' %}" method="post" class="m-0 p-0">
     {% csrf_token %}
     <button type="submit" class="w-full text-left px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10">Cerrar sesión</button>

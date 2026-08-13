@@ -4,6 +4,11 @@
 
 {% block content %}
 <div class="w-full mb-md max-w-7xl mx-auto">
+<nav aria-label="Breadcrumb" class="flex items-center gap-2 text-label-sm font-label-sm text-[#727783] mb-xs">
+<a class="hover:text-[#3A7BD5] transition-colors" href="{% url 'mis_citas' %}">Mis citas</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-[#1D2D50] font-medium">{{ especialidad.nombre }}</span>
+</nav>
 <a class="inline-flex items-center gap-2 text-[#3A7BD5] hover:opacity-80 transition-opacity font-label-md mb-md" href="{% url 'agendar_especialidades' %}">
 <span class="material-symbols-outlined text-sm">arrow_back</span>
 Especialidades

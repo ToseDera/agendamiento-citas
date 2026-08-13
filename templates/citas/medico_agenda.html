@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Mi agenda - Panel MediClick{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto w-full flex flex-col gap-lg">
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-sm">
+<div>
+<h1 class="font-headline-xl text-headline-xl text-[#1D2D50] font-bold">Mi agenda</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">{{ medico.especialidad.nombre }} · próximos {{ eventos|length }} turnos</p>
+</div>
+<a href="{% url 'medico_mi_horario' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[#8EC5FF] text-[#3A7BD5] font-label-md text-label-md hover:bg-[#F6FBFF] transition-colors">
+<span class="material-symbols-outlined text-[18px]">schedule</span>
+Mi horario
+</a>
+</div>
+
+<div class="flex flex-col gap-md">
+{% for evento in eventos %}
+<a href="{% url 'medico_cita_detalle' evento.origen.pk %}" class="bg-white rounded-xl border border-[#D6ECFF] shadow-[0px_4px_20px_rgba(29,45,80,0.05)] hover:shadow-[0px_12px_32px_rgba(29,45,80,0.1)] hover:border-[#3A7BD5] transition-all duration-300 p-md flex flex-col sm:flex-row sm:items-center gap-md">
+<div class="w-14 h-14 rounded-full bg-gradient-to-br from-[#8EC5FF] to-[#3A7BD5] flex items-center justify-center text-white font-headline-md shrink-0 uppercase">
+{{ evento.origen.paciente.first_name|make_list|first|default:'' }}{{ evento.origen.paciente.last_name|make_list|first|default:'' }}
+</div>
+<div class="flex-grow">
+<h2 class="font-headline-md text-headline-md-mobile text-[#1D2D50]">{{ evento.origen.paciente.get_full_name }}</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">{{ evento.origen.motivo_consulta|default:"Sin motivo indicado" }}</p>
+</div>
+<div class="flex flex-col sm:items-end gap-xs shrink-0">
+<span class="font-body-md text-body-md text-[#1D2D50] flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-[#3A7BD5]">calendar_month</span>
+{{ evento.inicio|date:"j \d\e F" }} · {{ evento.inicio|date:"H:i" }}
+</span>
+{% if evento.estado == 'atendida' %}
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#e8f5e9] text-[#1a7f5a] w-fit">Atendida</span>
+{% else %}
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#D6ECFF] text-[#236296] w-fit">Confirmada</span>
+{% endif %}
+</div>
+</a>
+{% empty %}
+<div class="text-center py-lg bg-white rounded-xl shadow-soft border border-[#D6ECFF]">
+<span class="material-symbols-outlined text-[48px] text-[#627788] mb-4">event_available</span>
+<p class="font-body-md text-body-md text-[#4a5568]">No tienes citas en los próximos días.</p>
+</div>
+{% endfor %}
+</div>
+</div>
+{% endblock %}

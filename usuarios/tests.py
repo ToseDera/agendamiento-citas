@@ -259,7 +259,10 @@ class LoginTests(TestCase):
             'username': '1000123456',
             'password': 'ClaveSegura123',
         })
-        self.assertRedirects(response, reverse('inicio'))
+        # 'inicio' es LOGIN_REDIRECT_URL, pero a su vez reenvía por rol (ver
+        # RedireccionPorRolTests): no seguimos esa segunda redirección aquí,
+        # esta prueba solo cubre que el login apunte a 'inicio'.
+        self.assertRedirects(response, reverse('inicio'), fetch_redirect_response=False)
 
     def test_login_ida_y_vuelta_con_los_campos_reales_del_html(self):
         respuesta_get = self.client.get(reverse('login'))
@@ -271,7 +274,7 @@ class LoginTests(TestCase):
         })
 
         respuesta_post = self.client.post(reverse('login'), datos)
-        self.assertRedirects(respuesta_post, reverse('inicio'))
+        self.assertRedirects(respuesta_post, reverse('inicio'), fetch_redirect_response=False)
 
 
 class InicioViewTests(TestCase):
@@ -279,16 +282,40 @@ class InicioViewTests(TestCase):
         response = self.client.get(reverse('inicio'))
         self.assertRedirects(response, f"{reverse('login')}?next={reverse('inicio')}")
 
-    def test_paciente_ve_el_enlace_para_agendar_cita_en_inicio(self):
-        tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
-        paciente = crear_usuario('9100000001', tipo_documento)
-        paciente.groups.add(Group.objects.get(name='Paciente'))
-        self.client.login(username='9100000001', password='ClaveSegura123')
+
+class RedireccionPorRolTests(TestCase):
+    """Fase 5, tarea 4: 'inicio' es la única fuente de la redirección por
+    rol tras el login — admin al panel, médico a su agenda, paciente a sus
+    citas."""
+
+    def setUp(self):
+        self.tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
+        self.especialidad = Especialidad.objects.get(nombre='Medicina general')
+
+    def test_admin_es_redirigido_al_panel(self):
+        admin = crear_usuario('5100000001', self.tipo_documento)
+        admin.groups.add(Group.objects.get(name='Administrador'))
+        self.client.login(username='5100000001', password='ClaveSegura123')
 
         response = self.client.get(reverse('inicio'))
+        self.assertRedirects(response, reverse('panel_home'))
 
-        self.assertContains(response, 'Agendar nueva cita')
-        self.assertContains(response, reverse('agendar_especialidades'))
+    def test_medico_es_redirigido_a_su_agenda(self):
+        medico_usuario = crear_usuario('5100000002', self.tipo_documento)
+        medico_usuario.groups.add(Group.objects.get(name='Medico'))
+        Medico.objects.create(usuario=medico_usuario, especialidad=self.especialidad)
+        self.client.login(username='5100000002', password='ClaveSegura123')
+
+        response = self.client.get(reverse('inicio'))
+        self.assertRedirects(response, reverse('medico_agenda'))
+
+    def test_paciente_es_redirigido_a_mis_citas(self):
+        paciente = crear_usuario('5100000003', self.tipo_documento)
+        paciente.groups.add(Group.objects.get(name='Paciente'))
+        self.client.login(username='5100000003', password='ClaveSegura123')
+
+        response = self.client.get(reverse('inicio'))
+        self.assertRedirects(response, reverse('mis_citas'))
 
 
 class UsuarioManagerTests(TestCase):
@@ -387,7 +414,7 @@ class NavegacionMovilTests(TestCase):
 
     def test_paciente_ve_agendar_y_cerrar_sesion_en_el_menu_movil_pero_no_el_panel(self):
         self.client.login(username='4100000002', password='ClaveSegura123')
-        response = self.client.get(reverse('inicio'))
+        response = self.client.get(reverse('mis_citas'))
         menu_movil = self.fragmento_menu_movil(response)
 
         self.assertIn(reverse('agendar_especialidades'), menu_movil)
@@ -412,6 +439,69 @@ class NavegacionMovilTests(TestCase):
         self.assertIn(reverse('login'), menu_movil)
         self.assertIn('Iniciar sesión', menu_movil)
         self.assertNotIn('Cerrar sesión', menu_movil)
+
+
+class NombreUsuarioEnBarraTests(TestCase):
+    """La barra superior debe mostrar el nombre del usuario autenticado
+    (nombre y apellido si existen, usuario como respaldo), en escritorio y
+    en el menú móvil, para los tres roles."""
+
+    def setUp(self):
+        self.tipo_documento = TipoDocumento.objects.get(nombre='Cédula de Ciudadanía (CC)')
+
+    def fragmento_menu_movil(self, response):
+        html = response.content.decode()
+        inicio = html.index('<details')
+        return html[inicio:html.index('</details>', inicio) + len('</details>')]
+
+    def test_admin_ve_su_nombre_en_la_barra(self):
+        admin = crear_usuario(
+            '4200000001', self.tipo_documento, first_name='Marta', last_name='Osorio',
+        )
+        admin.groups.add(Group.objects.get(name='Administrador'))
+        self.client.login(username='4200000001', password='ClaveSegura123')
+
+        response = self.client.get(reverse('panel_home'))
+
+        self.assertContains(response, 'Marta Osorio')
+        self.assertIn('Marta Osorio', self.fragmento_menu_movil(response))
+
+    def test_medico_ve_su_nombre_en_la_barra(self):
+        medico_usuario = crear_usuario(
+            '4200000002', self.tipo_documento, first_name='Carlos', last_name='Peña',
+        )
+        medico_usuario.groups.add(Group.objects.get(name='Medico'))
+        especialidad = Especialidad.objects.get(nombre='Medicina general')
+        Medico.objects.create(usuario=medico_usuario, especialidad=especialidad)
+        self.client.login(username='4200000002', password='ClaveSegura123')
+
+        response = self.client.get(reverse('medico_agenda'))
+
+        self.assertContains(response, 'Carlos Peña')
+        self.assertIn('Carlos Peña', self.fragmento_menu_movil(response))
+
+    def test_paciente_ve_su_nombre_en_la_barra(self):
+        paciente = crear_usuario(
+            '4200000003', self.tipo_documento, first_name='Diana', last_name='Ríos',
+        )
+        paciente.groups.add(Group.objects.get(name='Paciente'))
+        self.client.login(username='4200000003', password='ClaveSegura123')
+
+        response = self.client.get(reverse('mis_citas'))
+
+        self.assertContains(response, 'Diana Ríos')
+        self.assertIn('Diana Ríos', self.fragmento_menu_movil(response))
+
+    def test_usuario_sin_nombre_ni_apellido_muestra_el_username_como_respaldo(self):
+        paciente = crear_usuario(
+            '4200000004', self.tipo_documento, first_name='', last_name='',
+        )
+        paciente.groups.add(Group.objects.get(name='Paciente'))
+        self.client.login(username='4200000004', password='ClaveSegura123')
+
+        response = self.client.get(reverse('mis_citas'))
+
+        self.assertContains(response, '4200000004')
 
 
 class PanelAccesoTests(TestCase):
@@ -441,7 +531,7 @@ class PanelAccesoTests(TestCase):
     def test_hu10_login_de_paciente_no_redirige_al_panel(self):
         self.client.login(username='2222222222', password='ClaveSegura123')
         response = self.client.get(reverse('inicio'))
-        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(response, reverse('mis_citas'))
 
     def test_paciente_recibe_pagina_403_personalizada(self):
         self.client.login(username='2222222222', password='ClaveSegura123')
@@ -462,7 +552,7 @@ class PanelAccesoTests(TestCase):
 
     def test_paciente_no_ve_los_enlaces_del_panel_pero_si_el_de_agendar(self):
         self.client.login(username='2222222222', password='ClaveSegura123')
-        response = self.client.get(reverse('inicio'))
+        response = self.client.get(reverse('mis_citas'))
         self.assertNotContains(response, reverse('panel_especialidades'))
         self.assertNotContains(response, reverse('panel_medicos'))
         self.assertContains(response, reverse('agendar_especialidades'))
