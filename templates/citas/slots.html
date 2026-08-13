@@ -6,6 +6,13 @@
 <main class="flex-grow w-full max-w-5xl mx-auto py-md md:py-lg flex flex-col gap-lg">
 <!-- Header Section -->
 <section class="flex flex-col gap-sm">
+<nav aria-label="Breadcrumb" class="flex items-center gap-2 text-label-sm font-label-sm text-[#727783]">
+<a class="hover:text-[#3A7BD5] transition-colors" href="{% url 'mis_citas' %}">Mis citas</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<a class="hover:text-[#3A7BD5] transition-colors" href="{% url 'agendar_especialidades' %}">Especialidades</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-[#1D2D50] font-medium">{{ medico.usuario.get_full_name }}</span>
+</nav>
 <a class="inline-flex items-center gap-2 text-[#3A7BD5] font-label-md text-label-md hover:underline mb-2 w-fit focus:outline-none" href="{% url 'agendar_medicos' medico.especialidad.pk %}">
 <span class="material-symbols-outlined text-[18px]">arrow_back</span>
 Médicos de {{ medico.especialidad.nombre }}

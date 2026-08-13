@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .decorators import admin_required, es_administrador
+from .decorators import admin_required, es_administrador, es_medico
 from .forms import HorarioMedicoForm, MedicoEditForm, RegistroForm, RegistroMedicoForm
 from .models import Medico
 
@@ -22,9 +22,13 @@ def registro(request):
 
 @login_required
 def inicio(request):
+    """Punto único de entrada tras el login: reenvía a cada rol a su propio
+    espacio (única fuente de esta lógica, no duplicar en otra vista)."""
     if es_administrador(request.user):
         return redirect('panel_home')
-    return render(request, 'inicio.html')
+    if es_medico(request.user):
+        return redirect('medico_agenda')
+    return redirect('mis_citas')
 
 
 @admin_required

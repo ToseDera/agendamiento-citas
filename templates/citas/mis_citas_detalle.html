@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Detalle de cita - MediClick{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto w-full flex flex-col gap-lg">
+<a class="inline-flex items-center gap-2 text-[#3A7BD5] font-label-md text-label-md hover:underline w-fit" href="{% url 'mis_citas' %}">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+Mis citas
+</a>
+
+<div class="bg-white rounded-xl p-md md:p-lg shadow-[0px_4px_20px_rgba(29,45,80,0.05)] border border-[#D6ECFF] flex flex-col gap-md">
+<div class="flex items-start justify-between gap-md">
+<div class="flex items-start gap-4">
+<div class="w-14 h-14 rounded-full bg-gradient-to-br from-[#8EC5FF] to-[#3A7BD5] flex items-center justify-center text-white font-headline-md shrink-0 uppercase">
+{{ cita.medico.usuario.first_name|make_list|first|default:'' }}{{ cita.medico.usuario.last_name|make_list|first|default:'' }}
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md text-[#1D2D50]">{{ cita.medico.usuario.get_full_name }}</h1>
+<p class="font-label-md text-label-md text-[#236296]">{{ cita.medico.especialidad.nombre }}</p>
+</div>
+</div>
+{% if cita.estado.nombre == 'cancelada' %}
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#ffebee] text-[#c0392b] shrink-0">Cancelada</span>
+{% elif cita.estado.nombre == 'atendida' %}
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#e8f5e9] text-[#1a7f5a] shrink-0">Atendida</span>
+{% else %}
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#D6ECFF] text-[#236296] shrink-0">Confirmada</span>
+{% endif %}
+</div>
+
+<div class="h-px bg-[#D6ECFF] w-full"></div>
+
+<div class="flex flex-col gap-3">
+<div class="flex items-center gap-3 text-[#1D2D50]">
+<span class="material-symbols-outlined text-[#3A7BD5]">calendar_month</span>
+<span class="font-body-md text-body-md">{{ cita.fecha|date:"l j \d\e F, Y"|capfirst }}</span>
+</div>
+<div class="flex items-center gap-3 text-[#1D2D50]">
+<span class="material-symbols-outlined text-[#3A7BD5]">schedule</span>
+<span class="font-body-md text-body-md">{{ cita.hora_inicio|time:"H:i" }} - {{ cita.hora_fin|time:"H:i" }}</span>
+</div>
+</div>
+
+<div>
+<h2 class="font-label-md text-label-md text-[#1D2D50] font-semibold mb-1">Motivo de la consulta</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">{{ cita.motivo_consulta|default:"No indicado." }}</p>
+</div>
+
+{% if cita.comentario_medico %}
+<div class="bg-[#F6FBFF] rounded-lg p-md border border-[#D6ECFF]">
+<h2 class="font-label-md text-label-md text-[#1D2D50] font-semibold mb-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-[#3A7BD5]">stethoscope</span>
+Comentario del médico
+</h2>
+<p class="font-body-md text-body-md text-on-surface-variant whitespace-pre-line">{{ cita.comentario_medico }}</p>
+</div>
+{% endif %}
+
+{% if puede_cancelar %}
+<div class="pt-sm">
+<a href="{% url 'mis_citas_cancelar' cita.pk %}" class="inline-flex items-center gap-2 text-[#c0392b] font-label-md text-label-md hover:underline">
+<span class="material-symbols-outlined text-[18px]">event_busy</span>
+Cancelar esta cita
+</a>
+</div>
+{% endif %}
+</div>
+</div>
+{% endblock %}

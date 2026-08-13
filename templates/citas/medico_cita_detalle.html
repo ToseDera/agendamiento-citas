@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Detalle de cita - Panel MediClick{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto w-full flex flex-col gap-lg">
+<a class="inline-flex items-center gap-2 text-[#3A7BD5] font-label-md text-label-md hover:underline w-fit" href="{% url 'medico_agenda' %}">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+Mi agenda
+</a>
+
+<div class="bg-white rounded-xl p-md md:p-lg shadow-[0px_4px_20px_rgba(29,45,80,0.05)] border border-[#D6ECFF] flex flex-col gap-md">
+<div class="flex items-start justify-between gap-md">
+<div class="flex items-start gap-4">
+<div class="w-14 h-14 rounded-full bg-gradient-to-br from-[#8EC5FF] to-[#3A7BD5] flex items-center justify-center text-white font-headline-md shrink-0 uppercase">
+{{ cita.paciente.first_name|make_list|first|default:'' }}{{ cita.paciente.last_name|make_list|first|default:'' }}
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md text-[#1D2D50]">{{ cita.paciente.get_full_name }}</h1>
+<p class="font-label-md text-label-md text-[#236296]">Doc. {{ cita.paciente.numero_documento }}</p>
+</div>
+</div>
+{% if cita.estado.nombre == 'cancelada' %}
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#ffebee] text-[#c0392b] shrink-0">Cancelada</span>
+{% elif cita.estado.nombre == 'atendida' %}
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#e8f5e9] text-[#1a7f5a] shrink-0">Atendida</span>
+{% else %}
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#D6ECFF] text-[#236296] shrink-0">Confirmada</span>
+{% endif %}
+</div>
+
+<div class="h-px bg-[#D6ECFF] w-full"></div>
+
+<div class="flex flex-col gap-3">
+<div class="flex items-center gap-3 text-[#1D2D50]">
+<span class="material-symbols-outlined text-[#3A7BD5]">calendar_month</span>
+<span class="font-body-md text-body-md">{{ cita.fecha|date:"l j \d\e F, Y"|capfirst }}</span>
+</div>
+<div class="flex items-center gap-3 text-[#1D2D50]">
+<span class="material-symbols-outlined text-[#3A7BD5]">schedule</span>
+<span class="font-body-md text-body-md">{{ cita.hora_inicio|time:"H:i" }} - {{ cita.hora_fin|time:"H:i" }}</span>
+</div>
+</div>
+
+<div>
+<h2 class="font-label-md text-label-md text-[#1D2D50] font-semibold mb-1">Motivo de la consulta</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">{{ cita.motivo_consulta|default:"No indicado." }}</p>
+</div>
+
+<div class="bg-[#F6FBFF] rounded-lg p-md border border-[#D6ECFF] flex flex-col gap-sm">
+<div class="flex items-center justify-between gap-sm">
+<h2 class="font-label-md text-label-md text-[#1D2D50] font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-[#3A7BD5]">stethoscope</span>
+Comentario / resumen de la consulta
+</h2>
+{% if puede_editar_comentario %}
+<a href="{% url 'medico_comentario' cita.pk %}" class="text-[#3A7BD5] hover:underline font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">edit</span>
+{% if cita.comentario_medico %}Editar{% else %}Agregar{% endif %}
+</a>
+{% endif %}
+</div>
+{% if cita.comentario_medico %}
+<p class="font-body-md text-body-md text-on-surface-variant whitespace-pre-line">{{ cita.comentario_medico }}</p>
+{% else %}
+<p class="font-body-md text-body-md text-outline italic">Sin comentario todavía.</p>
+{% endif %}
+</div>
+
+{% if puede_marcar_atendida %}
+<form method="post" action="{% url 'medico_marcar_atendida' cita.pk %}" class="pt-sm">
+{% csrf_token %}
+<button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary text-on-primary font-label-md text-label-md px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+Marcar como atendida
+</button>
+</form>
+{% endif %}
+</div>
+</div>
+{% endblock %}

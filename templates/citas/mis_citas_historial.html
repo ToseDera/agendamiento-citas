@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Historial de citas - MediClick{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto w-full flex flex-col gap-lg">
+<div class="flex flex-col gap-xs">
+<a class="inline-flex items-center gap-2 text-[#3A7BD5] font-label-md text-label-md hover:underline w-fit" href="{% url 'mis_citas' %}">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+Mis citas
+</a>
+<h1 class="font-headline-xl text-headline-xl text-[#1D2D50] font-bold">Historial de citas</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Citas pasadas y canceladas.</p>
+</div>
+
+<div class="flex flex-col gap-md">
+{% for cita in citas %}
+<a href="{% url 'mis_citas_detalle' cita.pk %}" class="bg-white rounded-xl border border-[#D6ECFF] shadow-[0px_4px_20px_rgba(29,45,80,0.05)] hover:border-[#3A7BD5] transition-all duration-300 p-md flex flex-col sm:flex-row sm:items-center gap-md opacity-90">
+<div class="w-14 h-14 rounded-full bg-gradient-to-br from-[#8EC5FF] to-[#3A7BD5] flex items-center justify-center text-white font-headline-md shrink-0 uppercase">
+{{ cita.medico.usuario.first_name|make_list|first|default:'' }}{{ cita.medico.usuario.last_name|make_list|first|default:'' }}
+</div>
+<div class="flex-grow">
+<h2 class="font-headline-md text-headline-md-mobile text-[#1D2D50]">{{ cita.medico.usuario.get_full_name }}</h2>
+<p class="font-label-md text-label-md text-[#236296]">{{ cita.medico.especialidad.nombre }}</p>
+</div>
+<div class="flex flex-col sm:items-end gap-xs">
+<span class="font-body-md text-body-md text-[#1D2D50] flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-[#3A7BD5]">calendar_month</span>
+{{ cita.fecha|date:"j \d\e F, Y" }} · {{ cita.hora_inicio|time:"H:i" }}
+</span>
+{% if cita.estado.nombre == 'cancelada' %}
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#ffebee] text-[#c0392b] w-fit">
+<span class="w-1.5 h-1.5 rounded-full bg-[#c0392b]"></span>
+Cancelada
+</span>
+{% elif cita.estado.nombre == 'atendida' %}
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#e8f5e9] text-[#1a7f5a] w-fit">
+<span class="w-1.5 h-1.5 rounded-full bg-[#1a7f5a]"></span>
+Atendida
+</span>
+{% else %}
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#D6ECFF] text-[#236296] w-fit">
+<span class="w-1.5 h-1.5 rounded-full bg-[#236296]"></span>
+Confirmada (pasada)
+</span>
+{% endif %}
+</div>
+</a>
+{% empty %}
+<div class="text-center py-lg bg-white rounded-xl shadow-soft border border-[#D6ECFF]">
+<span class="material-symbols-outlined text-[48px] text-[#627788] mb-4">history</span>
+<p class="font-body-md text-body-md text-[#4a5568]">Todavía no tienes citas en tu historial.</p>
+</div>
+{% endfor %}
+</div>
+</div>
+{% endblock %}
