@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Prototipo de calendario · MediClick</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          "background": "#faf8ff",
+          "on-background": "#081a3d",
+          "surface": "#faf8ff",
+          "surface-container-lowest": "#ffffff",
+          "surface-container-low": "#f2f3ff",
+          "surface-container": "#e9edff",
+          "on-surface": "#081a3d",
+          "on-surface-variant": "#424752",
+          "outline": "#727783",
+          "outline-variant": "#c2c6d4",
+          "primary": "#005bb2",
+          "on-primary": "#ffffff",
+          "primary-container": "#3174ce",
+          "primary-fixed": "#d6e3ff",
+          "brand-primary": "#3A7BD5"
+        },
+        fontFamily: {
+          "headline-xl": ["Inter"], "headline-lg": ["Inter"], "headline-md": ["Inter"],
+          "body-lg": ["Inter"], "body-md": ["Inter"], "label-md": ["Inter"], "label-sm": ["Inter"]
+        },
+        // Mismos tokens de docs/diseno/DESIGN.md / templates/base.html: sin
+        // esto, clases como gap-md o p-sm no generan ningún CSS (Tailwind no
+        // trae esas claves en su escala numérica por defecto).
+        spacing: {
+          "base": "8px", "xs": "4px", "sm": "12px", "md": "24px",
+          "lg": "48px", "xl": "80px", "gutter": "24px",
+          "margin-mobile": "16px", "margin-desktop": "64px"
+        },
+        // Escala de radios de DESIGN.md — la de Tailwind por defecto no
+        // coincide (p.ej. su rounded-xl es más chico que el xl del sistema).
+        borderRadius: {
+          "sm": "0.25rem", "DEFAULT": "0.5rem", "md": "0.75rem",
+          "lg": "1rem", "xl": "1.5rem", "full": "9999px"
+        }
+      }
+    }
+  };
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; background-color: #F6FBFF; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; font-size: inherit; line-height: 1; }
+  .shadow-soft { box-shadow: 0px 4px 20px rgba(8, 26, 61, 0.05); }
+  .shadow-elevated { box-shadow: 0px 12px 32px rgba(8, 26, 61, 0.12); }
+
+  /* --- Capas del calendario ---
+     disponibilidad: relleno pálido punteado, capa base.
+     bloqueo: patrón de rayas diagonales, "no disponible".
+     ocupacion: relleno sólido por estado, capa superior con inset (para que
+     la disponibilidad de abajo asome como marco cuando coinciden en hora). */
+  .evt-disponibilidad {
+    background: #eef5ff;
+    border: 1.5px dashed #8EC5FF;
+    color: #236296;
+  }
+  .evt-bloqueo {
+    background-image: repeating-linear-gradient(135deg, #727783 0px, #727783 6px, #838996 6px, #838996 12px);
+    color: #ffffff;
+  }
+  .evt-ocupacion {
+    box-shadow: 0px 4px 12px rgba(8, 26, 61, 0.15);
+  }
+  .evt-ocupacion-confirmada { background: #D6ECFF; border: 1px solid #3A7BD5; color: #1D2D50; }
+  .evt-ocupacion-atendida { background: #e8f5e9; border: 1px solid #1a7f5a; color: #0f5132; }
+
+  .evento-caja { position: absolute; overflow: hidden; border-radius: 0.5rem; cursor: pointer; transition: filter .15s ease; }
+  .evento-caja:hover { filter: brightness(0.96); }
+  .evento-caja:focus-visible { outline: 2px solid #3A7BD5; outline-offset: 2px; }
+
+  .franja-hora { position: absolute; left: 0; right: 0; border-top: 1px solid #E1E8FF; }
+  .columna-hoy { background-color: rgba(58, 123, 213, 0.05); }
+
+  #toast { transition: opacity .25s ease, transform .25s ease; }
+  #modal-backdrop { transition: opacity .2s ease; }
+  #modal-card { transition: transform .2s ease, opacity .2s ease; }
+</style>
+</head>
+<body class="min-h-screen text-on-surface antialiased">
+<div class="flex flex-col min-h-screen">
+
+<!-- Header (mismo patrón de templates/base.html, adaptado sin static/urls de Django) -->
+<header class="bg-[#1D2D50] shadow-sm sticky top-0 z-40">
+<div class="flex justify-between items-center h-16 md:h-20 w-full px-4 md:px-16 mx-auto max-w-[1600px]">
+<div class="flex items-center gap-sm">
+<div class="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[20px]">calendar_month</span>
+</div>
+<div class="leading-tight">
+<span class="block font-bold text-white text-base">MediClick</span>
+<span class="block text-white/60 text-[11px]">Prototipo de calendario — sin backend</span>
+</div>
+</div>
+<span class="hidden sm:inline-flex items-center gap-1.5 text-white/70 text-xs bg-white/10 px-3 py-1.5 rounded-full">
+<span class="material-symbols-outlined text-[16px]">science</span>
+Solo diseño visual, datos fijos
+</span>
+</div>
+</header>
+
+<main class="flex-grow w-full max-w-[1600px] mx-auto px-4 md:px-16 py-md md:py-lg flex flex-col gap-md">
+
+<!-- Selector de escenario -->
+<section class="bg-white rounded-xl border border-[#D6ECFF] shadow-soft p-md flex flex-col lg:flex-row lg:items-center gap-md">
+<div class="flex flex-col gap-xs">
+<h1 class="font-bold text-xl text-[#1D2D50]">Calendario</h1>
+<p class="text-sm text-on-surface-variant">Un mismo componente, tres escenarios. Cambia de escenario para comprobar que se ve bien con cada uno.</p>
+</div>
+<div id="selector-rol" class="flex flex-wrap items-center gap-1 bg-[#F6FBFF] border border-[#D6ECFF] rounded-lg p-1 lg:ml-auto w-fit">
+<button data-rol="admin" class="rol-btn px-4 py-2 rounded-md text-sm font-semibold transition-colors">Administrador</button>
+<button data-rol="medico" class="rol-btn px-4 py-2 rounded-md text-sm font-semibold transition-colors">Médico</button>
+<button data-rol="paciente" class="rol-btn px-4 py-2 rounded-md text-sm font-semibold transition-colors">Paciente</button>
+</div>
+</section>
+
+<!-- Filtro por médico (solo visible en escenarios de administrador) -->
+<section id="filtro-medico-seccion" class="bg-white rounded-xl border border-[#D6ECFF] shadow-soft p-md flex flex-col gap-sm">
+<div class="flex flex-wrap items-center gap-2">
+<span class="text-xs font-semibold text-on-surface-variant uppercase tracking-wide shrink-0">Filtrar por médico</span>
+<div id="filtro-medico-botones" class="flex flex-wrap items-center gap-1.5"></div>
+</div>
+<p id="filtro-medico-ayuda" class="text-xs text-on-surface-variant flex items-start gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-[#3A7BD5] shrink-0">info</span>
+<span></span>
+</p>
+</section>
+
+<!-- Navegación de semana -->
+<section class="bg-white rounded-xl border border-[#D6ECFF] shadow-soft p-sm md:p-md flex flex-wrap items-center justify-between gap-sm">
+<div class="flex items-center gap-1">
+<button id="btn-semana-anterior" aria-label="Semana anterior" class="p-2 rounded-lg hover:bg-[#F6FBFF] text-[#1D2D50] transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button id="btn-hoy" class="px-3 py-2 rounded-lg border border-[#D6ECFF] text-sm font-semibold text-[#3A7BD5] hover:bg-[#F6FBFF] transition-colors">Hoy</button>
+<button id="btn-semana-siguiente" aria-label="Semana siguiente" class="p-2 rounded-lg hover:bg-[#F6FBFF] text-[#1D2D50] transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+<h2 id="rango-semana" class="font-semibold text-[#1D2D50] text-sm md:text-base"></h2>
+<span id="ventana-info" class="text-xs text-on-surface-variant hidden sm:inline"></span>
+</section>
+
+<!-- Leyenda -->
+<section id="leyenda" class="flex flex-wrap items-center gap-x-md gap-y-xs text-xs text-on-surface-variant px-1"></section>
+
+<!-- Vista de grilla (escritorio / pantallas medianas en adelante) -->
+<section class="hidden md:block bg-white rounded-xl border border-[#D6ECFF] shadow-soft overflow-hidden">
+<div class="overflow-x-auto max-h-[75vh] overflow-y-auto">
+<div id="grilla" class="min-w-[900px]"></div>
+</div>
+</section>
+
+<!-- Vista de lista (móvil): la grilla semanal no es legible en pantallas angostas -->
+<section class="md:hidden flex flex-col gap-sm" id="lista-movil"></section>
+
+</main>
+
+<footer class="border-t border-[#D6ECFF] py-md px-4 text-center text-xs text-on-surface-variant">
+Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se conecta a Django ni escribe datos.
+</footer>
+</div>
+
+<!-- Modal de detalle -->
+<div id="modal-backdrop" class="fixed inset-0 bg-[#081a3d]/50 z-50 hidden opacity-0" aria-hidden="true"></div>
+<div id="modal-card" class="fixed inset-x-4 bottom-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[440px] bg-white rounded-xl shadow-elevated border border-[#D6ECFF] z-50 hidden opacity-0 scale-95 p-md md:p-lg flex flex-col gap-md" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+<div class="flex items-start justify-between gap-sm">
+<div>
+<span id="modal-tipo-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium mb-2"></span>
+<h3 id="modal-titulo" class="font-bold text-lg text-[#1D2D50]"></h3>
+</div>
+<button id="modal-cerrar" aria-label="Cerrar" class="p-1.5 rounded-lg hover:bg-[#F6FBFF] text-outline transition-colors shrink-0">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div id="modal-cuerpo" class="flex flex-col gap-3 text-sm"></div>
+<div id="modal-acciones" class="flex flex-col gap-2 pt-2 border-t border-[#D6ECFF]"></div>
+</div>
+
+<!-- Toast (feedback de acciones simuladas) -->
+<div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-[#1D2D50] text-white text-sm px-4 py-3 rounded-lg shadow-elevated z-[60] opacity-0 pointer-events-none flex items-center gap-2 max-w-[90vw]">
+<span class="material-symbols-outlined text-[18px]">info</span>
+<span id="toast-texto"></span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------------------------------------------------------------------
+  // Config y utilidades de tiempo
+  // ---------------------------------------------------------------------
+  const PX_POR_MIN = 1.1;
+  // Debajo de esto (minutos de duración), la caja de un evento oculta la
+  // línea de horas y muestra solo el título. 35 en vez de exactamente 30
+  // porque el caso explícito de 30 min (dos líneas de texto + padding)
+  // igual se siente apretado en la práctica; con 35 el corte cae limpio
+  // entre "30 min, compacto" y "40 min, normal".
+  const UMBRAL_COMPACTO_MIN = 35;
+  // Ventana horaria mínima garantizada: aunque los datos de la semana sean
+  // muy angostos (p.ej. solo el escenario de Paciente), la grilla nunca se
+  // achica más allá de esto, para que no cambie de forma drásticamente al
+  // navegar entre semanas.
+  const VENTANA_MIN_INICIO = 7 * 60;
+  const VENTANA_MIN_FIN = 19 * 60;
+
+  const NOMBRES_DIA = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+  const NOMBRES_DIA_CORTO = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  const NOMBRES_MES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+  function hhmm(minutos) {
+    const h = Math.floor(minutos / 60);
+    const m = minutos % 60;
+    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+  }
+
+  // Construye un evento normalizado, con la misma forma que EventoCalendario
+  // (citas/services.py): tipo, titulo, inicio/fin (minutos del día para este
+  // prototipo), estado, medico, especialidad, acciones_permitidas,
+  // desplazamiento_min.
+  function crearEvento({ tipo, dia, horaIni, horaFin, titulo, estado = null, medico, acciones = [], detalle = '', comentario = '', diaCompleto = false }) {
+    const [hi, mi] = horaIni.split(':').map(Number);
+    const [hf, mf] = horaFin.split(':').map(Number);
+    return {
+      tipo, dia, titulo, estado, medico,
+      acciones_permitidas: acciones,
+      detalle, comentario, diaCompleto,
+      // Nombre igual al campo real de EventoCalendario: el posicionamiento
+      // vertical se hace por este valor y por la duración, nunca por filas
+      // de altura fija.
+      desplazamiento_min: hi * 60 + mi,
+      finMin: hf * 60 + mf,
+    };
+  }
+
+  // ---------------------------------------------------------------------
+  // Datos de referencia (médicos) y datasets de ejemplo por escenario
+  // ---------------------------------------------------------------------
+  // Colores solo para el borde-identificador de médico en la vista general
+  // de administrador. Deliberadamente NINGUNO coincide con los colores de
+  // estado (#3A7BD5 confirmada, #1a7f5a atendida, #727783 bloqueo): si
+  // coincidieran, el borde de color se volvería invisible justo en el caso
+  // que más importa (una caja compacta, donde el borde es la ÚNICA pista
+  // de a qué médico pertenece).
+  const MEDICOS = {
+    torres: { id: 'torres', nombre: 'Dra. Ana Torres', especialidad: 'Pediatría', color: '#8E44AD' },
+    prada: { id: 'prada', nombre: 'Dr. Luis Prada', especialidad: 'Medicina General', color: '#236296' },
+    ruiz: { id: 'ruiz', nombre: 'Dra. Elena Ruiz', especialidad: 'Cardiología', color: '#1D2D50' },
+    soto: { id: 'soto', nombre: 'Dr. Miguel Soto', especialidad: 'Dermatología', color: '#B8860B' },
+  };
+
+  // Vista de médico: solo lo propio de la Dra. Torres — sirve además como
+  // banco de casos de densidad/horario irregular (duraciones 20/40/60,
+  // bloqueo de día completo, horario 11:48-23:48, citas consecutivas de
+  // 20/30 min, un día totalmente vacío), ya que el escenario de
+  // administrador dejó de mostrar disponibilidad/citas individuales.
+  const DATASET_MEDICO = [
+    crearEvento({ tipo: 'ocupacion', dia: 0, horaIni: '08:00', horaFin: '08:20', titulo: 'Control de crecimiento', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'marcar_atendida'], detalle: 'Control de crecimiento (20 min)' }),
+    crearEvento({ tipo: 'ocupacion', dia: 0, horaIni: '08:20', horaFin: '09:00', titulo: 'Consulta general', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'marcar_atendida'], detalle: 'Consulta general (40 min)' }),
+    crearEvento({ tipo: 'ocupacion', dia: 0, horaIni: '09:00', horaFin: '10:00', titulo: 'Valoración inicial', estado: 'atendida', medico: MEDICOS.torres, acciones: ['ver_detalle', 'editar_comentario'], detalle: 'Valoración inicial (60 min)', comentario: 'Paciente sano. Esquema de vacunación al día. Próximo control en 6 meses.' }),
+    crearEvento({ tipo: 'disponibilidad', dia: 0, horaIni: '10:00', horaFin: '11:00', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'disponibilidad', dia: 0, horaIni: '11:00', horaFin: '12:00', titulo: 'Disponible', medico: MEDICOS.torres }),
+
+    crearEvento({ tipo: 'disponibilidad', dia: 1, horaIni: '09:00', horaFin: '10:00', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'ocupacion', dia: 1, horaIni: '09:00', horaFin: '09:40', titulo: 'Consulta de seguimiento', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle'] }),
+    crearEvento({ tipo: 'disponibilidad', dia: 1, horaIni: '10:00', horaFin: '11:00', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'ocupacion', dia: 1, horaIni: '11:00', horaFin: '11:40', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle'] }),
+
+    crearEvento({ tipo: 'bloqueo', dia: 2, horaIni: '00:00', horaFin: '23:59', titulo: 'Congreso médico', medico: MEDICOS.torres, diaCompleto: true }),
+
+    // JUEVES: día completamente vacío para este médico (sin eventos).
+
+    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '11:48', horaFin: '12:28', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '12:28', horaFin: '13:08', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'ocupacion', dia: 4, horaIni: '13:08', horaFin: '13:48', titulo: 'Vacunación', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle'] }),
+    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '13:48', horaFin: '14:28', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '20:28', horaFin: '21:08', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'ocupacion', dia: 4, horaIni: '21:08', horaFin: '21:48', titulo: 'Consulta nocturna', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle'] }),
+    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '21:48', horaFin: '22:28', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '22:28', horaFin: '23:08', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '23:08', horaFin: '23:48', titulo: 'Disponible', medico: MEDICOS.torres }),
+
+    crearEvento({ tipo: 'ocupacion', dia: 5, horaIni: '09:00', horaFin: '09:20', titulo: 'Consulta rápida', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'marcar_atendida'] }),
+    crearEvento({ tipo: 'ocupacion', dia: 5, horaIni: '09:20', horaFin: '09:40', titulo: 'Consulta rápida', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'marcar_atendida'] }),
+    crearEvento({ tipo: 'ocupacion', dia: 5, horaIni: '09:40', horaFin: '10:10', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle'] }),
+    crearEvento({ tipo: 'ocupacion', dia: 5, horaIni: '10:10', horaFin: '10:40', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle'] }),
+
+    crearEvento({ tipo: 'disponibilidad', dia: 6, horaIni: '09:00', horaFin: '10:00', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'disponibilidad', dia: 6, horaIni: '10:00', horaFin: '11:00', titulo: 'Disponible', medico: MEDICOS.torres }),
+  ];
+
+  // Vista de paciente: solo sus propias citas (tipo 'ocupacion'), nunca
+  // disponibilidad ni bloqueos ajenos — igual que la regla real del servicio.
+  const DATASET_PACIENTE = [
+    crearEvento({ tipo: 'ocupacion', dia: 0, horaIni: '08:20', horaFin: '09:00', titulo: 'Consulta general', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'cancelar'], detalle: 'Motivo: control periódico.' }),
+    crearEvento({ tipo: 'ocupacion', dia: 3, horaIni: '15:00', horaFin: '15:40', titulo: 'Control', estado: 'atendida', medico: MEDICOS.torres, acciones: ['ver_detalle'], detalle: 'Motivo: seguimiento de tratamiento.', comentario: 'Evolución favorable. Continuar con el tratamiento indicado y control en un mes.' }),
+    crearEvento({ tipo: 'ocupacion', dia: 4, horaIni: '13:08', horaFin: '13:48', titulo: 'Vacunación', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'cancelar'], detalle: 'Motivo: esquema de vacunación.' }),
+  ];
+
+  // Único escenario de administrador: cuatro médicos de especialidades y
+  // duraciones de cita distintas trabajando la misma semana. Sirve para
+  // comprobar que la vista general (sin filtro) no se satura, y que
+  // filtrar por uno limpia la lectura. Incluye un bloqueo puntual, un
+  // bloqueo de día completo, un día completamente vacío (Ruiz, miércoles),
+  // dos bloqueos de médicos distintos que coinciden en horario (martes
+  // 14:00-15:00, Torres + Ruiz) y cuatro bloqueos simultáneos (jueves
+  // 12:00-13:00, los cuatro médicos) para forzar el caso de desborde de
+  // columnas.
+  const DATASET_ADMIN = [
+    // LUNES
+    crearEvento({ tipo: 'ocupacion', dia: 0, horaIni: '08:00', horaFin: '08:40', titulo: 'Control', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'ocupacion', dia: 0, horaIni: '09:00', horaFin: '09:40', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'disponibilidad', dia: 0, horaIni: '10:00', horaFin: '10:40', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'disponibilidad', dia: 0, horaIni: '10:40', horaFin: '11:20', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'ocupacion', dia: 0, horaIni: '08:30', horaFin: '09:00', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.prada, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'ocupacion', dia: 0, horaIni: '10:00', horaFin: '11:00', titulo: 'Control cardiológico', estado: 'confirmada', medico: MEDICOS.ruiz, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'disponibilidad', dia: 0, horaIni: '09:00', horaFin: '09:20', titulo: 'Disponible', medico: MEDICOS.soto }),
+    crearEvento({ tipo: 'disponibilidad', dia: 0, horaIni: '09:20', horaFin: '09:40', titulo: 'Disponible', medico: MEDICOS.soto }),
+
+    // MARTES — dos bloqueos de médicos distintos coinciden 14:00-15:00: caso
+    // de "lado a lado" simple (2 columnas, 50% de ancho cada una).
+    crearEvento({ tipo: 'ocupacion', dia: 1, horaIni: '09:00', horaFin: '09:40', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'bloqueo', dia: 1, horaIni: '14:00', horaFin: '15:00', titulo: 'Capacitación', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'disponibilidad', dia: 1, horaIni: '09:00', horaFin: '09:30', titulo: 'Disponible', medico: MEDICOS.prada }),
+    crearEvento({ tipo: 'disponibilidad', dia: 1, horaIni: '09:30', horaFin: '10:00', titulo: 'Disponible', medico: MEDICOS.prada }),
+    crearEvento({ tipo: 'ocupacion', dia: 1, horaIni: '08:00', horaFin: '09:00', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.ruiz, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'bloqueo', dia: 1, horaIni: '14:00', horaFin: '15:00', titulo: 'Junta clínica', medico: MEDICOS.ruiz }),
+    crearEvento({ tipo: 'ocupacion', dia: 1, horaIni: '11:00', horaFin: '11:20', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.soto, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'ocupacion', dia: 1, horaIni: '11:20', horaFin: '11:40', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.soto, acciones: ['ver_detalle', 'cancelar'] }),
+
+    // MIÉRCOLES — Ruiz sin ningún evento este día (día vacío real).
+    crearEvento({ tipo: 'ocupacion', dia: 2, horaIni: '09:00', horaFin: '09:40', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'bloqueo', dia: 2, horaIni: '00:00', horaFin: '23:59', titulo: 'Vacaciones', medico: MEDICOS.soto, diaCompleto: true }),
+
+    // JUEVES — reunión de staff que bloquea a los cuatro médicos a la vez
+    // (caso límite de desborde: más columnas que MAX_COLUMNAS_VISIBLES).
+    crearEvento({ tipo: 'ocupacion', dia: 3, horaIni: '10:00', horaFin: '10:30', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.prada, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'ocupacion', dia: 3, horaIni: '10:30', horaFin: '11:00', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.prada, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'disponibilidad', dia: 3, horaIni: '08:00', horaFin: '09:00', titulo: 'Disponible', medico: MEDICOS.ruiz }),
+    crearEvento({ tipo: 'disponibilidad', dia: 3, horaIni: '09:00', horaFin: '10:00', titulo: 'Disponible', medico: MEDICOS.ruiz }),
+    crearEvento({ tipo: 'bloqueo', dia: 3, horaIni: '12:00', horaFin: '13:00', titulo: 'Reunión de staff', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'bloqueo', dia: 3, horaIni: '12:00', horaFin: '13:00', titulo: 'Reunión de staff', medico: MEDICOS.prada }),
+    crearEvento({ tipo: 'bloqueo', dia: 3, horaIni: '12:00', horaFin: '13:00', titulo: 'Reunión de staff', medico: MEDICOS.ruiz }),
+    crearEvento({ tipo: 'bloqueo', dia: 3, horaIni: '12:00', horaFin: '13:00', titulo: 'Reunión de staff', medico: MEDICOS.soto }),
+
+    // VIERNES
+    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '08:00', horaFin: '08:40', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '08:40', horaFin: '09:20', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'ocupacion', dia: 4, horaIni: '09:00', horaFin: '10:00', titulo: 'Ecocardiograma', estado: 'atendida', medico: MEDICOS.ruiz, acciones: ['ver_detalle'], comentario: 'Función ventricular conservada. Control en 6 meses.' }),
+    crearEvento({ tipo: 'ocupacion', dia: 4, horaIni: '15:00', horaFin: '15:20', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.soto, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '15:20', horaFin: '15:40', titulo: 'Disponible', medico: MEDICOS.soto }),
+    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '15:40', horaFin: '16:00', titulo: 'Disponible', medico: MEDICOS.soto }),
+
+    // SÁBADO y DOMINGO — sin actividad para los cuatro (fin de semana real).
+  ];
+
+  const ESCENARIOS = {
+    admin: { etiqueta: 'Administrador', esAdmin: true, dataset: DATASET_ADMIN, medicos: [MEDICOS.torres, MEDICOS.prada, MEDICOS.ruiz, MEDICOS.soto] },
+    medico: { etiqueta: 'Médico', esAdmin: false, dataset: DATASET_MEDICO },
+    paciente: { etiqueta: 'Paciente', esAdmin: false, dataset: DATASET_PACIENTE },
+  };
+
+  const ETIQUETAS_ACCION = {
+    cancelar: { texto: 'Cancelar cita', icono: 'event_busy', clase: 'bg-white border border-[#c0392b] text-[#c0392b] hover:bg-[#ffebee]' },
+    marcar_atendida: { texto: 'Marcar como atendida', icono: 'check_circle', clase: 'bg-primary text-on-primary hover:bg-primary/90' },
+    editar_comentario: { texto: 'Editar comentario', icono: 'edit_note', clase: 'bg-white border border-[#8EC5FF] text-[#236296] hover:bg-[#F6FBFF]' },
+  };
+
+  // ---------------------------------------------------------------------
+  // Estado
+  // ---------------------------------------------------------------------
+  // estado.escenario usa las mismas claves que data-rol en el HTML del
+  // selector (admin | medico | paciente).
+  const estado = { escenario: 'admin', semanaOffset: 0, medicoFiltro: null };
+
+  function lunesDeSemana(fecha) {
+    const d = new Date(fecha);
+    const diaSemanaIso = (d.getDay() + 6) % 7; // 0 = lunes
+    d.setDate(d.getDate() - diaSemanaIso);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  const HOY_REAL = new Date();
+  const LUNES_BASE = lunesDeSemana(HOY_REAL);
+  const HOY_DIA_IDX = (HOY_REAL.getDay() + 6) % 7;
+
+  function fechaDeColumna(diaIdx) {
+    const d = new Date(LUNES_BASE);
+    d.setDate(d.getDate() + estado.semanaOffset * 7 + diaIdx);
+    return d;
+  }
+
+  // ---------------------------------------------------------------------
+  // Datos visibles según escenario + filtro de médico:
+  // - Escenarios de paciente/médico: su dataset tal cual (ya viene con el
+  //   alcance correcto, como lo devolvería obtener_eventos_calendario()).
+  // - Administrador SIN filtro: ÚNICAMENTE bloqueos/excepciones de todos
+  //   los médicos. Ni disponibilidad ni citas: con varios profesionales
+  //   (pensar en diez médicos con dos citas por hora) esa capa vuelve la
+  //   columna imposible de leer. Las citas se resumen aparte, como un
+  //   conteo por día (ver densidadPorDia), no como cajas en la grilla.
+  // - Administrador CON filtro: las tres capas, pero solo del médico
+  //   elegido (igual que la vista de médico).
+  // ---------------------------------------------------------------------
+  function datosVisibles() {
+    const cfg = ESCENARIOS[estado.escenario];
+    let eventos = cfg.dataset;
+    if (cfg.esAdmin) {
+      if (estado.medicoFiltro) {
+        eventos = eventos.filter((e) => e.medico && e.medico.id === estado.medicoFiltro);
+      } else {
+        eventos = eventos.filter((e) => e.tipo === 'bloqueo');
+      }
+    }
+    return eventos;
+  }
+
+  // Conteo de citas (tipo 'ocupacion') por día, para el indicador de
+  // densidad del encabezado. Solo aplica a la vista general de
+  // administrador (sin filtro de médico): en cuanto se filtra, o en las
+  // vistas de médico/paciente, las citas ya se ven directamente en la
+  // grilla y el conteo sería redundante.
+  function densidadPorDia() {
+    const cfg = ESCENARIOS[estado.escenario];
+    if (!cfg.esAdmin || estado.medicoFiltro) return null;
+    const conteo = Array(7).fill(0);
+    cfg.dataset.forEach((e) => { if (e.tipo === 'ocupacion') conteo[e.dia] += 1; });
+    return conteo;
+  }
+
+  // Solo tiene sentido mostrar de quién es cada evento (nombre + color)
+  // cuando hay varios médicos mezclados en la misma columna: administrador
+  // sin filtro. En cuanto se filtra a uno, o en las vistas de médico/
+  // paciente, el contexto ya es un único médico y sobra repetirlo.
+  function mostrarMedicoActivo() {
+    const cfg = ESCENARIOS[estado.escenario];
+    return cfg.esAdmin && !estado.medicoFiltro;
+  }
+
+  // ---------------------------------------------------------------------
+  // Empaquetado de eventos superpuestos (columnas lado a lado dentro de un
+  // mismo día). Algoritmo greedy estándar de "interval graph coloring":
+  // agrupa eventos que se solapan en clusters y les asigna la primera
+  // columna libre por orden de inicio. Se corre en dos pasadas separadas
+  // por capa (ver renderColumnaDia) para que una ocupación se dibuje ENCIMA
+  // de su disponibilidad en vez de partirlas lado a lado.
+  // ---------------------------------------------------------------------
+  function empaquetar(eventos) {
+    const orden = eventos.slice().sort((a, b) => a.desplazamiento_min - b.desplazamiento_min || a.finMin - b.finMin);
+    const clusters = [];
+    let actual = [];
+    let finCluster = -Infinity;
+    orden.forEach((e) => {
+      if (actual.length && e.desplazamiento_min >= finCluster) {
+        clusters.push(actual);
+        actual = [];
+        finCluster = -Infinity;
+      }
+      actual.push(e);
+      finCluster = Math.max(finCluster, e.finMin);
+    });
+    if (actual.length) clusters.push(actual);
+
+    clusters.forEach((cluster, idx) => {
+      const columnas = []; // fin de la última cita colocada en cada columna
+      cluster.forEach((e) => {
+        let colocado = false;
+        for (let c = 0; c < columnas.length; c++) {
+          if (columnas[c] <= e.desplazamiento_min) {
+            e._col = c;
+            columnas[c] = e.finMin;
+            colocado = true;
+            break;
+          }
+        }
+        if (!colocado) {
+          e._col = columnas.length;
+          columnas.push(e.finMin);
+        }
+      });
+      cluster.forEach((e) => { e._cols = columnas.length; e._clusterId = idx; });
+    });
+    return orden;
+  }
+
+  // Si un grupo de eventos superpuestos necesita más columnas que
+  // MAX_COLUMNAS_VISIBLES (p.ej. varios médicos bloqueados a la misma
+  // hora), seguir angostando cada caja las volvería ilegibles. En vez de
+  // eso, las columnas sobrantes se agrupan en una sola caja-resumen "+N".
+  // La altura de cada caja sigue representando su propia duración real:
+  // lo único que cambia es cuántas columnas caben lado a lado, nunca el
+  // alto de la fila de hora.
+  const MAX_COLUMNAS_VISIBLES = 3;
+
+  function limitarColumnas(eventosEmpacados) {
+    const porCluster = new Map();
+    eventosEmpacados.forEach((e) => {
+      if (!porCluster.has(e._clusterId)) porCluster.set(e._clusterId, []);
+      porCluster.get(e._clusterId).push(e);
+    });
+
+    const resultado = [];
+    porCluster.forEach((cluster) => {
+      if (cluster[0]._cols <= MAX_COLUMNAS_VISIBLES) {
+        resultado.push(...cluster);
+        return;
+      }
+      const visibles = cluster.filter((e) => e._col < MAX_COLUMNAS_VISIBLES - 1);
+      const ocultos = cluster.filter((e) => e._col >= MAX_COLUMNAS_VISIBLES - 1);
+      visibles.forEach((e) => { e._cols = MAX_COLUMNAS_VISIBLES; });
+      resultado.push(...visibles, {
+        tipo: 'resumen',
+        titulo: '+' + ocultos.length + (ocultos.length === 1 ? ' bloqueo' : ' bloqueos'),
+        desplazamiento_min: Math.min(...ocultos.map((e) => e.desplazamiento_min)),
+        finMin: Math.max(...ocultos.map((e) => e.finMin)),
+        _col: MAX_COLUMNAS_VISIBLES - 1,
+        _cols: MAX_COLUMNAS_VISIBLES,
+        _ocultos: ocultos,
+      });
+    });
+    return resultado;
+  }
+
+  // ---------------------------------------------------------------------
+  // Ventana horaria dinámica: mínimo/máximo real de los datos visibles,
+  // redondeado a la hora, con un mínimo garantizado de 07:00–19:00. Los
+  // bloqueos de día completo NO cuentan para el cálculo (si no, uno solo
+  // forzaría la grilla a 00:00-24:00 siempre).
+  // ---------------------------------------------------------------------
+  function calcularVentana(eventos) {
+    const relevantes = eventos.filter((e) => !e.diaCompleto);
+    if (!relevantes.length) return { inicio: VENTANA_MIN_INICIO, fin: VENTANA_MIN_FIN };
+    let min = Math.min(...relevantes.map((e) => e.desplazamiento_min));
+    let max = Math.max(...relevantes.map((e) => e.finMin));
+    min = Math.floor(min / 60) * 60;
+    max = Math.ceil(max / 60) * 60;
+    min = Math.min(min, VENTANA_MIN_INICIO);
+    max = Math.max(max, VENTANA_MIN_FIN);
+    return { inicio: min, fin: max };
+  }
+
+  function agruparPorDia(eventos) {
+    const porDia = Array.from({ length: 7 }, () => []);
+    eventos.forEach((e) => porDia[e.dia].push(e));
+    return porDia;
+  }
+
+  // ---------------------------------------------------------------------
+  // Render: grilla semanal (escritorio)
+  // ---------------------------------------------------------------------
+  function badgeEstado(evento) {
+    if (evento.tipo === 'disponibilidad') return { texto: 'Disponible', clase: 'bg-[#eef5ff] text-[#236296]' };
+    if (evento.tipo === 'bloqueo') return { texto: evento.diaCompleto ? 'Día no disponible' : 'Bloqueo', clase: 'bg-[#727783] text-white' };
+    if (evento.estado === 'atendida') return { texto: 'Atendida', clase: 'bg-[#e8f5e9] text-[#1a7f5a]' };
+    return { texto: 'Confirmada', clase: 'bg-[#D6ECFF] text-[#236296]' };
+  }
+
+  // Indicador discreto de cuántas citas hay agendadas ese día, sin
+  // renderizarlas: da sentido de control de un vistazo (qué día está más
+  // cargado) sin saturar la grilla con cajas de citas de diez médicos.
+  // Si el día no tiene citas, se muestra atenuado en vez de desaparecer,
+  // para que la fila de encabezados no "salte" de tamaño entre días.
+  function densidadHtml(densidad, dia) {
+    if (!densidad) return '';
+    const n = densidad[dia];
+    if (n > 0) {
+      return '<span class="text-[10px] font-semibold text-[#236296] bg-[#eef5ff] px-1.5 py-0.5 rounded-full">' + n + (n === 1 ? ' cita' : ' citas') + '</span>';
+    }
+    return '<span class="text-[10px] text-[#c2c6d4]">Sin citas</span>';
+  }
+
+  function claseCajaEvento(evento) {
+    if (evento.tipo === 'disponibilidad') return 'evt-disponibilidad';
+    if (evento.tipo === 'bloqueo') return 'evt-bloqueo';
+    return 'evt-ocupacion ' + (evento.estado === 'atendida' ? 'evt-ocupacion-atendida' : 'evt-ocupacion-confirmada');
+  }
+
+  function renderColumnaDia(contenedor, eventosDia, ventana, mostrarMedico) {
+    const alturaTotal = (ventana.fin - ventana.inicio) * PX_POR_MIN;
+    contenedor.style.height = alturaTotal + 'px';
+
+    // Los bloqueos de día completo se empaquetan como un evento más (no como
+    // una toma de la columna entera): en la vista de un solo médico son la
+    // única cosa ese día y ocupan todo el ancho igual, pero en la vista
+    // general de administrador con varios médicos, si otro médico sí tiene
+    // citas ese mismo día, deben verse ambos lado a lado en vez de que el
+    // bloqueo de uno tape los eventos de los demás.
+    const capaBase = empaquetar(eventosDia.filter((e) => e.tipo === 'disponibilidad'));
+    const capaSuperior = limitarColumnas(empaquetar(eventosDia.filter((e) => e.tipo !== 'disponibilidad')));
+
+    capaBase.forEach((e) => contenedor.appendChild(dibujarCaja(e, ventana, mostrarMedico, false)));
+    capaSuperior.forEach((e) => contenedor.appendChild(dibujarCaja(e, ventana, mostrarMedico, true)));
+
+    if (!eventosDia.length) {
+      // Centrado verticalmente en toda la columna (no a una altura fija: a
+      // las 08:20 se confundía con un evento real) y con un tono apagado
+      // para que se lea como ausencia de datos, no como contenido.
+      const vacio = document.createElement('div');
+      vacio.className = 'absolute inset-0 flex items-center justify-center text-center px-1 pointer-events-none select-none';
+      vacio.innerHTML = '<span class="text-[11px] text-[#c2c6d4] font-medium">Sin eventos</span>';
+      contenedor.appendChild(vacio);
+    }
+  }
+
+  // Caja-resumen "+N bloqueos" para el desborde de columnas (ver
+  // limitarColumnas). No abre el panel de detalle habitual, porque
+  // representa varios eventos a la vez: en su lugar, un toast lista a
+  // quiénes agrupa y sugiere filtrar por médico para verlos completos.
+  function dibujarCajaResumen(evento, ventana) {
+    const inicioVisible = Math.max(evento.desplazamiento_min, ventana.inicio);
+    const finVisible = Math.min(evento.finMin, ventana.fin);
+    const top = (inicioVisible - ventana.inicio) * PX_POR_MIN;
+    const alto = Math.max((finVisible - inicioVisible) * PX_POR_MIN, 18);
+    const anchoPct = 100 / evento._cols;
+    const izqPct = evento._col * anchoPct;
+
+    const caja = document.createElement('div');
+    caja.className = 'evento-caja bg-[#424752] text-white px-1 py-1 text-[10px] leading-tight flex items-center justify-center text-center font-semibold';
+    caja.style.top = top + 'px';
+    caja.style.height = alto + 'px';
+    caja.style.left = 'calc(' + izqPct + '% + 3px)';
+    caja.style.width = 'calc(' + anchoPct + '% - 6px)';
+    caja.style.zIndex = '10';
+    caja.tabIndex = 0;
+    caja.setAttribute('role', 'button');
+    caja.textContent = evento.titulo;
+    caja.setAttribute('aria-label', evento.titulo + ' entre ' + hhmm(evento.desplazamiento_min) + ' y ' + hhmm(evento.finMin));
+
+    const detalle = evento._ocultos
+      .map((o) => (o.medico ? o.medico.nombre : '?') + ' · ' + o.titulo + ' (' + hhmm(o.desplazamiento_min) + '–' + hhmm(o.finMin) + ')')
+      .join(' · ');
+    const activar = () => mostrarToast('Bloqueos ocultos por espacio: ' + detalle + '. Filtra por médico arriba para ver el detalle completo.');
+    caja.addEventListener('click', activar);
+    caja.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') activar(); });
+    return caja;
+  }
+
+  function dibujarCaja(evento, ventana, mostrarMedico, esCapaSuperior) {
+    if (evento.tipo === 'resumen') return dibujarCajaResumen(evento, ventana);
+    // Recortado a la ventana visible: un bloqueo de día completo (00:00-23:59)
+    // se guarda con su horario real, pero si la ventana calculada empieza más
+    // tarde (p.ej. 07:00) hay que recortar la caja a eso, o su borde superior
+    // quedaría en negativo y se saldría por encima de la grilla.
+    const inicioVisible = Math.max(evento.desplazamiento_min, ventana.inicio);
+    const finVisible = Math.min(evento.finMin, ventana.fin);
+    const top = (inicioVisible - ventana.inicio) * PX_POR_MIN;
+    const duracion = finVisible - inicioVisible;
+    const alto = Math.max(duracion * PX_POR_MIN, 18);
+    const compacta = duracion < UMBRAL_COMPACTO_MIN;
+    const anchoPct = 100 / evento._cols;
+    const izqPct = evento._col * anchoPct;
+
+    const caja = document.createElement('div');
+    caja.className = 'evento-caja ' + claseCajaEvento(evento) + ' px-1.5 py-1 text-[11px] leading-tight' + (compacta ? ' flex items-center' : '');
+    caja.style.top = top + 'px';
+    caja.style.height = alto + 'px';
+    if (esCapaSuperior) {
+      // Inset pequeño para que la disponibilidad de abajo asome como marco
+      // cuando coinciden en el tiempo (caso 2).
+      caja.style.left = 'calc(' + izqPct + '% + 3px)';
+      caja.style.width = 'calc(' + anchoPct + '% - 6px)';
+      caja.style.zIndex = '10';
+    } else {
+      caja.style.left = izqPct + '%';
+      caja.style.width = anchoPct + '%';
+      caja.style.zIndex = '1';
+    }
+    // Franja de color por médico: solo en la vista general de administrador
+    // (varios médicos mezclados en la misma columna). Es el reemplazo
+    // visual de la etiqueta de texto cuando el evento es tan corto que esa
+    // etiqueta se oculta (ver "compacta" abajo).
+    if (mostrarMedico && evento.medico) {
+      caja.style.borderLeft = '4px solid ' + evento.medico.color;
+    }
+    caja.tabIndex = 0;
+    caja.setAttribute('role', 'button');
+    caja.setAttribute('aria-label', evento.titulo + ', ' + (evento.diaCompleto ? 'todo el día' : hhmm(evento.desplazamiento_min) + ' a ' + hhmm(evento.finMin)) + (mostrarMedico && evento.medico ? ', ' + evento.medico.nombre : ''));
+
+    const rangoTexto = evento.diaCompleto ? 'Todo el día' : (hhmm(evento.desplazamiento_min) + '–' + hhmm(evento.finMin));
+
+    if (compacta) {
+      // Umbral de densidad (punto 1): por debajo de UMBRAL_COMPACTO_MIN
+      // solo cabe el título — la hora y el médico se pierden visualmente,
+      // pero siguen en el DOM (aria-label) y en el panel de detalle al clic.
+      caja.innerHTML = '<div class="font-semibold truncate w-full">' + evento.titulo + '</div>';
+    } else {
+      const medicoTxt = mostrarMedico && evento.medico ? '<div class="opacity-75 truncate">' + evento.medico.nombre.replace('Dra. ', '').replace('Dr. ', '') + '</div>' : '';
+      caja.innerHTML = '<div class="font-semibold truncate">' + evento.titulo + '</div>'
+        + '<div class="truncate">' + rangoTexto + '</div>'
+        + medicoTxt;
+    }
+
+    caja.addEventListener('click', () => abrirDetalle(evento));
+    caja.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') abrirDetalle(evento); });
+    return caja;
+  }
+
+  function renderGrilla() {
+    const grilla = document.getElementById('grilla');
+    grilla.innerHTML = '';
+
+    const eventos = datosVisibles();
+    const mostrarMedico = mostrarMedicoActivo();
+    const ventana = calcularVentana(eventos);
+    const porDia = agruparPorDia(eventos);
+    const densidad = densidadPorDia();
+
+    document.getElementById('ventana-info').textContent =
+      'Ventana visible: ' + hhmm(ventana.inicio) + ' – ' + hhmm(ventana.fin) + ' (de los datos, con mínimo 07:00–19:00)';
+
+    // --- Encabezados de día: fila fija (sticky top) + esquina fija (sticky
+    // left). top-0, NO el offset de la barra superior: la grilla tiene su
+    // propio contenedor con scroll interno (overflow-y-auto más abajo), que
+    // es un contexto de scroll distinto al de la página; la barra superior
+    // fija (sticky de más arriba) no comparte ese scroll, así que copiar su
+    // offset aquí sólo dejaría una franja sin proteger por encima del
+    // encabezado por la que el contenido se colaría al desplazarse. ---
+    const encabezado = document.createElement('div');
+    encabezado.className = 'grid sticky top-0 z-20 bg-white border-b border-[#D6ECFF]';
+    encabezado.style.gridTemplateColumns = '64px repeat(7, 1fr)';
+    const esquina = document.createElement('div');
+    esquina.className = 'sticky left-0 z-10 bg-white border-r border-[#D6ECFF]';
+    encabezado.appendChild(esquina);
+    for (let dia = 0; dia < 7; dia++) {
+      const fecha = fechaDeColumna(dia);
+      const esHoy = estado.semanaOffset === 0 && dia === HOY_DIA_IDX;
+      const celda = document.createElement('div');
+      celda.className = 'flex flex-col items-center py-2 gap-0.5 border-l border-[#D6ECFF]' + (esHoy ? ' columna-hoy' : '');
+      celda.innerHTML = '<span class="text-[11px] uppercase tracking-wide text-outline">' + NOMBRES_DIA_CORTO[dia] + '</span>'
+        + '<span class="text-sm font-semibold ' + (esHoy ? 'text-[#3A7BD5]' : 'text-[#1D2D50]') + '">' + fecha.getDate() + (esHoy ? ' · Hoy' : '') + '</span>'
+        + densidadHtml(densidad, dia);
+      encabezado.appendChild(celda);
+    }
+    grilla.appendChild(encabezado);
+
+    // --- Cuerpo: gutter de horas (sticky left) + 7 columnas de día ---
+    const cuerpo = document.createElement('div');
+    cuerpo.className = 'grid relative';
+    cuerpo.style.gridTemplateColumns = '64px repeat(7, 1fr)';
+
+    const alturaTotal = (ventana.fin - ventana.inicio) * PX_POR_MIN;
+
+    const gutter = document.createElement('div');
+    gutter.className = 'relative border-r border-[#D6ECFF] bg-white sticky left-0 z-10';
+    gutter.style.height = alturaTotal + 'px';
+    for (let h = ventana.inicio; h <= ventana.fin; h += 60) {
+      const marca = document.createElement('div');
+      marca.className = 'absolute right-2 -translate-y-1/2 text-[11px] text-outline';
+      marca.style.top = ((h - ventana.inicio) * PX_POR_MIN) + 'px';
+      marca.textContent = hhmm(h);
+      gutter.appendChild(marca);
+    }
+    cuerpo.appendChild(gutter);
+
+    for (let dia = 0; dia < 7; dia++) {
+      const columna = document.createElement('div');
+      const esHoy = estado.semanaOffset === 0 && dia === HOY_DIA_IDX;
+      columna.className = 'relative border-l border-[#D6ECFF]' + (esHoy ? ' columna-hoy' : '');
+      for (let h = ventana.inicio; h <= ventana.fin; h += 60) {
+        const linea = document.createElement('div');
+        linea.className = 'franja-hora';
+        linea.style.top = ((h - ventana.inicio) * PX_POR_MIN) + 'px';
+        columna.appendChild(linea);
+      }
+      renderColumnaDia(columna, porDia[dia], ventana, mostrarMedico);
+      cuerpo.appendChild(columna);
+    }
+
+    grilla.appendChild(cuerpo);
+  }
+
+  // ---------------------------------------------------------------------
+  // Render: lista agrupada por día (móvil)
+  // ---------------------------------------------------------------------
+  function renderLista() {
+    const contenedor = document.getElementById('lista-movil');
+    contenedor.innerHTML = '';
+    const eventos = datosVisibles();
+    const mostrarMedico = mostrarMedicoActivo();
+    const porDia = agruparPorDia(eventos);
+    const densidad = densidadPorDia();
+
+    for (let dia = 0; dia < 7; dia++) {
+      const fecha = fechaDeColumna(dia);
+      const esHoy = estado.semanaOffset === 0 && dia === HOY_DIA_IDX;
+      const eventosDia = porDia[dia].slice().sort((a, b) => a.desplazamiento_min - b.desplazamiento_min);
+
+      const seccion = document.createElement('div');
+      seccion.className = 'bg-white rounded-xl border border-[#D6ECFF] shadow-soft overflow-hidden';
+
+      const cabecera = document.createElement('div');
+      cabecera.className = 'px-4 py-2.5 flex items-center gap-2 border-b border-[#D6ECFF]' + (esHoy ? ' bg-[#eef5ff]' : ' bg-[#F6FBFF]');
+      cabecera.innerHTML = '<span class="font-semibold text-sm text-[#1D2D50]">' + NOMBRES_DIA[dia] + ' ' + fecha.getDate() + '</span>'
+        + (esHoy ? '<span class="text-[10px] font-bold text-[#3A7BD5] bg-white px-2 py-0.5 rounded-full border border-[#8EC5FF]">HOY</span>' : '')
+        + '<span class="ml-auto">' + densidadHtml(densidad, dia) + '</span>';
+      seccion.appendChild(cabecera);
+
+      const lista = document.createElement('div');
+      lista.className = 'divide-y divide-[#F2F3FF]';
+
+      if (!eventosDia.length) {
+        const vacio = document.createElement('div');
+        vacio.className = 'px-4 py-4 text-sm text-[#c2c6d4] text-center';
+        vacio.textContent = 'Sin eventos este día.';
+        lista.appendChild(vacio);
+      } else {
+        eventosDia.forEach((evento) => {
+          const badge = badgeEstado(evento);
+          const fila = document.createElement('button');
+          fila.type = 'button';
+          fila.className = 'w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-[#F6FBFF] transition-colors';
+          if (mostrarMedico && evento.medico) fila.style.borderLeft = '4px solid ' + evento.medico.color;
+          fila.innerHTML = '<div class="w-14 shrink-0 text-xs font-medium text-on-surface-variant">' + (evento.diaCompleto ? 'Todo el día' : hhmm(evento.desplazamiento_min)) + '</div>'
+            + '<div class="flex-grow min-w-0">'
+            + '<div class="text-sm font-semibold text-[#1D2D50] truncate">' + evento.titulo + '</div>'
+            + (mostrarMedico && evento.medico ? '<div class="text-xs text-on-surface-variant truncate">' + evento.medico.nombre + '</div>' : '')
+            + '</div>'
+            + '<span class="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium ' + badge.clase + '">' + badge.texto + '</span>';
+          fila.addEventListener('click', () => abrirDetalle(evento));
+          lista.appendChild(fila);
+        });
+      }
+
+      seccion.appendChild(lista);
+      contenedor.appendChild(seccion);
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Leyenda
+  // ---------------------------------------------------------------------
+  function renderLeyenda() {
+    const cfg = ESCENARIOS[estado.escenario];
+    const eventos = datosVisibles();
+    const mostrarMedico = mostrarMedicoActivo();
+    const tipos = new Set(eventos.map((e) => e.tipo));
+    const items = [];
+
+    if (tipos.has('disponibilidad')) {
+      items.push('<span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded evt-disponibilidad inline-block"></span>Disponible</span>');
+    }
+    if (tipos.has('ocupacion')) {
+      items.push('<span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded evt-ocupacion evt-ocupacion-confirmada inline-block"></span>Cita confirmada</span>');
+      items.push('<span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded evt-ocupacion evt-ocupacion-atendida inline-block"></span>Cita atendida</span>');
+    }
+    if (tipos.has('bloqueo')) {
+      items.push('<span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded evt-bloqueo inline-block"></span>Bloqueo</span>');
+    }
+    if (mostrarMedico && cfg.medicos) {
+      cfg.medicos.forEach((m) => {
+        items.push('<span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:' + m.color + '"></span>' + m.nombre + '</span>');
+      });
+    }
+    document.getElementById('leyenda').innerHTML = items.join('');
+  }
+
+  // ---------------------------------------------------------------------
+  // Filtro por médico (solo escenarios de administrador)
+  // ---------------------------------------------------------------------
+  function renderFiltroMedico() {
+    const cfg = ESCENARIOS[estado.escenario];
+    const seccion = document.getElementById('filtro-medico-seccion');
+    seccion.classList.toggle('hidden', !cfg.esAdmin);
+    if (!cfg.esAdmin) return;
+
+    const cont = document.getElementById('filtro-medico-botones');
+    cont.innerHTML = '';
+
+    const btnTodos = document.createElement('button');
+    btnTodos.type = 'button';
+    const activoTodos = !estado.medicoFiltro;
+    btnTodos.className = 'px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors '
+      + (activoTodos ? 'bg-[#1D2D50] text-white border-[#1D2D50]' : 'bg-white text-on-surface-variant border-[#D6ECFF] hover:bg-[#F6FBFF]');
+    btnTodos.textContent = 'Todos los médicos';
+    btnTodos.addEventListener('click', () => { estado.medicoFiltro = null; render(); });
+    cont.appendChild(btnTodos);
+
+    cfg.medicos.forEach((m) => {
+      const activo = estado.medicoFiltro === m.id;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors '
+        + (activo ? 'text-white border-transparent' : 'bg-white text-on-surface-variant border-[#D6ECFF] hover:bg-[#F6FBFF]');
+      if (activo) btn.style.backgroundColor = m.color;
+      btn.innerHTML = '<span class="w-2 h-2 rounded-full inline-block" style="background:' + (activo ? '#ffffff' : m.color) + '"></span>' + m.nombre;
+      btn.addEventListener('click', () => { estado.medicoFiltro = m.id; render(); });
+      cont.appendChild(btn);
+    });
+
+    const textoAyuda = document.querySelector('#filtro-medico-ayuda span:last-child');
+    if (estado.medicoFiltro) {
+      const m = cfg.medicos.find((med) => med.id === estado.medicoFiltro);
+      textoAyuda.textContent = 'Mostrando las tres capas (disponibilidad, bloqueos y citas) de ' + (m ? m.nombre : '') + '. Quita el filtro para volver a la vista general de todos los médicos.';
+    } else {
+      textoAyuda.textContent = 'Vista general: solo bloqueos y excepciones de todos los médicos. Las citas no se dibujan aquí (con muchos médicos saturarían la columna); el número junto a cada día indica cuántas hay agendadas. Elige un médico arriba para ver su agenda completa: disponibilidad, bloqueos y citas.';
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Modal de detalle + acciones (solo visuales)
+  // ---------------------------------------------------------------------
+  function abrirDetalle(evento) {
+    const badge = badgeEstado(evento);
+    document.getElementById('modal-tipo-badge').className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium mb-2 ' + badge.clase;
+    document.getElementById('modal-tipo-badge').textContent = badge.texto;
+    document.getElementById('modal-titulo').textContent = evento.titulo;
+
+    const filas = [];
+    filas.push(campoDetalle('schedule', evento.diaCompleto ? 'Todo el día' : (hhmm(evento.desplazamiento_min) + ' – ' + hhmm(evento.finMin))));
+    filas.push(campoDetalle('calendar_month', NOMBRES_DIA[evento.dia]));
+    if (evento.medico) filas.push(campoDetalle('stethoscope', evento.medico.nombre + ' · ' + evento.medico.especialidad));
+    if (evento.detalle) filas.push(campoDetalle('description', evento.detalle));
+    if (evento.comentario) {
+      filas.push('<div class="bg-[#F6FBFF] border border-[#D6ECFF] rounded-lg p-3 flex flex-col gap-1">'
+        + '<span class="text-xs font-semibold text-[#1D2D50] flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">chat</span>Comentario del médico</span>'
+        + '<span class="text-on-surface-variant">' + evento.comentario + '</span></div>');
+    }
+    document.getElementById('modal-cuerpo').innerHTML = filas.join('');
+
+    const acciones = document.getElementById('modal-acciones');
+    acciones.innerHTML = '';
+    const permitidas = (evento.acciones_permitidas || []).filter((a) => a !== 'ver_detalle');
+    if (!permitidas.length) {
+      const nota = document.createElement('p');
+      nota.className = 'text-xs text-outline text-center';
+      nota.textContent = evento.tipo === 'disponibilidad' ? 'Este horario está libre para agendar.' : 'No hay acciones disponibles para este evento.';
+      acciones.appendChild(nota);
+    } else {
+      permitidas.forEach((accionId) => {
+        const info = ETIQUETAS_ACCION[accionId];
+        if (!info) return;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors ' + info.clase;
+        btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">' + info.icono + '</span>' + info.texto;
+        btn.addEventListener('click', () => {
+          mostrarToast('Simulado: en la app real, esto abriría la vista de Django correspondiente (' + accionId + ').');
+        });
+        acciones.appendChild(btn);
+      });
+    }
+
+    document.getElementById('modal-backdrop').classList.remove('hidden');
+    document.getElementById('modal-card').classList.remove('hidden');
+    requestAnimationFrame(() => {
+      document.getElementById('modal-backdrop').classList.remove('opacity-0');
+      document.getElementById('modal-card').classList.remove('opacity-0', 'scale-95');
+    });
+  }
+
+  function campoDetalle(icono, texto) {
+    return '<div class="flex items-center gap-2 text-[#1D2D50]"><span class="material-symbols-outlined text-[18px] text-[#3A7BD5]">' + icono + '</span><span>' + texto + '</span></div>';
+  }
+
+  function cerrarDetalle() {
+    document.getElementById('modal-backdrop').classList.add('opacity-0');
+    document.getElementById('modal-card').classList.add('opacity-0', 'scale-95');
+    setTimeout(() => {
+      document.getElementById('modal-backdrop').classList.add('hidden');
+      document.getElementById('modal-card').classList.add('hidden');
+    }, 200);
+  }
+
+  let toastTimeout = null;
+  function mostrarToast(texto) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toast-texto').textContent = texto;
+    toast.classList.remove('opacity-0');
+    toast.classList.add('opacity-100');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+      toast.classList.remove('opacity-100');
+      toast.classList.add('opacity-0');
+    }, 3000);
+  }
+
+  // ---------------------------------------------------------------------
+  // Encabezado de semana + orquestación general
+  // ---------------------------------------------------------------------
+  function formatearRangoSemana() {
+    const inicio = fechaDeColumna(0);
+    const fin = fechaDeColumna(6);
+    if (inicio.getMonth() === fin.getMonth()) {
+      return inicio.getDate() + ' – ' + fin.getDate() + ' de ' + NOMBRES_MES[inicio.getMonth()] + ' de ' + fin.getFullYear();
+    }
+    return inicio.getDate() + ' de ' + NOMBRES_MES[inicio.getMonth()] + ' – ' + fin.getDate() + ' de ' + NOMBRES_MES[fin.getMonth()] + ' de ' + fin.getFullYear();
+  }
+
+  function render() {
+    document.getElementById('rango-semana').textContent = formatearRangoSemana();
+    document.querySelectorAll('.rol-btn').forEach((btn) => {
+      const activo = btn.dataset.rol === estado.escenario;
+      btn.className = 'rol-btn px-4 py-2 rounded-md text-sm font-semibold transition-colors '
+        + (activo ? 'bg-[#3A7BD5] text-white shadow-sm' : 'text-on-surface-variant hover:bg-white');
+    });
+    renderFiltroMedico();
+    renderLeyenda();
+    renderGrilla();
+    renderLista();
+  }
+
+  document.getElementById('selector-rol').addEventListener('click', (ev) => {
+    const btn = ev.target.closest('.rol-btn');
+    if (!btn) return;
+    estado.escenario = btn.dataset.rol;
+    estado.medicoFiltro = null; // cada escenario tiene su propio conjunto de médicos
+    render();
+  });
+  document.getElementById('btn-semana-anterior').addEventListener('click', () => { estado.semanaOffset -= 1; render(); });
+  document.getElementById('btn-semana-siguiente').addEventListener('click', () => { estado.semanaOffset += 1; render(); });
+  document.getElementById('btn-hoy').addEventListener('click', () => { estado.semanaOffset = 0; render(); });
+  document.getElementById('modal-cerrar').addEventListener('click', cerrarDetalle);
+  document.getElementById('modal-backdrop').addEventListener('click', cerrarDetalle);
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') cerrarDetalle(); });
+
+  render();
+})();
+</script>
+</body>
+</html>
