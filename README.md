@@ -92,13 +92,18 @@ python manage.py seed_dev
 
 Comando idempotente (correrlo varias veces no duplica nada) que solo funciona con `DEBUG=True`. Crea:
 
-| Rol                                                                | Cédula (username) | Contraseña     |
-| ------------------------------------------------------------------ | ------------------ | --------------- |
-| Administrador (superusuario, grupo`Administrador`)               | `9999999999`     | `admin123`    |
-| Paciente de prueba (grupo`Paciente`)                             | `8888888888`     | `paciente123` |
-| Médico de prueba (grupo`Medico`, especialidad Medicina general) | `7777777777`     | `medico123`   |
+| Rol                                                              | Cédula (username) | Contraseña     |
+| ----------------------------------------------------------------- | ------------------- | --------------- |
+| Administrador (superusuario, grupo `Administrador`)             | `9999999999`      | `admin123`    |
+| Paciente de prueba 1 (grupo `Paciente`)                         | `8888888888`      | `paciente123` |
+| Paciente de prueba 2 (grupo `Paciente`)                         | `8888888880`      | `paciente123` |
+| Médico de prueba (grupo `Medico`, Medicina general)            | `7777777777`      | `medico123`   |
+| Médico de prueba (grupo `Medico`, Odontología)                 | `7777777771`      | `medico123`   |
+| Médico de prueba (grupo `Medico`, Pediatría)                   | `7777777772`      | `medico123`   |
 
-Usa `python manage.py seed_dev --sin-extra` si solo quieres el admin, sin el paciente ni el médico de prueba.
+Hay un médico de prueba por cada especialidad sembrada (`citas/migrations/0003_especialidades_iniciales.py`); si agregás una especialidad nueva, sumale también su médico en `usuarios/management/commands/seed_dev.py` (lista `MEDICOS`).
+
+Usa `python manage.py seed_dev --sin-extra` si solo quieres el admin, sin los pacientes ni los médicos de prueba.
 
 ### Opción manual: `createsuperuser`
 
@@ -131,9 +136,72 @@ El registro público de usuarios siempre crea el usuario en el grupo **Paciente*
 
 ## 8. Correr los tests
 
+El proyecto tiene 210 tests (`citas` + `usuarios`). Casi todo el tiempo de una
+corrida sin acelerar se va en PBKDF2 hasheando las contraseñas de los
+usuarios que los tests crean — no en lógica de negocio — así que hay formas
+mucho más rápidas de correrlos día a día sin perder cobertura. Tres formas,
+según el momento:
+
+### Durante el desarrollo: una clase o un módulo
+
+Cuando estás iterando sobre algo puntual, corré solo lo que te importa:
+
+```bash
+python manage.py test citas.tests.CerrarCitasVencidasTests
+python manage.py test usuarios.tests
+```
+
+### Corrida rápida completa: con aceleración
+
+Para correr los 210 tests seguido sin esperar varios minutos:
+
+```bash
+python manage.py test --settings=config.settings_test
+```
+
+- `--settings=config.settings_test` usa un hasher de contraseñas rápido
+  (MD5) solo para esta corrida — ver `config/settings_test.py`. Nunca toca
+  `config/settings.py`: la app en desarrollo/producción sigue usando PBKDF2
+  siempre. Es la optimización que más rinde, por lejos: ~10-18s para los
+  210 tests (contra varios minutos con el hasher real).
+- **No sumes `--parallel` a esto.** Se midió la combinación (fase 6b): con
+  la suite ya en 10-18s gracias al hasher rápido, el costo de levantar
+  procesos y crear una base de datos de test por proceso supera lo que
+  ahorra paralelizar — la misma corrida con `--parallel` tomó ~24-25s,
+  más lenta que sin él. `--parallel` sí vale la pena combinado con el
+  hasher *normal* (PBKDF2), donde el cuello de botella es otro; combinado
+  con el hasher rápido, no.
+
+### Corrida de cierre de fase: completa, tal como se reporta
+
+Antes de dar por cerrada una fase (o para el número que va en un reporte de
+fase), corré la suite completa sin acelerar nada:
+
 ```bash
 python manage.py test
 ```
+
+Es la única corrida que debería citarse como "resultado de la suite": mide
+el caso real (hasher de producción, sin paralelizar), no un número
+optimista.
+
+### `--keepdb`: con dos advertencias
+
+`--keepdb` reutiliza la base de test entre corridas en vez de recrearla
+desde cero. Dos advertencias reales de este proyecto antes de usarla:
+
+- **No sirve si la fase agrega migraciones nuevas**: correría contra un
+  esquema viejo.
+- **No la reutilices en corridas consecutivas**: `usuarios.tests.
+  MigracionTiposDocumentoTests` (el único test que usa `TransactionTestCase`,
+  porque mueve migraciones reales hacia atrás y hacia adelante con
+  `MigrationExecutor`) deja el catálogo sembrado (`TipoDocumento`,
+  `Especialidad`, etc.) corrupto en la base preservada después de correr.
+  Reutilizar esa misma base en una segunda corrida con `--keepdb` hace
+  fallar ~190 de los 210 tests con `DoesNotExist` — no es un bug de esos
+  tests, es la base preservada la que quedó mal. Si usás `--keepdb`, que
+  sea para una sola corrida; después dejá que la siguiente la recree
+  (`python manage.py test --noinput`, sin `--keepdb`).
 
 ## Reiniciar el entorno desde cero
 
@@ -156,7 +224,7 @@ cur.execute(f'CREATE DATABASE \"{db_name}\"')
 # 2. Migrar (crea tablas + catálogos + grupos + especialidades iniciales)
 python manage.py migrate
 
-# 3. Sembrar datos de desarrollo (admin + paciente + médico de prueba)
+# 3. Sembrar datos de desarrollo (admin + pacientes + médicos de prueba, ver sección 6)
 python manage.py seed_dev
 
 # 4. Levantar el servidor

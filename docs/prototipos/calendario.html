@@ -59,10 +59,21 @@
   /* --- Capas del calendario ---
      disponibilidad: relleno pálido punteado, capa base.
      bloqueo: patrón de rayas diagonales, "no disponible".
-     ocupacion: relleno sólido por estado, capa superior con inset (para que
-     la disponibilidad de abajo asome como marco cuando coinciden en hora). */
+     ocupacion: relleno sólido por estado, capa superior con inset (el único
+     solape posible del mismo médico es bloqueo sobre una cita ya agendada,
+     invariante 1e — ver el comentario junto al inset en dibujarCaja). */
   .evt-disponibilidad {
-    background: #eef5ff;
+    /* primary-fixed (#d6e3ff), usado en la ronda anterior, tenía el mismo
+       canal rojo que el relleno de cita confirmada (#D6ECFF) — 214 en
+       ambos, solo 9/255 de verde de distancia — casi indistinguibles
+       renderizados lado a lado. Este es un uso de RELLENO (compite
+       visualmente con una caja de cita al lado), así que pasa a
+       surface-container (#e9edff): 19/255 de rojo de separación, ya
+       claramente distinto renderizado (ver reporte, tarea 4). */
+    background: #e9edff;
+    /* Con el relleno ya separado, el borde de 2px de la ronda anterior
+       (compensaba la casi-colisión de color) vuelve a 1.5px: el mismo peso
+       que el resto de los tipos de caja, ninguno necesita destacarse más. */
     border: 1.5px dashed #8EC5FF;
     color: #236296;
   }
@@ -125,12 +136,26 @@ Solo diseño visual, datos fijos
 </div>
 </section>
 
-<!-- Filtro por médico (solo visible en escenarios de administrador) -->
+<!-- Filtros de administrador (solo visible en ese escenario): especialidad
+     y médico son independientes entre sí (decisión 4, no hay repoblado
+     dependiente). El botón Aplicar funciona sin JS; con JS, el médico se
+     potencia con búsqueda solo de md hacia arriba (crearComboboxMedico). -->
 <section id="filtro-medico-seccion" class="bg-white rounded-xl border border-[#D6ECFF] shadow-soft p-md flex flex-col gap-sm">
-<div class="flex flex-wrap items-center gap-2">
-<span class="text-xs font-semibold text-on-surface-variant uppercase tracking-wide shrink-0">Filtrar por médico</span>
-<div id="filtro-medico-botones" class="flex flex-wrap items-center gap-1.5"></div>
+<form id="form-filtros-admin" method="get" class="flex flex-col md:flex-row md:items-end gap-sm">
+<div class="flex flex-col gap-1 flex-1 min-w-0">
+<label for="filtro-especialidad" class="text-xs font-semibold text-on-surface-variant uppercase tracking-wide">Especialidad</label>
+<select id="filtro-especialidad" name="especialidad" class="h-11 w-full px-3 rounded-lg border border-[#D6ECFF] bg-white text-sm text-[#1D2D50] focus:outline-none focus:ring-2 focus:ring-[#3A7BD5]">
+<option value="">Todas las especialidades</option>
+</select>
 </div>
+<div id="filtro-medico-wrap" class="flex flex-col gap-1 flex-1 min-w-0 relative">
+<label for="filtro-medico" class="text-xs font-semibold text-on-surface-variant uppercase tracking-wide">Médico</label>
+<select id="filtro-medico" name="medico" class="h-11 w-full px-3 rounded-lg border border-[#D6ECFF] bg-white text-sm text-[#1D2D50] focus:outline-none focus:ring-2 focus:ring-[#3A7BD5]">
+<option value="">Todos los médicos</option>
+</select>
+</div>
+<button type="submit" class="h-11 px-5 rounded-lg bg-[#3A7BD5] text-white text-sm font-semibold hover:bg-[#3A7BD5]/90 transition-colors shrink-0">Aplicar</button>
+</form>
 <p id="filtro-medico-ayuda" class="text-xs text-on-surface-variant flex items-start gap-1.5">
 <span class="material-symbols-outlined text-[16px] text-[#3A7BD5] shrink-0">info</span>
 <span></span>
@@ -167,8 +192,13 @@ Solo diseño visual, datos fijos
 
 </main>
 
-<footer class="border-t border-[#D6ECFF] py-md px-4 text-center text-xs text-on-surface-variant">
-Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se conecta a Django ni escribe datos.
+<footer class="border-t border-[#D6ECFF] py-md px-4 flex flex-col items-center gap-sm text-center text-xs text-on-surface-variant">
+<p>Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se conecta a Django ni escribe datos.</p>
+<!-- Tira de verificación visual de la paleta de 8 colores de médico (tarea
+     9): no es parte del componente, solo un chequeo de que los 8 se
+     distinguen entre sí y de los colores de estado antes de darlos por
+     buenos. -->
+<div id="tira-paleta-medicos" class="flex flex-wrap items-center justify-center gap-2"></div>
 </footer>
 </div>
 
@@ -225,15 +255,59 @@ Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se
     return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
   }
 
+  // ---------------------------------------------------------------------
+  // Invariantes del backend real (citas/services.py), verificadas contra el
+  // código, no supuestas. Todo dato de ejemplo de este archivo tiene que
+  // poder existir en producción bajo estas reglas — es la vara contra la
+  // que se revisó el dataset anterior y se encontró un caso imposible.
+  //
+  // a. disponibilidad = huecos LIBRES (obtener_slots_disponibles descarta
+  //    los slots ocupados). Para UN MISMO MÉDICO, disponibilidad y
+  //    ocupación nunca se solapan en el tiempo. Tampoco disponibilidad y
+  //    bloqueo: un slot cubierto por una ExcepcionHorario se excluye igual
+  //    (_slot_pisado_por_excepcion). El único solape legítimo del mismo
+  //    médico es bloqueo + ocupación (ver 1e).
+  // b. Los huecos libres nacen en múltiplos de duracion_cita_min, que
+  //    depende de la ESPECIALIDAD del médico, no del médico individual.
+  // c. En días ya pasados no hay eventos de disponibilidad (se excluyen por
+  //    fecha). En el día de hoy, la disponibilidad empieza en la hora
+  //    actual, no a primera hora del bloque de horario.
+  // d. Una cita cancelada no se emite como evento (ocupa_slot=False la deja
+  //    fuera del queryset). Los únicos estados visibles son confirmada y
+  //    atendida.
+  // e. Un bloqueo (ExcepcionHorario) SÍ puede solaparse con una cita ya
+  //    agendada del mismo médico: ExcepcionHorario.clean() no valida contra
+  //    Cita, solo contra otra excepción idéntica. Es el único caso legítimo
+  //    que le queda a la lógica de dos capas con inset de dibujarCaja/
+  //    renderColumnaDia — ver el comentario ahí.
+  // f. Un bloqueo de día completo tiene hora_inicio nula; el servicio lo
+  //    expone como dia_completo=true (aquí, diaCompleto).
+  // ---------------------------------------------------------------------
+
+  function lunesDeSemana(fecha) {
+    const d = new Date(fecha);
+    const diaSemanaIso = (d.getDay() + 6) % 7; // 0 = lunes
+    d.setDate(d.getDate() - diaSemanaIso);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  const HOY_REAL = new Date();
+  const LUNES_BASE = lunesDeSemana(HOY_REAL);
+  const HOY_DIA_IDX = (HOY_REAL.getDay() + 6) % 7;
+  const HOY_MIN_ACTUAL = HOY_REAL.getHours() * 60 + HOY_REAL.getMinutes();
+
   // Construye un evento normalizado, con la misma forma que EventoCalendario
   // (citas/services.py): tipo, titulo, inicio/fin (minutos del día para este
   // prototipo), estado, medico, especialidad, acciones_permitidas,
-  // desplazamiento_min.
-  function crearEvento({ tipo, dia, horaIni, horaFin, titulo, estado = null, medico, acciones = [], detalle = '', comentario = '', diaCompleto = false }) {
+  // desplazamiento_min. `semana` distingue semanaOffset (0 = semana actual,
+  // -1 = semana pasada): sin esto, cualquier semana mostraba los mismos
+  // datos, pasado o futuro incluido.
+  function crearEvento({ tipo, dia, horaIni, horaFin, titulo, estado = null, medico, acciones = [], detalle = '', comentario = '', diaCompleto = false, semana = 0 }) {
     const [hi, mi] = horaIni.split(':').map(Number);
     const [hf, mf] = horaFin.split(':').map(Number);
     return {
-      tipo, dia, titulo, estado, medico,
+      tipo, dia, titulo, estado, medico, semana,
       acciones_permitidas: acciones,
       detalle, comentario, diaCompleto,
       // Nombre igual al campo real de EventoCalendario: el posicionamiento
@@ -245,128 +319,268 @@ Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se
   }
 
   // ---------------------------------------------------------------------
-  // Datos de referencia (médicos) y datasets de ejemplo por escenario
+  // Datos de referencia (especialidades, médicos) y datasets de ejemplo
   // ---------------------------------------------------------------------
-  // Colores solo para el borde-identificador de médico en la vista general
-  // de administrador. Deliberadamente NINGUNO coincide con los colores de
-  // estado (#3A7BD5 confirmada, #1a7f5a atendida, #727783 bloqueo): si
-  // coincidieran, el borde de color se volvería invisible justo en el caso
-  // que más importa (una caja compacta, donde el borde es la ÚNICA pista
-  // de a qué médico pertenece).
+  const ESPECIALIDADES = [
+    { id: 'pediatria', nombre: 'Pediatría', duracion: 40 },
+    { id: 'medicina-general', nombre: 'Medicina General', duracion: 30 },
+    { id: 'cardiologia', nombre: 'Cardiología', duracion: 60 },
+    { id: 'dermatologia', nombre: 'Dermatología', duracion: 20 },
+    { id: 'ginecologia', nombre: 'Ginecología', duracion: 30 },
+    { id: 'ortopedia', nombre: 'Ortopedia', duracion: 45 },
+    { id: 'oftalmologia', nombre: 'Oftalmología', duracion: 20 },
+    { id: 'psiquiatria', nombre: 'Psiquiatría', duracion: 50 },
+  ];
+  const ESPECIALIDAD_POR_ID = Object.fromEntries(ESPECIALIDADES.map((e) => [e.id, e]));
+
+  // 8 colores para el borde/franja-identificador de médico en el modo
+  // panorámico. Deliberadamente ninguno coincide con los colores que ya
+  // tienen significado de estado: #3A7BD5 (confirmada), #1a7f5a/#e8f5e9
+  // (atendida), #727783 (bloqueo), #ba1a1a (error). En la app real se
+  // asignarían por índice determinista de la PK del médico; acá se asignan
+  // por posición en el padrón. Tira de muestra al pie del archivo.
+  const PALETA_MEDICOS = ['#8E44AD', '#236296', '#1D2D50', '#B8860B', '#00838F', '#AD1457', '#5D4037', '#5B7A2E'];
+
+  // Los cuatro médicos con historia propia. Se mantienen tal cual (mismo id,
+  // nombre, color) y son quienes concentran casi todos los eventos.
   const MEDICOS = {
-    torres: { id: 'torres', nombre: 'Dra. Ana Torres', especialidad: 'Pediatría', color: '#8E44AD' },
-    prada: { id: 'prada', nombre: 'Dr. Luis Prada', especialidad: 'Medicina General', color: '#236296' },
-    ruiz: { id: 'ruiz', nombre: 'Dra. Elena Ruiz', especialidad: 'Cardiología', color: '#1D2D50' },
-    soto: { id: 'soto', nombre: 'Dr. Miguel Soto', especialidad: 'Dermatología', color: '#B8860B' },
+    torres: { id: 'torres', nombre: 'Dra. Ana Torres', especialidadId: 'pediatria', cedula: '1002000001', color: PALETA_MEDICOS[0] },
+    prada: { id: 'prada', nombre: 'Dr. Luis Prada', especialidadId: 'medicina-general', cedula: '1002000002', color: PALETA_MEDICOS[1] },
+    ruiz: { id: 'ruiz', nombre: 'Dra. Elena Ruiz', especialidadId: 'cardiologia', cedula: '1002000003', color: PALETA_MEDICOS[2] },
+    soto: { id: 'soto', nombre: 'Dr. Miguel Soto', especialidadId: 'dermatologia', cedula: '1002000004', color: PALETA_MEDICOS[3] },
+    // Los tres siguientes sostienen escenarios puntuales (tarea 5): día
+    // saturado de slots cortos, bloqueo con especialidad propia, y una cita
+    // suelta para variar el panorámico. No tienen la historia narrativa de
+    // los cuatro de arriba.
+    herrera: { id: 'herrera', nombre: 'Dra. Paula Herrera', especialidadId: 'oftalmologia', cedula: '1002000005', color: PALETA_MEDICOS[4] },
+    vargas: { id: 'vargas', nombre: 'Dra. Camila Vargas', especialidadId: 'ginecologia', cedula: '1002000006', color: PALETA_MEDICOS[5] },
+    restrepo: { id: 'restrepo', nombre: 'Dr. Andrés Restrepo', especialidadId: 'ortopedia', cedula: '1002000007', color: PALETA_MEDICOS[6] },
   };
 
-  // Vista de médico: solo lo propio de la Dra. Torres — sirve además como
-  // banco de casos de densidad/horario irregular (duraciones 20/40/60,
-  // bloqueo de día completo, horario 11:48-23:48, citas consecutivas de
-  // 20/30 min, un día totalmente vacío), ya que el escenario de
-  // administrador dejó de mostrar disponibilidad/citas individuales.
-  const DATASET_MEDICO = [
-    crearEvento({ tipo: 'ocupacion', dia: 0, horaIni: '08:00', horaFin: '08:20', titulo: 'Control de crecimiento', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'marcar_atendida'], detalle: 'Control de crecimiento (20 min)' }),
-    crearEvento({ tipo: 'ocupacion', dia: 0, horaIni: '08:20', horaFin: '09:00', titulo: 'Consulta general', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'marcar_atendida'], detalle: 'Consulta general (40 min)' }),
-    crearEvento({ tipo: 'ocupacion', dia: 0, horaIni: '09:00', horaFin: '10:00', titulo: 'Valoración inicial', estado: 'atendida', medico: MEDICOS.torres, acciones: ['ver_detalle', 'editar_comentario'], detalle: 'Valoración inicial (60 min)', comentario: 'Paciente sano. Esquema de vacunación al día. Próximo control en 6 meses.' }),
-    crearEvento({ tipo: 'disponibilidad', dia: 0, horaIni: '10:00', horaFin: '11:00', titulo: 'Disponible', medico: MEDICOS.torres }),
-    crearEvento({ tipo: 'disponibilidad', dia: 0, horaIni: '11:00', horaFin: '12:00', titulo: 'Disponible', medico: MEDICOS.torres }),
-
-    crearEvento({ tipo: 'disponibilidad', dia: 1, horaIni: '09:00', horaFin: '10:00', titulo: 'Disponible', medico: MEDICOS.torres }),
-    crearEvento({ tipo: 'ocupacion', dia: 1, horaIni: '09:00', horaFin: '09:40', titulo: 'Consulta de seguimiento', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle'] }),
-    crearEvento({ tipo: 'disponibilidad', dia: 1, horaIni: '10:00', horaFin: '11:00', titulo: 'Disponible', medico: MEDICOS.torres }),
-    crearEvento({ tipo: 'ocupacion', dia: 1, horaIni: '11:00', horaFin: '11:40', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle'] }),
-
-    crearEvento({ tipo: 'bloqueo', dia: 2, horaIni: '00:00', horaFin: '23:59', titulo: 'Congreso médico', medico: MEDICOS.torres, diaCompleto: true }),
-
-    // JUEVES: día completamente vacío para este médico (sin eventos).
-
-    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '11:48', horaFin: '12:28', titulo: 'Disponible', medico: MEDICOS.torres }),
-    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '12:28', horaFin: '13:08', titulo: 'Disponible', medico: MEDICOS.torres }),
-    crearEvento({ tipo: 'ocupacion', dia: 4, horaIni: '13:08', horaFin: '13:48', titulo: 'Vacunación', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle'] }),
-    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '13:48', horaFin: '14:28', titulo: 'Disponible', medico: MEDICOS.torres }),
-    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '20:28', horaFin: '21:08', titulo: 'Disponible', medico: MEDICOS.torres }),
-    crearEvento({ tipo: 'ocupacion', dia: 4, horaIni: '21:08', horaFin: '21:48', titulo: 'Consulta nocturna', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle'] }),
-    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '21:48', horaFin: '22:28', titulo: 'Disponible', medico: MEDICOS.torres }),
-    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '22:28', horaFin: '23:08', titulo: 'Disponible', medico: MEDICOS.torres }),
-    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '23:08', horaFin: '23:48', titulo: 'Disponible', medico: MEDICOS.torres }),
-
-    crearEvento({ tipo: 'ocupacion', dia: 5, horaIni: '09:00', horaFin: '09:20', titulo: 'Consulta rápida', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'marcar_atendida'] }),
-    crearEvento({ tipo: 'ocupacion', dia: 5, horaIni: '09:20', horaFin: '09:40', titulo: 'Consulta rápida', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'marcar_atendida'] }),
-    crearEvento({ tipo: 'ocupacion', dia: 5, horaIni: '09:40', horaFin: '10:10', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle'] }),
-    crearEvento({ tipo: 'ocupacion', dia: 5, horaIni: '10:10', horaFin: '10:40', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle'] }),
-
-    crearEvento({ tipo: 'disponibilidad', dia: 6, horaIni: '09:00', horaFin: '10:00', titulo: 'Disponible', medico: MEDICOS.torres }),
-    crearEvento({ tipo: 'disponibilidad', dia: 6, horaIni: '10:00', horaFin: '11:00', titulo: 'Disponible', medico: MEDICOS.torres }),
+  // Resto del padrón (~53 médicos más, sin eventos esta semana): existen
+  // solo para que el filtro de especialidad, la búsqueda del combobox y el
+  // techo de 8 de la leyenda se puedan probar contra un volumen real. Se
+  // generan a partir de listas de nombres/apellidos en vez de escribirse a
+  // mano uno por uno; la cédula es una serie creciente, no aleatoria, para
+  // que el prototipo sea reproducible entre recargas.
+  const NOMBRES_GENERADOS = [
+    { nombre: 'María', trato: 'Dra.' }, { nombre: 'Carlos', trato: 'Dr.' }, { nombre: 'Laura', trato: 'Dra.' },
+    { nombre: 'Andrés', trato: 'Dr.' }, { nombre: 'Valentina', trato: 'Dra.' }, { nombre: 'Julián', trato: 'Dr.' },
+    { nombre: 'Camila', trato: 'Dra.' }, { nombre: 'Santiago', trato: 'Dr.' }, { nombre: 'Daniela', trato: 'Dra.' },
+    { nombre: 'Felipe', trato: 'Dr.' }, { nombre: 'Isabella', trato: 'Dra.' }, { nombre: 'Mateo', trato: 'Dr.' },
+    { nombre: 'Sofía', trato: 'Dra.' }, { nombre: 'Nicolás', trato: 'Dr.' },
   ];
+  const APELLIDOS_GENERADOS = [
+    'Gómez', 'Rodríguez', 'Martínez', 'Hernández', 'López', 'García', 'Pérez', 'Sánchez',
+    'Ramírez', 'Cruz', 'Flórez', 'Muñoz', 'Castro', 'Ortiz', 'Rincón', 'Vega', 'Peña', 'Salazar',
+  ];
+
+  function generarPadronExtra(cantidad) {
+    const extra = [];
+    for (let i = 0; i < cantidad; i++) {
+      const { nombre, trato } = NOMBRES_GENERADOS[i % NOMBRES_GENERADOS.length];
+      const apellido = APELLIDOS_GENERADOS[(i * 5 + 2) % APELLIDOS_GENERADOS.length];
+      const especialidad = ESPECIALIDADES[i % ESPECIALIDADES.length];
+      extra.push({
+        id: 'padron-' + i,
+        nombre: trato + ' ' + nombre + ' ' + apellido,
+        especialidadId: especialidad.id,
+        cedula: String(1010000000 + i * 733),
+        color: PALETA_MEDICOS[i % PALETA_MEDICOS.length],
+      });
+    }
+    return extra;
+  }
+
+  // Padrón completo: los 4 con historia + los 3 de escenario puntual + ~53
+  // generados = ~60 médicos, repartidos en las 8 especialidades. Es la
+  // fuente única para los selects de especialidad/médico del modo
+  // administrador (tarea 6) — ningún escenario de médico/paciente lo usa.
+  const PADRON_MEDICOS = [
+    MEDICOS.torres, MEDICOS.prada, MEDICOS.ruiz, MEDICOS.soto,
+    MEDICOS.herrera, MEDICOS.vargas, MEDICOS.restrepo,
+    ...generarPadronExtra(53),
+  ];
+
+  // Roles de día relativos a HOY_DIA_IDX, no nombres de día fijos: así
+  // "hoy parcial" (invariante 1c) siempre cae en la columna de hoy real,
+  // sin importar qué día de la semana sea al abrir el prototipo, y sin que
+  // choque con los otros casos narrativos (permutación de los 7 offsets,
+  // así que los 7 roles caen siempre en días distintos entre sí).
+  const DIA_HOY = HOY_DIA_IDX;
+  const DIA_CITAS = (HOY_DIA_IDX + 1) % 7;
+  const DIA_CORTE_DISPONIBILIDAD = (HOY_DIA_IDX + 2) % 7;
+  const DIA_BLOQUEO_COMPLETO = (HOY_DIA_IDX + 3) % 7;
+  const DIA_VACIO = (HOY_DIA_IDX + 4) % 7;
+  const DIA_HORARIO_IRREGULAR = (HOY_DIA_IDX + 5) % 7;
+  const DIA_FUSIONADO = (HOY_DIA_IDX + 6) % 7;
+
+  const JORNADA_FIN_DEMO = 17 * 60;
+  // Disponibilidad de "hoy" (invariante 1c): nunca antes de las 08:00 ni de
+  // la hora actual, redondeada al múltiplo de la duración de cita de la
+  // especialidad — igual que _particionar_bloque en el backend real. Si ya
+  // es tarde y no queda jornada, no hay bloque (día vacío es la
+  // representación correcta, no un caso especial).
+  function bloqueDisponibleHoy(medico) {
+    const duracion = ESPECIALIDAD_POR_ID[medico.especialidadId].duracion;
+    const inicioMin = Math.max(8 * 60, HOY_MIN_ACTUAL);
+    const inicio = Math.ceil(inicioMin / duracion) * duracion;
+    if (inicio >= JORNADA_FIN_DEMO) return null;
+    return { horaIni: hhmm(inicio), horaFin: hhmm(JORNADA_FIN_DEMO) };
+  }
+
+  // Vista de médico: solo lo propio de la Dra. Torres (Pediatría, 40 min).
+  // Todas las citas duran exactamente 40 min (invariante 1b) y la
+  // disponibilidad nunca se solapa con una cita u otro bloqueo del mismo
+  // día (invariante 1a) — ver el bloque de invariantes al inicio del script.
+  const DATASET_MEDICO = [
+    crearEvento({ tipo: 'disponibilidad', dia: DIA_CITAS, horaIni: '08:00', horaFin: '09:20', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_CITAS, horaIni: '09:20', horaFin: '10:00', titulo: 'Consulta general', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'marcar_atendida'], detalle: 'Consulta general (40 min)' }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_CITAS, horaIni: '10:00', horaFin: '10:40', titulo: 'Valoración inicial', estado: 'atendida', medico: MEDICOS.torres, acciones: ['ver_detalle', 'editar_comentario'], detalle: 'Valoración inicial (40 min)', comentario: 'Paciente sano. Esquema de vacunación al día. Próximo control en 6 meses.' }),
+    crearEvento({ tipo: 'disponibilidad', dia: DIA_CITAS, horaIni: '10:40', horaFin: '12:00', titulo: 'Disponible', medico: MEDICOS.torres }),
+
+    // Reemplaza directamente el caso imposible original (disponibilidad
+    // 09:00-10:00 solapada con una cita 09:00-09:40 del mismo médico): la
+    // disponibilidad se corta justo antes de la cita y se reanuda después.
+    crearEvento({ tipo: 'disponibilidad', dia: DIA_CORTE_DISPONIBILIDAD, horaIni: '09:00', horaFin: '09:40', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_CORTE_DISPONIBILIDAD, horaIni: '09:40', horaFin: '10:20', titulo: 'Consulta de seguimiento', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle'] }),
+    crearEvento({ tipo: 'disponibilidad', dia: DIA_CORTE_DISPONIBILIDAD, horaIni: '10:20', horaFin: '11:40', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_CORTE_DISPONIBILIDAD, horaIni: '11:40', horaFin: '12:20', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle'] }),
+
+    crearEvento({ tipo: 'bloqueo', dia: DIA_BLOQUEO_COMPLETO, horaIni: '00:00', horaFin: '23:59', titulo: 'Congreso médico', medico: MEDICOS.torres, diaCompleto: true }),
+
+    // DIA_VACIO: día completamente vacío para este médico (sin eventos).
+
+    // Horario irregular que no arranca en punto (11:48): ya era compatible
+    // con las invariantes, solo se fusionan los bloques de 40 min sueltos.
+    crearEvento({ tipo: 'disponibilidad', dia: DIA_HORARIO_IRREGULAR, horaIni: '11:48', horaFin: '13:08', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_HORARIO_IRREGULAR, horaIni: '13:08', horaFin: '13:48', titulo: 'Vacunación', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle'] }),
+    crearEvento({ tipo: 'disponibilidad', dia: DIA_HORARIO_IRREGULAR, horaIni: '13:48', horaFin: '14:28', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'disponibilidad', dia: DIA_HORARIO_IRREGULAR, horaIni: '20:28', horaFin: '21:08', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_HORARIO_IRREGULAR, horaIni: '21:08', horaFin: '21:48', titulo: 'Consulta nocturna', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle'] }),
+    crearEvento({ tipo: 'disponibilidad', dia: DIA_HORARIO_IRREGULAR, horaIni: '21:48', horaFin: '23:48', titulo: 'Disponible', medico: MEDICOS.torres }),
+
+    // Bloque largo fusionado, sin citas: el mismo hueco que antes eran 6
+    // cajas sueltas de 20/30 min (duración que ni siquiera correspondía a
+    // Pediatría) ahora es una sola caja de 09:00 a 13:00.
+    crearEvento({ tipo: 'disponibilidad', dia: DIA_FUSIONADO, horaIni: '09:00', horaFin: '13:00', titulo: 'Disponible', medico: MEDICOS.torres }),
+
+    // Semana pasada: sin disponibilidad (invariante 1c), solo lo que ya
+    // ocurrió — una cita atendida y un bloqueo.
+    crearEvento({ tipo: 'ocupacion', dia: DIA_CITAS, horaIni: '09:20', horaFin: '10:00', titulo: 'Consulta general', estado: 'atendida', medico: MEDICOS.torres, acciones: ['ver_detalle'], comentario: 'Evolución adecuada, sin novedades.', semana: -1 }),
+    crearEvento({ tipo: 'bloqueo', dia: DIA_HORARIO_IRREGULAR, horaIni: '14:00', horaFin: '15:00', titulo: 'Capacitación', medico: MEDICOS.torres, semana: -1 }),
+  ];
+
+  const bloqueHoyTorres = bloqueDisponibleHoy(MEDICOS.torres);
+  if (bloqueHoyTorres) {
+    DATASET_MEDICO.push(crearEvento({ tipo: 'disponibilidad', dia: DIA_HOY, horaIni: bloqueHoyTorres.horaIni, horaFin: bloqueHoyTorres.horaFin, titulo: 'Disponible', medico: MEDICOS.torres }));
+  }
 
   // Vista de paciente: solo sus propias citas (tipo 'ocupacion'), nunca
-  // disponibilidad ni bloqueos ajenos — igual que la regla real del servicio.
+  // disponibilidad ni bloqueos ajenos — igual que la regla real del
+  // servicio. La primera cita es la misma que ve la Dra. Torres en su
+  // propia agenda (DIA_CITAS, 09:20-10:00): ambas vistas coinciden en
+  // horario y motivo, es la misma cita desde dos roles distintos.
   const DATASET_PACIENTE = [
-    crearEvento({ tipo: 'ocupacion', dia: 0, horaIni: '08:20', horaFin: '09:00', titulo: 'Consulta general', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'cancelar'], detalle: 'Motivo: control periódico.' }),
-    crearEvento({ tipo: 'ocupacion', dia: 3, horaIni: '15:00', horaFin: '15:40', titulo: 'Control', estado: 'atendida', medico: MEDICOS.torres, acciones: ['ver_detalle'], detalle: 'Motivo: seguimiento de tratamiento.', comentario: 'Evolución favorable. Continuar con el tratamiento indicado y control en un mes.' }),
-    crearEvento({ tipo: 'ocupacion', dia: 4, horaIni: '13:08', horaFin: '13:48', titulo: 'Vacunación', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'cancelar'], detalle: 'Motivo: esquema de vacunación.' }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_CITAS, horaIni: '09:20', horaFin: '10:00', titulo: 'Consulta general', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'cancelar'], detalle: 'Motivo: control periódico.' }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_VACIO, horaIni: '15:00', horaFin: '15:40', titulo: 'Control', estado: 'atendida', medico: MEDICOS.torres, acciones: ['ver_detalle'], detalle: 'Motivo: seguimiento de tratamiento.', comentario: 'Evolución favorable. Continuar con el tratamiento indicado y control en un mes.' }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_HORARIO_IRREGULAR, horaIni: '13:08', horaFin: '13:48', titulo: 'Vacunación', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'cancelar'], detalle: 'Motivo: esquema de vacunación.' }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_CITAS, horaIni: '09:20', horaFin: '10:00', titulo: 'Consulta general', estado: 'atendida', medico: MEDICOS.torres, acciones: ['ver_detalle'], detalle: 'Motivo: control periódico.', semana: -1 }),
   ];
 
-  // Único escenario de administrador: cuatro médicos de especialidades y
-  // duraciones de cita distintas trabajando la misma semana. Sirve para
-  // comprobar que la vista general (sin filtro) no se satura, y que
-  // filtrar por uno limpia la lectura. Incluye un bloqueo puntual, un
-  // bloqueo de día completo, un día completamente vacío (Ruiz, miércoles),
-  // dos bloqueos de médicos distintos que coinciden en horario (martes
-  // 14:00-15:00, Torres + Ruiz) y cuatro bloqueos simultáneos (jueves
-  // 12:00-13:00, los cuatro médicos) para forzar el caso de desborde de
-  // columnas.
+  // Escenario de administrador: 7 médicos del padrón con eventos esta
+  // semana (dentro del rango de 6 a 10 pedido), sobre las mismas 8
+  // especialidades del padrón completo. Los títulos de cita siguen la
+  // decisión 8: "Cita — {paciente}", nunca el motivo real (eso solo lo ven
+  // el médico dueño y el paciente, en DATASET_MEDICO/DATASET_PACIENTE).
   const DATASET_ADMIN = [
-    // LUNES
-    crearEvento({ tipo: 'ocupacion', dia: 0, horaIni: '08:00', horaFin: '08:40', titulo: 'Control', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'cancelar'] }),
-    crearEvento({ tipo: 'ocupacion', dia: 0, horaIni: '09:00', horaFin: '09:40', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'cancelar'] }),
-    crearEvento({ tipo: 'disponibilidad', dia: 0, horaIni: '10:00', horaFin: '10:40', titulo: 'Disponible', medico: MEDICOS.torres }),
-    crearEvento({ tipo: 'disponibilidad', dia: 0, horaIni: '10:40', horaFin: '11:20', titulo: 'Disponible', medico: MEDICOS.torres }),
-    crearEvento({ tipo: 'ocupacion', dia: 0, horaIni: '08:30', horaFin: '09:00', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.prada, acciones: ['ver_detalle', 'cancelar'] }),
-    crearEvento({ tipo: 'ocupacion', dia: 0, horaIni: '10:00', horaFin: '11:00', titulo: 'Control cardiológico', estado: 'confirmada', medico: MEDICOS.ruiz, acciones: ['ver_detalle', 'cancelar'] }),
-    crearEvento({ tipo: 'disponibilidad', dia: 0, horaIni: '09:00', horaFin: '09:20', titulo: 'Disponible', medico: MEDICOS.soto }),
-    crearEvento({ tipo: 'disponibilidad', dia: 0, horaIni: '09:20', horaFin: '09:40', titulo: 'Disponible', medico: MEDICOS.soto }),
+    // DIA_CITAS: Torres, Prada, Ruiz y Restrepo con citas normales. La cita
+    // de Torres 09:20-10:00 es la MISMA que ve el médico y la paciente en
+    // sus propios escenarios (mismo horario, mismo médico) — comparar el
+    // título ahí vs. acá es la verificación de la tarea 13.
+    crearEvento({ tipo: 'disponibilidad', dia: DIA_CITAS, horaIni: '08:00', horaFin: '09:20', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_CITAS, horaIni: '09:20', horaFin: '10:00', titulo: 'Cita — María López', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_CITAS, horaIni: '10:00', horaFin: '10:40', titulo: 'Cita — Jorge Salcedo', estado: 'atendida', medico: MEDICOS.torres, acciones: ['ver_detalle'] }),
+    crearEvento({ tipo: 'disponibilidad', dia: DIA_CITAS, horaIni: '10:40', horaFin: '12:00', titulo: 'Disponible', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_CITAS, horaIni: '08:30', horaFin: '09:00', titulo: 'Cita — Valeria Ospina', estado: 'confirmada', medico: MEDICOS.prada, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'disponibilidad', dia: DIA_CITAS, horaIni: '09:00', horaFin: '10:30', titulo: 'Disponible', medico: MEDICOS.prada }),
+    crearEvento({ tipo: 'disponibilidad', dia: DIA_CITAS, horaIni: '08:00', horaFin: '10:00', titulo: 'Disponible', medico: MEDICOS.ruiz }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_CITAS, horaIni: '10:00', horaFin: '11:00', titulo: 'Cita — Andrés Beltrán', estado: 'confirmada', medico: MEDICOS.ruiz, acciones: ['ver_detalle', 'cancelar'] }),
+    // Bloqueo solapado con una cita del mismo médico (invariante 1e): único
+    // caso legítimo que le queda a la lógica de dos capas con inset (ver el
+    // comentario junto al inset en dibujarCaja).
+    crearEvento({ tipo: 'bloqueo', dia: DIA_CITAS, horaIni: '10:30', horaFin: '11:30', titulo: 'Procedimiento de urgencia', medico: MEDICOS.ruiz }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_CITAS, horaIni: '08:00', horaFin: '08:45', titulo: 'Cita — Lucía Fajardo', estado: 'confirmada', medico: MEDICOS.restrepo, acciones: ['ver_detalle', 'cancelar'] }),
 
-    // MARTES — dos bloqueos de médicos distintos coinciden 14:00-15:00: caso
-    // de "lado a lado" simple (2 columnas, 50% de ancho cada una).
-    crearEvento({ tipo: 'ocupacion', dia: 1, horaIni: '09:00', horaFin: '09:40', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'cancelar'] }),
-    crearEvento({ tipo: 'bloqueo', dia: 1, horaIni: '14:00', horaFin: '15:00', titulo: 'Capacitación', medico: MEDICOS.torres }),
-    crearEvento({ tipo: 'disponibilidad', dia: 1, horaIni: '09:00', horaFin: '09:30', titulo: 'Disponible', medico: MEDICOS.prada }),
-    crearEvento({ tipo: 'disponibilidad', dia: 1, horaIni: '09:30', horaFin: '10:00', titulo: 'Disponible', medico: MEDICOS.prada }),
-    crearEvento({ tipo: 'ocupacion', dia: 1, horaIni: '08:00', horaFin: '09:00', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.ruiz, acciones: ['ver_detalle', 'cancelar'] }),
-    crearEvento({ tipo: 'bloqueo', dia: 1, horaIni: '14:00', horaFin: '15:00', titulo: 'Junta clínica', medico: MEDICOS.ruiz }),
-    crearEvento({ tipo: 'ocupacion', dia: 1, horaIni: '11:00', horaFin: '11:20', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.soto, acciones: ['ver_detalle', 'cancelar'] }),
-    crearEvento({ tipo: 'ocupacion', dia: 1, horaIni: '11:20', horaFin: '11:40', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.soto, acciones: ['ver_detalle', 'cancelar'] }),
+    // DIA_CORTE_DISPONIBILIDAD: dos bloqueos de médicos distintos coinciden
+    // 14:00-15:00 — dos columnas al 50%, sin desbordar. Soto aporta dos
+    // citas cortas seguidas (20 min, su especialidad) para ver la franja de
+    // color en cajas compactas dentro de una vista filtrada.
+    crearEvento({ tipo: 'ocupacion', dia: DIA_CORTE_DISPONIBILIDAD, horaIni: '09:00', horaFin: '09:40', titulo: 'Cita — Daniel Ochoa', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'bloqueo', dia: DIA_CORTE_DISPONIBILIDAD, horaIni: '14:00', horaFin: '15:00', titulo: 'Capacitación', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'bloqueo', dia: DIA_CORTE_DISPONIBILIDAD, horaIni: '14:00', horaFin: '15:00', titulo: 'Junta clínica', medico: MEDICOS.ruiz }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_CORTE_DISPONIBILIDAD, horaIni: '11:00', horaFin: '11:20', titulo: 'Cita — Miguel Cárdenas', estado: 'confirmada', medico: MEDICOS.soto, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_CORTE_DISPONIBILIDAD, horaIni: '11:20', horaFin: '11:40', titulo: 'Cita — Paola Rincón', estado: 'confirmada', medico: MEDICOS.soto, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'bloqueo', dia: DIA_CORTE_DISPONIBILIDAD, horaIni: '16:00', horaFin: '17:00', titulo: 'Congreso de actualización', medico: MEDICOS.vargas }),
 
-    // MIÉRCOLES — Ruiz sin ningún evento este día (día vacío real).
-    crearEvento({ tipo: 'ocupacion', dia: 2, horaIni: '09:00', horaFin: '09:40', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'cancelar'] }),
-    crearEvento({ tipo: 'bloqueo', dia: 2, horaIni: '00:00', horaFin: '23:59', titulo: 'Vacaciones', medico: MEDICOS.soto, diaCompleto: true }),
+    // DIA_BLOQUEO_COMPLETO: Soto de vacaciones el día entero; Torres y
+    // Prada sí trabajan, y sus citas no deben quedar tapadas por el
+    // bloqueo de Soto (bug corregido: antes uno solo tomaba la columna).
+    crearEvento({ tipo: 'ocupacion', dia: DIA_BLOQUEO_COMPLETO, horaIni: '09:00', horaFin: '09:40', titulo: 'Cita — Camila Duarte', estado: 'confirmada', medico: MEDICOS.torres, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'bloqueo', dia: DIA_BLOQUEO_COMPLETO, horaIni: '00:00', horaFin: '23:59', titulo: 'Vacaciones', medico: MEDICOS.soto, diaCompleto: true }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_BLOQUEO_COMPLETO, horaIni: '15:00', horaFin: '15:30', titulo: 'Cita — Esteban Molano', estado: 'confirmada', medico: MEDICOS.prada, acciones: ['ver_detalle', 'cancelar'] }),
 
-    // JUEVES — reunión de staff que bloquea a los cuatro médicos a la vez
-    // (caso límite de desborde: más columnas que MAX_COLUMNAS_VISIBLES).
-    crearEvento({ tipo: 'ocupacion', dia: 3, horaIni: '10:00', horaFin: '10:30', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.prada, acciones: ['ver_detalle', 'cancelar'] }),
-    crearEvento({ tipo: 'ocupacion', dia: 3, horaIni: '10:30', horaFin: '11:00', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.prada, acciones: ['ver_detalle', 'cancelar'] }),
-    crearEvento({ tipo: 'disponibilidad', dia: 3, horaIni: '08:00', horaFin: '09:00', titulo: 'Disponible', medico: MEDICOS.ruiz }),
-    crearEvento({ tipo: 'disponibilidad', dia: 3, horaIni: '09:00', horaFin: '10:00', titulo: 'Disponible', medico: MEDICOS.ruiz }),
-    crearEvento({ tipo: 'bloqueo', dia: 3, horaIni: '12:00', horaFin: '13:00', titulo: 'Reunión de staff', medico: MEDICOS.torres }),
-    crearEvento({ tipo: 'bloqueo', dia: 3, horaIni: '12:00', horaFin: '13:00', titulo: 'Reunión de staff', medico: MEDICOS.prada }),
-    crearEvento({ tipo: 'bloqueo', dia: 3, horaIni: '12:00', horaFin: '13:00', titulo: 'Reunión de staff', medico: MEDICOS.ruiz }),
-    crearEvento({ tipo: 'bloqueo', dia: 3, horaIni: '12:00', horaFin: '13:00', titulo: 'Reunión de staff', medico: MEDICOS.soto }),
+    // DIA_VACIO: Ruiz sin ningún evento esta semana (día vacío real). Otro
+    // médico sí tiene algo, para que la columna del día no quede vacía.
+    crearEvento({ tipo: 'ocupacion', dia: DIA_VACIO, horaIni: '15:00', horaFin: '15:30', titulo: 'Cita — Natalia Quintero', estado: 'confirmada', medico: MEDICOS.prada, acciones: ['ver_detalle', 'cancelar'] }),
 
-    // VIERNES
-    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '08:00', horaFin: '08:40', titulo: 'Disponible', medico: MEDICOS.torres }),
-    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '08:40', horaFin: '09:20', titulo: 'Disponible', medico: MEDICOS.torres }),
-    crearEvento({ tipo: 'ocupacion', dia: 4, horaIni: '09:00', horaFin: '10:00', titulo: 'Ecocardiograma', estado: 'atendida', medico: MEDICOS.ruiz, acciones: ['ver_detalle'], comentario: 'Función ventricular conservada. Control en 6 meses.' }),
-    crearEvento({ tipo: 'ocupacion', dia: 4, horaIni: '15:00', horaFin: '15:20', titulo: 'Consulta', estado: 'confirmada', medico: MEDICOS.soto, acciones: ['ver_detalle', 'cancelar'] }),
-    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '15:20', horaFin: '15:40', titulo: 'Disponible', medico: MEDICOS.soto }),
-    crearEvento({ tipo: 'disponibilidad', dia: 4, horaIni: '15:40', horaFin: '16:00', titulo: 'Disponible', medico: MEDICOS.soto }),
+    // DIA_HORARIO_IRREGULAR: reunión de staff que bloquea a cuatro médicos
+    // a la vez (caso límite de desborde: más columnas que
+    // MAX_COLUMNAS_VISIBLES). Prada además tiene dos citas seguidas.
+    crearEvento({ tipo: 'ocupacion', dia: DIA_HORARIO_IRREGULAR, horaIni: '10:00', horaFin: '10:30', titulo: 'Cita — Ricardo Peña', estado: 'confirmada', medico: MEDICOS.prada, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_HORARIO_IRREGULAR, horaIni: '10:30', horaFin: '11:00', titulo: 'Cita — Sara Bermúdez', estado: 'confirmada', medico: MEDICOS.prada, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'disponibilidad', dia: DIA_HORARIO_IRREGULAR, horaIni: '08:00', horaFin: '10:00', titulo: 'Disponible', medico: MEDICOS.ruiz }),
+    crearEvento({ tipo: 'bloqueo', dia: DIA_HORARIO_IRREGULAR, horaIni: '12:00', horaFin: '13:00', titulo: 'Reunión de staff', medico: MEDICOS.torres }),
+    crearEvento({ tipo: 'bloqueo', dia: DIA_HORARIO_IRREGULAR, horaIni: '12:00', horaFin: '13:00', titulo: 'Reunión de staff', medico: MEDICOS.prada }),
+    crearEvento({ tipo: 'bloqueo', dia: DIA_HORARIO_IRREGULAR, horaIni: '12:00', horaFin: '13:00', titulo: 'Reunión de staff', medico: MEDICOS.ruiz }),
+    crearEvento({ tipo: 'bloqueo', dia: DIA_HORARIO_IRREGULAR, horaIni: '12:00', horaFin: '13:00', titulo: 'Reunión de staff', medico: MEDICOS.soto }),
 
-    // SÁBADO y DOMINGO — sin actividad para los cuatro (fin de semana real).
+    // DIA_FUSIONADO: día saturado de slots cortos (tarea 5a) — Herrera,
+    // Oftalmología a 20 min, jornada 08:00-17:00, agenda casi vacía: pocas
+    // citas dispersas y el resto fusionado en pocas cajas grandes, no en
+    // una pared de compactas.
+    crearEvento({ tipo: 'disponibilidad', dia: DIA_FUSIONADO, horaIni: '08:00', horaFin: '10:00', titulo: 'Disponible', medico: MEDICOS.herrera }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_FUSIONADO, horaIni: '10:00', horaFin: '10:20', titulo: 'Cita — Felipe Gaviria', estado: 'confirmada', medico: MEDICOS.herrera, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'disponibilidad', dia: DIA_FUSIONADO, horaIni: '10:20', horaFin: '12:00', titulo: 'Disponible', medico: MEDICOS.herrera }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_FUSIONADO, horaIni: '14:00', horaFin: '14:20', titulo: 'Cita — Manuela Correa', estado: 'confirmada', medico: MEDICOS.herrera, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'disponibilidad', dia: DIA_FUSIONADO, horaIni: '14:20', horaFin: '17:00', titulo: 'Disponible', medico: MEDICOS.herrera }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_FUSIONADO, horaIni: '09:00', horaFin: '10:00', titulo: 'Cita — Tomás Naranjo', estado: 'atendida', medico: MEDICOS.ruiz, acciones: ['ver_detalle'] }),
+    crearEvento({ tipo: 'ocupacion', dia: DIA_FUSIONADO, horaIni: '15:00', horaFin: '15:20', titulo: 'Cita — Ana Beltrán', estado: 'confirmada', medico: MEDICOS.soto, acciones: ['ver_detalle', 'cancelar'] }),
+    crearEvento({ tipo: 'disponibilidad', dia: DIA_FUSIONADO, horaIni: '15:20', horaFin: '16:00', titulo: 'Disponible', medico: MEDICOS.soto }),
+
+    // Semana pasada (semanaOffset = -1): sin disponibilidad, solo lo que ya
+    // ocurrió. La cita de Torres es la misma que en DATASET_MEDICO/
+    // DATASET_PACIENTE para esa semana.
+    crearEvento({ tipo: 'ocupacion', dia: DIA_CITAS, horaIni: '09:20', horaFin: '10:00', titulo: 'Cita — María López', estado: 'atendida', medico: MEDICOS.torres, acciones: ['ver_detalle'], semana: -1 }),
+    crearEvento({ tipo: 'bloqueo', dia: DIA_VACIO, horaIni: '09:00', horaFin: '10:00', titulo: 'Mantenimiento de consultorio', medico: MEDICOS.ruiz, semana: -1 }),
   ];
+
+  const bloqueHoyTorresAdmin = bloqueDisponibleHoy(MEDICOS.torres);
+  if (bloqueHoyTorresAdmin) {
+    DATASET_ADMIN.push(crearEvento({ tipo: 'disponibilidad', dia: DIA_HOY, horaIni: bloqueHoyTorresAdmin.horaIni, horaFin: bloqueHoyTorresAdmin.horaFin, titulo: 'Disponible', medico: MEDICOS.torres }));
+  }
+
+  // Semana siguiente (semanaOffset = 1): un bloqueo suelto para 10 médicos
+  // distintos del padrón generado, solo para poder probar el techo de 8 de
+  // la leyenda (tarea 10) — no tiene otra intención narrativa.
+  for (let i = 0; i < 10; i++) {
+    const medico = PADRON_MEDICOS[7 + i];
+    const dia = [DIA_CITAS, DIA_CORTE_DISPONIBILIDAD, DIA_BLOQUEO_COMPLETO, DIA_VACIO, DIA_HORARIO_IRREGULAR, DIA_FUSIONADO, DIA_HOY][i % 7];
+    DATASET_ADMIN.push(crearEvento({ tipo: 'bloqueo', dia, horaIni: '09:00', horaFin: '10:00', titulo: 'Bloqueo administrativo', medico, semana: 1 }));
+  }
 
   const ESCENARIOS = {
-    admin: { etiqueta: 'Administrador', esAdmin: true, dataset: DATASET_ADMIN, medicos: [MEDICOS.torres, MEDICOS.prada, MEDICOS.ruiz, MEDICOS.soto] },
+    admin: { etiqueta: 'Administrador', esAdmin: true, dataset: DATASET_ADMIN },
     medico: { etiqueta: 'Médico', esAdmin: false, dataset: DATASET_MEDICO },
     paciente: { etiqueta: 'Paciente', esAdmin: false, dataset: DATASET_PACIENTE },
   };
@@ -381,20 +595,9 @@ Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se
   // Estado
   // ---------------------------------------------------------------------
   // estado.escenario usa las mismas claves que data-rol en el HTML del
-  // selector (admin | medico | paciente).
-  const estado = { escenario: 'admin', semanaOffset: 0, medicoFiltro: null };
-
-  function lunesDeSemana(fecha) {
-    const d = new Date(fecha);
-    const diaSemanaIso = (d.getDay() + 6) % 7; // 0 = lunes
-    d.setDate(d.getDate() - diaSemanaIso);
-    d.setHours(0, 0, 0, 0);
-    return d;
-  }
-
-  const HOY_REAL = new Date();
-  const LUNES_BASE = lunesDeSemana(HOY_REAL);
-  const HOY_DIA_IDX = (HOY_REAL.getDay() + 6) % 7;
+  // selector (admin | medico | paciente). especialidadFiltro/medicoFiltro
+  // son independientes entre sí (decisión 4): elegir una no repuebla la otra.
+  const estado = { escenario: 'admin', semanaOffset: 0, especialidadFiltro: null, medicoFiltro: null };
 
   function fechaDeColumna(diaIdx) {
     const d = new Date(LUNES_BASE);
@@ -403,40 +606,50 @@ Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se
   }
 
   // ---------------------------------------------------------------------
-  // Datos visibles según escenario + filtro de médico:
+  // Datos visibles según escenario + semana + filtros de administrador:
+  // - Todo escenario: primero se recorta a la semana en pantalla
+  //   (estado.semanaOffset). Sin esto, cualquier semana mostraba siempre
+  //   los mismos datos, pasada o futura.
   // - Escenarios de paciente/médico: su dataset tal cual (ya viene con el
   //   alcance correcto, como lo devolvería obtener_eventos_calendario()).
-  // - Administrador SIN filtro: ÚNICAMENTE bloqueos/excepciones de todos
-  //   los médicos. Ni disponibilidad ni citas: con varios profesionales
-  //   (pensar en diez médicos con dos citas por hora) esa capa vuelve la
-  //   columna imposible de leer. Las citas se resumen aparte, como un
-  //   conteo por día (ver densidadPorDia), no como cajas en la grilla.
-  // - Administrador CON filtro: las tres capas, pero solo del médico
-  //   elegido (igual que la vista de médico).
+  // - Administrador CON médico elegido: las tres capas, pero solo de ese
+  //   médico (gana sobre la especialidad — decisión 4).
+  // - Administrador SIN médico (con o sin especialidad): ÚNICAMENTE
+  //   bloqueos/excepciones. Ni disponibilidad ni citas: con varios
+  //   profesionales (pensar en diez médicos con dos citas por hora) esa
+  //   capa vuelve la columna imposible de leer. Las citas se resumen
+  //   aparte, como un conteo por día (ver densidadPorDia).
   // ---------------------------------------------------------------------
   function datosVisibles() {
     const cfg = ESCENARIOS[estado.escenario];
-    let eventos = cfg.dataset;
+    let eventos = cfg.dataset.filter((e) => e.semana === estado.semanaOffset);
     if (cfg.esAdmin) {
       if (estado.medicoFiltro) {
         eventos = eventos.filter((e) => e.medico && e.medico.id === estado.medicoFiltro);
       } else {
         eventos = eventos.filter((e) => e.tipo === 'bloqueo');
+        if (estado.especialidadFiltro) {
+          eventos = eventos.filter((e) => e.medico && e.medico.especialidadId === estado.especialidadFiltro);
+        }
       }
     }
     return eventos;
   }
 
   // Conteo de citas (tipo 'ocupacion') por día, para el indicador de
-  // densidad del encabezado. Solo aplica a la vista general de
-  // administrador (sin filtro de médico): en cuanto se filtra, o en las
-  // vistas de médico/paciente, las citas ya se ven directamente en la
-  // grilla y el conteo sería redundante.
+  // densidad del encabezado. Solo aplica al modo panorámico (administrador
+  // sin médico elegido, con o sin especialidad): en cuanto se elige un
+  // médico, o en las vistas de médico/paciente, las citas ya se ven
+  // directamente en la grilla y el conteo sería redundante.
   function densidadPorDia() {
     const cfg = ESCENARIOS[estado.escenario];
     if (!cfg.esAdmin || estado.medicoFiltro) return null;
     const conteo = Array(7).fill(0);
-    cfg.dataset.forEach((e) => { if (e.tipo === 'ocupacion') conteo[e.dia] += 1; });
+    cfg.dataset.forEach((e) => {
+      if (e.semana !== estado.semanaOffset || e.tipo !== 'ocupacion') return;
+      if (estado.especialidadFiltro && (!e.medico || e.medico.especialidadId !== estado.especialidadFiltro)) return;
+      conteo[e.dia] += 1;
+    });
     return conteo;
   }
 
@@ -522,7 +735,10 @@ Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se
       visibles.forEach((e) => { e._cols = MAX_COLUMNAS_VISIBLES; });
       resultado.push(...visibles, {
         tipo: 'resumen',
-        titulo: '+' + ocultos.length + (ocultos.length === 1 ? ' bloqueo' : ' bloqueos'),
+        // La capa que se limita mezcla bloqueos y citas (esta función corre
+        // sobre "todo lo que no es disponibilidad"): el sustantivo se
+        // deriva del contenido real del grupo en vez de asumir "bloqueos".
+        titulo: '+' + etiquetaResumen(ocultos),
         desplazamiento_min: Math.min(...ocultos.map((e) => e.desplazamiento_min)),
         finMin: Math.max(...ocultos.map((e) => e.finMin)),
         _col: MAX_COLUMNAS_VISIBLES - 1,
@@ -531,6 +747,17 @@ Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se
       });
     });
     return resultado;
+  }
+
+  function etiquetaResumen(ocultos) {
+    const tipos = new Set(ocultos.map((e) => e.tipo));
+    let singular = 'evento';
+    let plural = 'eventos';
+    if (tipos.size === 1) {
+      singular = tipos.has('bloqueo') ? 'bloqueo' : 'cita';
+      plural = tipos.has('bloqueo') ? 'bloqueos' : 'citas';
+    }
+    return ocultos.length + ' ' + (ocultos.length === 1 ? singular : plural);
   }
 
   // ---------------------------------------------------------------------
@@ -561,7 +788,7 @@ Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se
   // Render: grilla semanal (escritorio)
   // ---------------------------------------------------------------------
   function badgeEstado(evento) {
-    if (evento.tipo === 'disponibilidad') return { texto: 'Disponible', clase: 'bg-[#eef5ff] text-[#236296]' };
+    if (evento.tipo === 'disponibilidad') return { texto: 'Disponible', clase: 'bg-[#e9edff] text-[#236296]' };
     if (evento.tipo === 'bloqueo') return { texto: evento.diaCompleto ? 'Día no disponible' : 'Bloqueo', clase: 'bg-[#727783] text-white' };
     if (evento.estado === 'atendida') return { texto: 'Atendida', clase: 'bg-[#e8f5e9] text-[#1a7f5a]' };
     return { texto: 'Confirmada', clase: 'bg-[#D6ECFF] text-[#236296]' };
@@ -576,7 +803,7 @@ Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se
     if (!densidad) return '';
     const n = densidad[dia];
     if (n > 0) {
-      return '<span class="text-[10px] font-semibold text-[#236296] bg-[#eef5ff] px-1.5 py-0.5 rounded-full">' + n + (n === 1 ? ' cita' : ' citas') + '</span>';
+      return '<span class="text-[10px] font-semibold text-[#236296] bg-[#d6e3ff] px-1.5 py-0.5 rounded-full">' + n + (n === 1 ? ' cita' : ' citas') + '</span>';
     }
     return '<span class="text-[10px] text-[#c2c6d4]">Sin citas</span>';
   }
@@ -614,10 +841,10 @@ Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se
     }
   }
 
-  // Caja-resumen "+N bloqueos" para el desborde de columnas (ver
-  // limitarColumnas). No abre el panel de detalle habitual, porque
-  // representa varios eventos a la vez: en su lugar, un toast lista a
-  // quiénes agrupa y sugiere filtrar por médico para verlos completos.
+  // Caja-resumen "+N" para el desborde de columnas (ver limitarColumnas).
+  // No abre el panel de detalle habitual, porque representa varios eventos
+  // a la vez: en su lugar, un toast lista a quiénes agrupa y sugiere
+  // filtrar por médico para verlos completos.
   function dibujarCajaResumen(evento, ventana) {
     const inicioVisible = Math.max(evento.desplazamiento_min, ventana.inicio);
     const finVisible = Math.min(evento.finMin, ventana.fin);
@@ -641,7 +868,7 @@ Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se
     const detalle = evento._ocultos
       .map((o) => (o.medico ? o.medico.nombre : '?') + ' · ' + o.titulo + ' (' + hhmm(o.desplazamiento_min) + '–' + hhmm(o.finMin) + ')')
       .join(' · ');
-    const activar = () => mostrarToast('Bloqueos ocultos por espacio: ' + detalle + '. Filtra por médico arriba para ver el detalle completo.');
+    const activar = () => mostrarToast('Ocultos por espacio: ' + detalle + '. Filtra por médico arriba para ver el detalle completo.');
     caja.addEventListener('click', activar);
     caja.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') activar(); });
     return caja;
@@ -667,8 +894,13 @@ Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se
     caja.style.top = top + 'px';
     caja.style.height = alto + 'px';
     if (esCapaSuperior) {
-      // Inset pequeño para que la disponibilidad de abajo asome como marco
-      // cuando coinciden en el tiempo (caso 2).
+      // Inset pequeño para separar visualmente las cajas de esta capa entre
+      // sí. Por las invariantes del backend (1a/1e), disponibilidad nunca
+      // convive con nada en la misma franja del mismo médico, así que este
+      // margen ya no separa "ocupación sobre disponibilidad" (ese caso no
+      // puede existir): el único solape legítimo que queda es un bloqueo
+      // sobre una cita ya agendada del mismo médico (invariante 1e), y es
+      // ese par el que se ve lado a lado con este inset.
       caja.style.left = 'calc(' + izqPct + '% + 3px)';
       caja.style.width = 'calc(' + anchoPct + '% - 6px)';
       caja.style.zIndex = '10';
@@ -784,6 +1016,55 @@ Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se
   // ---------------------------------------------------------------------
   // Render: lista agrupada por día (móvil)
   // ---------------------------------------------------------------------
+  function crearTarjetaDia(dia, fecha, esHoy, eventosDia, mostrarMedico, densidad) {
+    const seccion = document.createElement('div');
+    seccion.className = 'bg-white rounded-xl border border-[#D6ECFF] shadow-soft overflow-hidden';
+
+    const cabecera = document.createElement('div');
+    cabecera.className = 'px-4 py-2.5 flex items-center gap-2 border-b border-[#D6ECFF]' + (esHoy ? ' bg-[#d6e3ff]' : ' bg-[#F6FBFF]');
+    cabecera.innerHTML = '<span class="font-semibold text-sm text-[#1D2D50]">' + NOMBRES_DIA[dia] + ' ' + fecha.getDate() + '</span>'
+      + (esHoy ? '<span class="text-[10px] font-bold text-[#3A7BD5] bg-white px-2 py-0.5 rounded-full border border-[#8EC5FF]">HOY</span>' : '')
+      + '<span class="ml-auto">' + densidadHtml(densidad, dia) + '</span>';
+    seccion.appendChild(cabecera);
+
+    const lista = document.createElement('div');
+    lista.className = 'divide-y divide-[#F2F3FF]';
+
+    if (!eventosDia.length) {
+      const vacio = document.createElement('div');
+      vacio.className = 'px-4 py-4 text-sm text-[#c2c6d4] text-center';
+      vacio.textContent = 'Sin eventos este día.';
+      lista.appendChild(vacio);
+    } else {
+      eventosDia.forEach((evento) => {
+        const badge = badgeEstado(evento);
+        const fila = document.createElement('button');
+        fila.type = 'button';
+        fila.className = 'w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-[#F6FBFF] transition-colors';
+        if (mostrarMedico && evento.medico) fila.style.borderLeft = '4px solid ' + evento.medico.color;
+        fila.innerHTML = '<div class="w-14 shrink-0 text-xs font-medium text-on-surface-variant">' + (evento.diaCompleto ? 'Todo el día' : hhmm(evento.desplazamiento_min)) + '</div>'
+          + '<div class="flex-grow min-w-0">'
+          + '<div class="text-sm font-semibold text-[#1D2D50] truncate">' + evento.titulo + '</div>'
+          + (mostrarMedico && evento.medico ? '<div class="text-xs text-on-surface-variant truncate">' + evento.medico.nombre + '</div>' : '')
+          + '</div>'
+          + '<span class="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium ' + badge.clase + '">' + badge.texto + '</span>';
+        fila.addEventListener('click', () => abrirDetalle(evento));
+        lista.appendChild(fila);
+      });
+    }
+
+    seccion.appendChild(lista);
+    return seccion;
+  }
+
+  function crearTarjetaRachaVacia(dias) {
+    const seccion = document.createElement('div');
+    seccion.className = 'bg-white rounded-xl border border-[#D6ECFF] px-4 py-3 text-xs text-[#c2c6d4] text-center';
+    const etiquetasDias = dias.map(({ dia, fecha }) => NOMBRES_DIA_CORTO[dia] + ' ' + fecha.getDate()).join(', ');
+    seccion.textContent = 'Sin bloqueos: ' + etiquetasDias;
+    return seccion;
+  }
+
   function renderLista() {
     const contenedor = document.getElementById('lista-movil');
     contenedor.innerHTML = '';
@@ -791,58 +1072,56 @@ Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se
     const mostrarMedico = mostrarMedicoActivo();
     const porDia = agruparPorDia(eventos);
     const densidad = densidadPorDia();
+    // Colapsar rachas de días vacíos solo tiene sentido en el modo
+    // panorámico de administrador: ahí un padrón grande puede dejar la
+    // mayoría de los 7 días sin bloqueos, y repetir "Sin eventos este día"
+    // siete veces es puro ruido. En médico/paciente siempre son 7 tarjetas:
+    // el volumen es chico y cada día importa igual.
+    const colapsarVacios = mostrarMedico;
 
+    const diasInfo = [];
     for (let dia = 0; dia < 7; dia++) {
-      const fecha = fechaDeColumna(dia);
-      const esHoy = estado.semanaOffset === 0 && dia === HOY_DIA_IDX;
-      const eventosDia = porDia[dia].slice().sort((a, b) => a.desplazamiento_min - b.desplazamiento_min);
-
-      const seccion = document.createElement('div');
-      seccion.className = 'bg-white rounded-xl border border-[#D6ECFF] shadow-soft overflow-hidden';
-
-      const cabecera = document.createElement('div');
-      cabecera.className = 'px-4 py-2.5 flex items-center gap-2 border-b border-[#D6ECFF]' + (esHoy ? ' bg-[#eef5ff]' : ' bg-[#F6FBFF]');
-      cabecera.innerHTML = '<span class="font-semibold text-sm text-[#1D2D50]">' + NOMBRES_DIA[dia] + ' ' + fecha.getDate() + '</span>'
-        + (esHoy ? '<span class="text-[10px] font-bold text-[#3A7BD5] bg-white px-2 py-0.5 rounded-full border border-[#8EC5FF]">HOY</span>' : '')
-        + '<span class="ml-auto">' + densidadHtml(densidad, dia) + '</span>';
-      seccion.appendChild(cabecera);
-
-      const lista = document.createElement('div');
-      lista.className = 'divide-y divide-[#F2F3FF]';
-
-      if (!eventosDia.length) {
-        const vacio = document.createElement('div');
-        vacio.className = 'px-4 py-4 text-sm text-[#c2c6d4] text-center';
-        vacio.textContent = 'Sin eventos este día.';
-        lista.appendChild(vacio);
-      } else {
-        eventosDia.forEach((evento) => {
-          const badge = badgeEstado(evento);
-          const fila = document.createElement('button');
-          fila.type = 'button';
-          fila.className = 'w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-[#F6FBFF] transition-colors';
-          if (mostrarMedico && evento.medico) fila.style.borderLeft = '4px solid ' + evento.medico.color;
-          fila.innerHTML = '<div class="w-14 shrink-0 text-xs font-medium text-on-surface-variant">' + (evento.diaCompleto ? 'Todo el día' : hhmm(evento.desplazamiento_min)) + '</div>'
-            + '<div class="flex-grow min-w-0">'
-            + '<div class="text-sm font-semibold text-[#1D2D50] truncate">' + evento.titulo + '</div>'
-            + (mostrarMedico && evento.medico ? '<div class="text-xs text-on-surface-variant truncate">' + evento.medico.nombre + '</div>' : '')
-            + '</div>'
-            + '<span class="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium ' + badge.clase + '">' + badge.texto + '</span>';
-          fila.addEventListener('click', () => abrirDetalle(evento));
-          lista.appendChild(fila);
-        });
-      }
-
-      seccion.appendChild(lista);
-      contenedor.appendChild(seccion);
+      diasInfo.push({
+        dia,
+        fecha: fechaDeColumna(dia),
+        esHoy: estado.semanaOffset === 0 && dia === HOY_DIA_IDX,
+        eventosDia: porDia[dia].slice().sort((a, b) => a.desplazamiento_min - b.desplazamiento_min),
+      });
     }
+
+    let racha = [];
+    const cerrarRacha = () => {
+      if (!racha.length) return;
+      if (racha.length === 1) {
+        const d = racha[0];
+        contenedor.appendChild(crearTarjetaDia(d.dia, d.fecha, d.esHoy, d.eventosDia, mostrarMedico, densidad));
+      } else {
+        contenedor.appendChild(crearTarjetaRachaVacia(racha));
+      }
+      racha = [];
+    };
+
+    diasInfo.forEach((d) => {
+      const vacioColapsable = colapsarVacios && !d.eventosDia.length && !d.esHoy;
+      if (vacioColapsable) {
+        racha.push(d);
+        return;
+      }
+      cerrarRacha();
+      contenedor.appendChild(crearTarjetaDia(d.dia, d.fecha, d.esHoy, d.eventosDia, mostrarMedico, densidad));
+    });
+    cerrarRacha();
   }
 
   // ---------------------------------------------------------------------
   // Leyenda
   // ---------------------------------------------------------------------
+  // Techo de médicos individuales en la leyenda (decisión 6): por encima de
+  // esto, el color deja de ser una pista de identidad y pasa a ser solo de
+  // agrupación — enumerar 15 nombres en una fila no ayuda a nadie.
+  const LEYENDA_MAX_MEDICOS = 8;
+
   function renderLeyenda() {
-    const cfg = ESCENARIOS[estado.escenario];
     const eventos = datosVisibles();
     const mostrarMedico = mostrarMedicoActivo();
     const tipos = new Set(eventos.map((e) => e.tipo));
@@ -858,53 +1137,426 @@ Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se
     if (tipos.has('bloqueo')) {
       items.push('<span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded evt-bloqueo inline-block"></span>Bloqueo</span>');
     }
-    if (mostrarMedico && cfg.medicos) {
-      cfg.medicos.forEach((m) => {
-        items.push('<span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:' + m.color + '"></span>' + m.nombre + '</span>');
-      });
+    if (mostrarMedico) {
+      // Derivada de lo visible esta semana, no del padrón completo: con un
+      // padrón grande, la leyenda no es la lista de médicos de la clínica,
+      // es la lista de a quién le pertenece lo que se ve ahora mismo.
+      const medicosVisibles = [...new Set(eventos.filter((e) => e.medico).map((e) => e.medico))];
+      if (medicosVisibles.length > LEYENDA_MAX_MEDICOS) {
+        items.push('<span class="inline-flex items-center gap-1.5 text-outline"><span class="material-symbols-outlined text-[14px]">info</span>' + medicosVisibles.length + ' médicos comparten color esta semana — abre el detalle de cada bloqueo para identificarlo.</span>');
+      } else {
+        medicosVisibles.forEach((m) => {
+          items.push('<span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:' + m.color + '"></span>' + m.nombre + '</span>');
+        });
+      }
     }
     document.getElementById('leyenda').innerHTML = items.join('');
   }
 
   // ---------------------------------------------------------------------
-  // Filtro por médico (solo escenarios de administrador)
+  // Combobox de médico: select nativo potenciado (decisión 5). Pieza
+  // autocontenida, con su propio estado (abierto/cerrado, fila activa,
+  // texto de búsqueda) — es la primera de este tipo en el proyecto y se
+  // porta tal cual a un parcial de Django, así que su ÚNICA interfaz con
+  // el resto del script es el <select> que recibe: lee sus <option>/
+  // <optgroup> para construir el desplegable, y al elegir algo escribe
+  // selectEl.value y dispara un 'change' nativo — quien ya escuchaba ese
+  // evento en el select no necesita saber que el combobox existe.
+  //
+  // Decisiones tomadas sin instrucción explícita (reportadas, no ocultas):
+  // - Se activa/desactiva en vivo si la ventana cruza el breakpoint md
+  //   (no solo una vez al cargar), para que redimensionar la ventana
+  //   deje siempre el control correcto.
+  // - ARIA: el botón cerrado usa aria-haspopup="listbox"+aria-expanded
+  //   (no role="combobox": ese rol es del campo de texto). El campo de
+  //   búsqueda, que solo existe mientras está abierto, es el que lleva
+  //   role="combobox" + aria-controls + aria-activedescendant, siguiendo
+  //   el patrón "editable combobox with list autocomplete" de WAI-ARIA.
+  // - Tab mientras está abierto cierra el panel y deja que el foco siga
+  //   su curso normal, en vez de intentar atraparlo dentro.
   // ---------------------------------------------------------------------
-  function renderFiltroMedico() {
+  function normalizarTexto(texto) {
+    return texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  }
+
+  function crearComboboxMedico(selectEl) {
+    const mediaMd = window.matchMedia('(min-width: 768px)');
+    let opciones = [];
+    let widget = null;
+    let filasSeleccionables = [];
+    let activaIdx = 0;
+    let abierto = false;
+    let especialidadActiva = null;
+
+    function leerOpciones() {
+      opciones = [];
+      selectEl.querySelectorAll('option').forEach((opt) => {
+        if (!opt.value) return; // "Todos los médicos" se maneja aparte, siempre fijo arriba
+        opciones.push({
+          value: opt.value,
+          texto: opt.textContent,
+          grupo: opt.parentElement && opt.parentElement.tagName === 'OPTGROUP' ? opt.parentElement.label : '',
+          especialidadId: opt.dataset.especialidadId || '',
+          color: opt.dataset.color || '#727783',
+          normalizado: normalizarTexto(opt.textContent + ' ' + (opt.dataset.cedula || '')),
+        });
+      });
+    }
+
+    function construir() {
+      if (widget) return;
+      leerOpciones();
+
+      const raiz = document.createElement('div');
+      raiz.className = 'relative';
+
+      const boton = document.createElement('button');
+      boton.type = 'button';
+      boton.className = 'h-11 w-full px-3 rounded-lg border border-[#D6ECFF] bg-white text-sm text-[#1D2D50] flex items-center justify-between gap-2 focus:outline-none focus:ring-2 focus:ring-[#3A7BD5]';
+      boton.setAttribute('aria-haspopup', 'listbox');
+      boton.setAttribute('aria-expanded', 'false');
+      boton.innerHTML = '<span class="flex items-center gap-2 min-w-0"><span class="punto w-2.5 h-2.5 rounded-full shrink-0 border-[1.5px] border-[#c2c6d4]"></span><span class="etiqueta truncate">Todos los médicos</span></span>'
+        + '<span class="material-symbols-outlined text-[18px] text-outline shrink-0">expand_more</span>';
+
+      const panel = document.createElement('div');
+      panel.className = 'hidden absolute z-30 mt-1 w-full bg-white border border-[#D6ECFF] rounded-lg shadow-elevated';
+
+      const buscadorWrap = document.createElement('div');
+      buscadorWrap.className = 'p-2 border-b border-[#D6ECFF]';
+      const buscador = document.createElement('input');
+      buscador.type = 'text';
+      buscador.placeholder = 'Buscar por nombre o cédula';
+      buscador.className = 'w-full h-9 px-2 rounded-md border border-[#D6ECFF] text-sm focus:outline-none focus:ring-2 focus:ring-[#3A7BD5]';
+      buscador.setAttribute('role', 'combobox');
+      buscador.setAttribute('aria-expanded', 'false');
+      buscador.setAttribute('aria-controls', 'combobox-medico-listbox');
+      buscador.setAttribute('aria-autocomplete', 'list');
+      buscadorWrap.appendChild(buscador);
+
+      const listbox = document.createElement('ul');
+      listbox.id = 'combobox-medico-listbox';
+      listbox.setAttribute('role', 'listbox');
+      listbox.className = 'max-h-64 overflow-y-auto py-1';
+
+      panel.appendChild(buscadorWrap);
+      panel.appendChild(listbox);
+      raiz.appendChild(boton);
+      raiz.appendChild(panel);
+      selectEl.insertAdjacentElement('afterend', raiz);
+
+      widget = { raiz, boton, panel, buscador, listbox };
+
+      function renderPanel(filtro) {
+        const norm = normalizarTexto(filtro);
+        listbox.innerHTML = '';
+        filasSeleccionables = [];
+
+        const filaTodos = document.createElement('li');
+        filaTodos.id = 'combobox-medico-opt-todos';
+        filaTodos.setAttribute('role', 'option');
+        filaTodos.className = 'px-3 py-2 text-sm cursor-pointer flex items-center gap-2 hover:bg-[#F6FBFF]';
+        filaTodos.textContent = 'Todos los médicos';
+        filaTodos.dataset.value = '';
+        filaTodos.addEventListener('click', () => seleccionar(''));
+        listbox.appendChild(filaTodos);
+        filasSeleccionables.push(filaTodos);
+
+        // El acotamiento por especialidad ocurre en el cliente sobre las
+        // <option> ya presentes (decisión 2): "dentro" es el universo de
+        // búsqueda real, no solo un resaltado visual.
+        const dentro = especialidadActiva
+          ? opciones.filter((op) => op.especialidadId === especialidadActiva)
+          : opciones;
+        const coincidencias = dentro.filter((op) => !norm || op.normalizado.includes(norm));
+
+        // Un solo grupo presente —ya sea porque el acotamiento dejó una sola
+        // especialidad, o porque la búsqueda deja resultados en una sola—
+        // vuelve redundante el encabezado (tarea 3): se omite en ambos casos
+        // con la misma condición, sin distinguir cuál de las dos causas fue.
+        const gruposPresentes = new Set(coincidencias.map((op) => op.grupo));
+        const ocultarEncabezados = gruposPresentes.size <= 1;
+
+        let grupoActual = null;
+        coincidencias.forEach((op) => {
+          if (!ocultarEncabezados && op.grupo !== grupoActual) {
+            grupoActual = op.grupo;
+            const cab = document.createElement('li');
+            cab.setAttribute('role', 'presentation');
+            cab.className = 'px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-outline';
+            cab.textContent = grupoActual;
+            listbox.appendChild(cab);
+          }
+          const fila = document.createElement('li');
+          fila.id = 'combobox-medico-opt-' + op.value;
+          fila.setAttribute('role', 'option');
+          fila.className = 'px-3 py-2 text-sm cursor-pointer flex items-center gap-2 hover:bg-[#F6FBFF]';
+          fila.dataset.value = op.value;
+          fila.innerHTML = '<span class="w-2.5 h-2.5 rounded-full inline-block shrink-0" style="background:' + op.color + '"></span><span class="truncate">' + op.texto + '</span>';
+          fila.addEventListener('click', () => seleccionar(op.value));
+          listbox.appendChild(fila);
+          filasSeleccionables.push(fila);
+        });
+
+        if (!coincidencias.length) {
+          const vacio = document.createElement('li');
+          vacio.setAttribute('role', 'presentation');
+          vacio.className = 'px-3 py-3 text-sm text-outline text-center';
+          if (norm && especialidadActiva) {
+            // Sin esto, buscar la cédula de un médico que existe pero es de
+            // otra especialidad es indistinguible de una cédula inexistente
+            // (decisión 3). La nota es solo informativa: no linkea ni
+            // cambia el acotamiento por su cuenta.
+            const fuera = opciones.filter((op) => op.especialidadId !== especialidadActiva && op.normalizado.includes(norm));
+            if (fuera.length) {
+              const nombreEsp = (ESPECIALIDAD_POR_ID[especialidadActiva] || {}).nombre || '';
+              vacio.textContent = 'Sin resultados en ' + nombreEsp + ' — ' + fuera.length + (fuera.length === 1 ? ' coincidencia en otras especialidades' : ' coincidencias en otras especialidades');
+            } else {
+              vacio.textContent = 'Sin resultados';
+            }
+          } else {
+            vacio.textContent = 'Sin resultados';
+          }
+          listbox.appendChild(vacio);
+        }
+        // Con texto de búsqueda, la fila activa por defecto es el primer
+        // resultado real (índice 1: el 0 es el "Todos los médicos" fijo),
+        // no ese fijo — si no, Enter tras escribir un nombre "elegiría"
+        // siempre borrar el filtro en vez de aplicar lo buscado.
+        marcarActiva(filtro && filasSeleccionables.length > 1 ? 1 : 0);
+      }
+
+      function marcarActiva(idx) {
+        if (!filasSeleccionables.length) return;
+        activaIdx = Math.max(0, Math.min(idx, filasSeleccionables.length - 1));
+        filasSeleccionables.forEach((f, i) => {
+          f.classList.toggle('bg-[#F6FBFF]', i === activaIdx);
+          f.setAttribute('aria-selected', String(selectEl.value === f.dataset.value));
+        });
+        buscador.setAttribute('aria-activedescendant', filasSeleccionables[activaIdx].id);
+        filasSeleccionables[activaIdx].scrollIntoView({ block: 'nearest' });
+      }
+
+      function actualizarEtiqueta() {
+        const opcion = opciones.find((o) => o.value === selectEl.value);
+        boton.querySelector('.etiqueta').textContent = opcion ? opcion.texto : 'Todos los médicos';
+        const punto = boton.querySelector('.punto');
+        punto.style.background = opcion ? opcion.color : 'transparent';
+        punto.style.borderColor = opcion ? opcion.color : '#c2c6d4';
+      }
+
+      function seleccionar(value) {
+        selectEl.value = value;
+        selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+        actualizarEtiqueta();
+        cerrar({ enfocarBoton: true });
+      }
+
+      function onClickFuera(ev) {
+        if (!raiz.contains(ev.target)) cerrar();
+      }
+
+      function abrirPanel() {
+        if (abierto) return;
+        abierto = true;
+        panel.classList.remove('hidden');
+        boton.setAttribute('aria-expanded', 'true');
+        buscador.setAttribute('aria-expanded', 'true');
+        buscador.value = '';
+        renderPanel('');
+        buscador.focus();
+        document.addEventListener('click', onClickFuera, true);
+      }
+
+      function cerrar({ enfocarBoton = false } = {}) {
+        if (!abierto) return;
+        abierto = false;
+        panel.classList.add('hidden');
+        boton.setAttribute('aria-expanded', 'false');
+        buscador.setAttribute('aria-expanded', 'false');
+        document.removeEventListener('click', onClickFuera, true);
+        if (enfocarBoton) boton.focus();
+      }
+
+      boton.addEventListener('click', () => { if (abierto) cerrar(); else abrirPanel(); });
+      boton.addEventListener('keydown', (ev) => {
+        if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp' || ev.key === 'Enter' || ev.key === ' ') {
+          ev.preventDefault();
+          abrirPanel();
+        }
+      });
+      buscador.addEventListener('input', () => renderPanel(buscador.value));
+      buscador.addEventListener('keydown', (ev) => {
+        if (ev.key === 'ArrowDown') { ev.preventDefault(); marcarActiva(activaIdx + 1); }
+        else if (ev.key === 'ArrowUp') { ev.preventDefault(); marcarActiva(activaIdx - 1); }
+        else if (ev.key === 'Enter') { ev.preventDefault(); const f = filasSeleccionables[activaIdx]; if (f) seleccionar(f.dataset.value); }
+        else if (ev.key === 'Escape') { ev.preventDefault(); cerrar({ enfocarBoton: true }); }
+        else if (ev.key === 'Tab') { cerrar(); }
+      });
+
+      widget.actualizarEtiqueta = actualizarEtiqueta;
+      widget.cerrar = cerrar;
+      widget.renderPanel = renderPanel;
+      actualizarEtiqueta();
+    }
+
+    function aplicarModo() {
+      if (mediaMd.matches) {
+        construir();
+        selectEl.classList.add('hidden');
+        widget.raiz.classList.remove('hidden');
+      } else if (widget) {
+        widget.cerrar();
+        widget.raiz.classList.add('hidden');
+        selectEl.classList.remove('hidden');
+      } else {
+        selectEl.classList.remove('hidden');
+      }
+    }
+
+    mediaMd.addEventListener('change', aplicarModo);
+    aplicarModo();
+
+    return {
+      sincronizar() {
+        if (widget) widget.actualizarEtiqueta();
+      },
+      // Acota el universo del desplegable a una especialidad (o lo quita
+      // con null/''). Puramente de presentación: no toca el <select> ni su
+      // valor — quien decide si el médico elegido sigue siendo válido para
+      // la especialidad nueva es quien llama a esto (ver el listener de
+      // #filtro-especialidad), no el combobox.
+      acotarPorEspecialidad(especialidadId) {
+        especialidadActiva = especialidadId || null;
+        if (widget && abierto) widget.renderPanel(widget.buscador.value);
+      },
+    };
+  }
+
+  // ---------------------------------------------------------------------
+  // Filtros de administrador: especialidad + médico (decisión 4)
+  // ---------------------------------------------------------------------
+  function poblarSelectEspecialidad(select) {
+    ESPECIALIDADES.forEach((esp) => {
+      const opt = document.createElement('option');
+      opt.value = esp.id;
+      opt.textContent = esp.nombre;
+      select.appendChild(opt);
+    });
+  }
+
+  function poblarSelectMedico(select) {
+    const porEspecialidad = new Map();
+    PADRON_MEDICOS.forEach((m) => {
+      if (!porEspecialidad.has(m.especialidadId)) porEspecialidad.set(m.especialidadId, []);
+      porEspecialidad.get(m.especialidadId).push(m);
+    });
+    ESPECIALIDADES.forEach((esp) => {
+      const medicos = porEspecialidad.get(esp.id) || [];
+      if (!medicos.length) return;
+      const grupo = document.createElement('optgroup');
+      grupo.label = esp.nombre;
+      medicos.forEach((m) => {
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = m.nombre;
+        opt.dataset.color = m.color;
+        opt.dataset.cedula = m.cedula;
+        opt.dataset.especialidadId = m.especialidadId;
+        grupo.appendChild(opt);
+      });
+      select.appendChild(grupo);
+    });
+  }
+
+  let filtrosAdminInicializados = false;
+  let comboboxMedico = null;
+
+  function inicializarFiltrosAdmin() {
+    if (filtrosAdminInicializados) return;
+    filtrosAdminInicializados = true;
+
+    const selectEsp = document.getElementById('filtro-especialidad');
+    const selectMed = document.getElementById('filtro-medico');
+    poblarSelectEspecialidad(selectEsp);
+    poblarSelectMedico(selectMed);
+    comboboxMedico = crearComboboxMedico(selectMed);
+
+    // La dependencia especialidad → médico es en vivo, no espera al botón
+    // Aplicar (decisión 1, fila 2): el usuario elige especialidad y después
+    // abre el desplegable de médico esperando verlo ya acotado, en el mismo
+    // gesto en el que todavía no tocó Aplicar.
+    selectEsp.addEventListener('change', () => {
+      const especialidadId = selectEsp.value || null;
+      comboboxMedico.acotarPorEspecialidad(especialidadId);
+      const medicoId = selectMed.value || null;
+      if (medicoId) {
+        const medico = PADRON_MEDICOS.find((m) => m.id === medicoId);
+        if (medico && medico.especialidadId !== especialidadId) {
+          selectMed.value = '';
+          comboboxMedico.sincronizar();
+        }
+      }
+    });
+
+    document.getElementById('form-filtros-admin').addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      aplicarFiltrosAdminDesdeSelects();
+    });
+  }
+
+  function aplicarFiltrosAdminDesdeSelects() {
+    const selectEsp = document.getElementById('filtro-especialidad');
+    const selectMed = document.getElementById('filtro-medico');
+    let especialidadId = selectEsp.value || null;
+    const medicoId = selectMed.value || null;
+
+    // Con el listener de #filtro-especialidad de arriba, un médico
+    // incompatible con la especialidad ya se limpia en cuanto se cambia la
+    // especialidad — así que en un uso normal de la interfaz, esta rama ya
+    // nunca se dispara. Se deja de todos modos: defiende un estado inicial
+    // contradictorio que no pasó por la UI (decisión 1, fila 3), como un
+    // querystring editado a mano —?especialidad=3&medico=7 con el médico 7
+    // de otra especialidad—, que sin esto produciría silenciosamente cero
+    // médicos en vez de corregirse. No es código muerto: no borrar.
+    if (medicoId) {
+      const medico = PADRON_MEDICOS.find((m) => m.id === medicoId);
+      if (medico && medico.especialidadId !== especialidadId) {
+        especialidadId = medico.especialidadId;
+        selectEsp.value = especialidadId;
+      }
+    }
+
+    estado.especialidadFiltro = especialidadId;
+    estado.medicoFiltro = medicoId;
+    render();
+  }
+
+  function renderFiltrosAdmin() {
     const cfg = ESCENARIOS[estado.escenario];
     const seccion = document.getElementById('filtro-medico-seccion');
     seccion.classList.toggle('hidden', !cfg.esAdmin);
     if (!cfg.esAdmin) return;
 
-    const cont = document.getElementById('filtro-medico-botones');
-    cont.innerHTML = '';
+    inicializarFiltrosAdmin();
 
-    const btnTodos = document.createElement('button');
-    btnTodos.type = 'button';
-    const activoTodos = !estado.medicoFiltro;
-    btnTodos.className = 'px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors '
-      + (activoTodos ? 'bg-[#1D2D50] text-white border-[#1D2D50]' : 'bg-white text-on-surface-variant border-[#D6ECFF] hover:bg-[#F6FBFF]');
-    btnTodos.textContent = 'Todos los médicos';
-    btnTodos.addEventListener('click', () => { estado.medicoFiltro = null; render(); });
-    cont.appendChild(btnTodos);
-
-    cfg.medicos.forEach((m) => {
-      const activo = estado.medicoFiltro === m.id;
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors '
-        + (activo ? 'text-white border-transparent' : 'bg-white text-on-surface-variant border-[#D6ECFF] hover:bg-[#F6FBFF]');
-      if (activo) btn.style.backgroundColor = m.color;
-      btn.innerHTML = '<span class="w-2 h-2 rounded-full inline-block" style="background:' + (activo ? '#ffffff' : m.color) + '"></span>' + m.nombre;
-      btn.addEventListener('click', () => { estado.medicoFiltro = m.id; render(); });
-      cont.appendChild(btn);
-    });
+    const selectEsp = document.getElementById('filtro-especialidad');
+    const selectMed = document.getElementById('filtro-medico');
+    selectEsp.value = estado.especialidadFiltro || '';
+    selectMed.value = estado.medicoFiltro || '';
+    if (comboboxMedico) {
+      comboboxMedico.acotarPorEspecialidad(estado.especialidadFiltro);
+      comboboxMedico.sincronizar();
+    }
 
     const textoAyuda = document.querySelector('#filtro-medico-ayuda span:last-child');
     if (estado.medicoFiltro) {
-      const m = cfg.medicos.find((med) => med.id === estado.medicoFiltro);
-      textoAyuda.textContent = 'Mostrando las tres capas (disponibilidad, bloqueos y citas) de ' + (m ? m.nombre : '') + '. Quita el filtro para volver a la vista general de todos los médicos.';
+      const m = PADRON_MEDICOS.find((med) => med.id === estado.medicoFiltro);
+      textoAyuda.textContent = 'Mostrando las tres capas (disponibilidad, bloqueos y citas) de ' + (m ? m.nombre : '') + '. Quita el médico para volver al modo panorámico.';
+    } else if (estado.especialidadFiltro) {
+      const esp = ESPECIALIDAD_POR_ID[estado.especialidadFiltro];
+      textoAyuda.textContent = 'Panorámico acotado a ' + (esp ? esp.nombre : '') + ': solo bloqueos y excepciones de esos médicos, con el conteo de citas por día. Elige un médico para ver su agenda completa.';
     } else {
-      textoAyuda.textContent = 'Vista general: solo bloqueos y excepciones de todos los médicos. Las citas no se dibujan aquí (con muchos médicos saturarían la columna); el número junto a cada día indica cuántas hay agendadas. Elige un médico arriba para ver su agenda completa: disponibilidad, bloqueos y citas.';
+      textoAyuda.textContent = 'Vista general: solo bloqueos y excepciones de todos los médicos. Las citas no se dibujan aquí (con un padrón grande saturarían la columna); el número junto a cada día indica cuántas hay agendadas. Elige una especialidad para acotar, o un médico para ver su agenda completa.';
     }
   }
 
@@ -1005,7 +1657,7 @@ Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se
       btn.className = 'rol-btn px-4 py-2 rounded-md text-sm font-semibold transition-colors '
         + (activo ? 'bg-[#3A7BD5] text-white shadow-sm' : 'text-on-surface-variant hover:bg-white');
     });
-    renderFiltroMedico();
+    renderFiltrosAdmin();
     renderLeyenda();
     renderGrilla();
     renderLista();
@@ -1015,7 +1667,10 @@ Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se
     const btn = ev.target.closest('.rol-btn');
     if (!btn) return;
     estado.escenario = btn.dataset.rol;
-    estado.medicoFiltro = null; // cada escenario tiene su propio conjunto de médicos
+    // Cada escenario tiene su propio padrón/dataset: ni el médico ni la
+    // especialidad elegidos siguen teniendo sentido al cambiar de rol.
+    estado.medicoFiltro = null;
+    estado.especialidadFiltro = null;
     render();
   });
   document.getElementById('btn-semana-anterior').addEventListener('click', () => { estado.semanaOffset -= 1; render(); });
@@ -1024,6 +1679,19 @@ Prototipo visual aislado — <code>docs/prototipos/calendario.html</code>. No se
   document.getElementById('modal-cerrar').addEventListener('click', cerrarDetalle);
   document.getElementById('modal-backdrop').addEventListener('click', cerrarDetalle);
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') cerrarDetalle(); });
+
+  function renderTiraPaleta() {
+    const cont = document.getElementById('tira-paleta-medicos');
+    const referencias = [
+      { color: '#3A7BD5', etiqueta: 'confirmada' },
+      { color: '#1a7f5a', etiqueta: 'atendida' },
+      { color: '#727783', etiqueta: 'bloqueo' },
+    ];
+    const swatches = PALETA_MEDICOS.map((color, i) => '<span class="inline-flex items-center gap-1 px-1.5 py-1 rounded border border-[#D6ECFF]"><span class="w-4 h-4 rounded-full inline-block" style="background:' + color + '"></span><span class="text-[10px] text-outline">' + (i + 1) + '</span></span>').join('');
+    const referenciasHtml = referencias.map((r) => '<span class="inline-flex items-center gap-1 px-1.5 py-1 rounded border border-dashed border-[#c2c6d4]"><span class="w-4 h-4 rounded-full inline-block" style="background:' + r.color + '"></span><span class="text-[10px] text-outline">' + r.etiqueta + '</span></span>').join('');
+    cont.innerHTML = '<span class="text-[10px] uppercase tracking-wide text-outline w-full text-center mb-1">Paleta de médicos (1-8) vs. colores de estado</span>' + swatches + referenciasHtml;
+  }
+  renderTiraPaleta();
 
   render();
 })();
