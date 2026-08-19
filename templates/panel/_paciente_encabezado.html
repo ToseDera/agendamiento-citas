@@ -1,0 +1,21 @@
+<a class="inline-flex items-center gap-2 text-[#3A7BD5] font-label-md text-label-md hover:underline w-fit" href="{% url 'panel_pacientes' %}">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+Buscar otro paciente
+</a>
+
+<div class="bg-white rounded-xl p-md md:p-lg shadow-[0px_4px_20px_rgba(29,45,80,0.05)] border border-[#D6ECFF] flex flex-col gap-md">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-full bg-gradient-to-br from-[#8EC5FF] to-[#3A7BD5] flex items-center justify-center text-white font-headline-md shrink-0 uppercase">
+{{ paciente.first_name|make_list|first|default:'' }}{{ paciente.last_name|make_list|first|default:'' }}
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md text-[#1D2D50]">{{ paciente.get_full_name }}</h1>
+<p class="font-label-md text-label-md text-[#236296]">{{ paciente.tipo_documento.nombre }} · {{ paciente.numero_documento }}</p>
+</div>
+</div>
+<nav class="flex flex-wrap gap-2 border-t border-[#D6ECFF] pt-sm" aria-label="Secciones del paciente">
+<a href="{% url 'panel_paciente_ficha' paciente.pk %}" class="px-4 py-2 rounded-lg text-sm font-semibold transition-colors {% if tab_activa == 'ficha' %}bg-[#3A7BD5] text-white{% else %}text-[#3A7BD5] hover:bg-[#F6FBFF]{% endif %}">Datos personales</a>
+<a href="{% url 'panel_paciente_citas' paciente.pk %}" class="px-4 py-2 rounded-lg text-sm font-semibold transition-colors {% if tab_activa == 'citas' %}bg-[#3A7BD5] text-white{% else %}text-[#3A7BD5] hover:bg-[#F6FBFF]{% endif %}">Citas</a>
+<a href="{% url 'panel_paciente_historial' paciente.pk %}" class="px-4 py-2 rounded-lg text-sm font-semibold transition-colors {% if tab_activa == 'historial' %}bg-[#3A7BD5] text-white{% else %}text-[#3A7BD5] hover:bg-[#F6FBFF]{% endif %}">Historial</a>
+</nav>
+</div>

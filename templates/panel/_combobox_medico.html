@@ -1,0 +1,278 @@
+<!-- Combobox de médico: potencia el <select id="filtro-medico"> ya renderizado
+     por calendario.html con sus <option>/<optgroup> reales (decisión 3) —
+     nunca las crea. Portado del prototipo (docs/prototipos/calendario.html):
+     mismo teclado, mismo ARIA, mismo acotamiento por especialidad, mismo bug
+     corregido (Enter tras buscar elegía "Todos los médicos" en vez del
+     primer resultado).
+
+     Diferencia real con el prototipo: ahí la sincronización especialidad<->
+     médico corría dos direcciones en JS porque no había servidor de por
+     medio. Acá, "elegir médico sincroniza la especialidad" ya lo resuelve
+     el round-trip normal del formulario (la vista corrige especialidad_id
+     al renderizar, decisión 10) — solo falta la otra dirección, en vivo,
+     antes de someter el formulario: acotar el desplegable y limpiar el
+     médico si ya no pertenece a la especialidad elegida. -->
+<script>
+(function () {
+  'use strict';
+
+  function normalizarTexto(texto) {
+    return texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  }
+
+  function crearComboboxMedico(selectEl) {
+    const mediaMd = window.matchMedia('(min-width: 768px)');
+    let opciones = [];
+    let widget = null;
+    let filasSeleccionables = [];
+    let activaIdx = 0;
+    let abierto = false;
+    let especialidadActiva = null;
+
+    function leerOpciones() {
+      opciones = [];
+      selectEl.querySelectorAll('option').forEach((opt) => {
+        if (!opt.value) return;
+        opciones.push({
+          value: opt.value,
+          texto: opt.textContent,
+          grupo: opt.parentElement && opt.parentElement.tagName === 'OPTGROUP' ? opt.parentElement.label : '',
+          especialidadId: opt.dataset.especialidad || '',
+          color: opt.dataset.color || '#727783',
+          normalizado: normalizarTexto(opt.textContent + ' ' + (opt.dataset.cedula || '')),
+        });
+      });
+    }
+
+    function construir() {
+      if (widget) return;
+      leerOpciones();
+
+      const raiz = document.createElement('div');
+      raiz.className = 'relative';
+
+      const boton = document.createElement('button');
+      boton.type = 'button';
+      boton.className = 'h-11 w-full px-3 rounded-lg border border-[#D6ECFF] bg-white text-sm text-[#1D2D50] flex items-center justify-between gap-2 focus:outline-none focus:ring-2 focus:ring-[#3A7BD5]';
+      boton.setAttribute('aria-haspopup', 'listbox');
+      boton.setAttribute('aria-expanded', 'false');
+      boton.innerHTML = '<span class="flex items-center gap-2 min-w-0"><span class="punto w-2.5 h-2.5 rounded-full shrink-0 border-[1.5px] border-[#c2c6d4]"></span><span class="etiqueta truncate">Todos los médicos</span></span>'
+        + '<span class="material-symbols-outlined text-[18px] text-outline shrink-0">expand_more</span>';
+
+      const panel = document.createElement('div');
+      panel.className = 'hidden absolute z-30 mt-1 w-full bg-white border border-[#D6ECFF] rounded-lg shadow-elevated';
+
+      const buscadorWrap = document.createElement('div');
+      buscadorWrap.className = 'p-2 border-b border-[#D6ECFF]';
+      const buscador = document.createElement('input');
+      buscador.type = 'text';
+      buscador.placeholder = 'Buscar por nombre o cédula';
+      buscador.className = 'w-full h-9 px-2 rounded-md border border-[#D6ECFF] text-sm focus:outline-none focus:ring-2 focus:ring-[#3A7BD5]';
+      buscador.setAttribute('role', 'combobox');
+      buscador.setAttribute('aria-expanded', 'false');
+      buscador.setAttribute('aria-controls', 'combobox-medico-listbox');
+      buscador.setAttribute('aria-autocomplete', 'list');
+      buscadorWrap.appendChild(buscador);
+
+      const listbox = document.createElement('ul');
+      listbox.id = 'combobox-medico-listbox';
+      listbox.setAttribute('role', 'listbox');
+      listbox.className = 'max-h-64 overflow-y-auto py-1';
+
+      panel.appendChild(buscadorWrap);
+      panel.appendChild(listbox);
+      raiz.appendChild(boton);
+      raiz.appendChild(panel);
+      selectEl.insertAdjacentElement('afterend', raiz);
+
+      widget = { raiz, boton, panel, buscador, listbox };
+
+      function renderPanel(filtro) {
+        const norm = normalizarTexto(filtro);
+        listbox.innerHTML = '';
+        filasSeleccionables = [];
+
+        const filaTodos = document.createElement('li');
+        filaTodos.id = 'combobox-medico-opt-todos';
+        filaTodos.setAttribute('role', 'option');
+        filaTodos.className = 'px-3 py-2 text-sm cursor-pointer flex items-center gap-2 hover:bg-[#F6FBFF]';
+        filaTodos.textContent = 'Todos los médicos';
+        filaTodos.dataset.value = '';
+        filaTodos.addEventListener('click', () => seleccionar(''));
+        listbox.appendChild(filaTodos);
+        filasSeleccionables.push(filaTodos);
+
+        const dentro = especialidadActiva
+          ? opciones.filter((op) => op.especialidadId === especialidadActiva)
+          : opciones;
+        const coincidencias = dentro.filter((op) => !norm || op.normalizado.includes(norm));
+
+        const gruposPresentes = new Set(coincidencias.map((op) => op.grupo));
+        const ocultarEncabezados = gruposPresentes.size <= 1;
+
+        let grupoActual = null;
+        coincidencias.forEach((op) => {
+          if (!ocultarEncabezados && op.grupo !== grupoActual) {
+            grupoActual = op.grupo;
+            const cab = document.createElement('li');
+            cab.setAttribute('role', 'presentation');
+            cab.className = 'px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-outline';
+            cab.textContent = grupoActual;
+            listbox.appendChild(cab);
+          }
+          const fila = document.createElement('li');
+          fila.id = 'combobox-medico-opt-' + op.value;
+          fila.setAttribute('role', 'option');
+          fila.className = 'px-3 py-2 text-sm cursor-pointer flex items-center gap-2 hover:bg-[#F6FBFF]';
+          fila.dataset.value = op.value;
+          fila.innerHTML = '<span class="w-2.5 h-2.5 rounded-full inline-block shrink-0" style="background:' + op.color + '"></span><span class="truncate">' + op.texto + '</span>';
+          fila.addEventListener('click', () => seleccionar(op.value));
+          listbox.appendChild(fila);
+          filasSeleccionables.push(fila);
+        });
+
+        if (!coincidencias.length) {
+          const vacio = document.createElement('li');
+          vacio.setAttribute('role', 'presentation');
+          vacio.className = 'px-3 py-3 text-sm text-outline text-center';
+          if (norm && especialidadActiva) {
+            const fuera = opciones.filter((op) => op.especialidadId !== especialidadActiva && op.normalizado.includes(norm));
+            if (fuera.length) {
+              const grupoEsp = opciones.find((op) => op.especialidadId === especialidadActiva);
+              const nombreEsp = grupoEsp ? grupoEsp.grupo : '';
+              vacio.textContent = 'Sin resultados en ' + nombreEsp + ' — ' + fuera.length + (fuera.length === 1 ? ' coincidencia en otras especialidades' : ' coincidencias en otras especialidades');
+            } else {
+              vacio.textContent = 'Sin resultados';
+            }
+          } else {
+            vacio.textContent = 'Sin resultados';
+          }
+          listbox.appendChild(vacio);
+        }
+        // Con texto de búsqueda, la fila activa por defecto es el primer
+        // resultado real (índice 1: el 0 es "Todos los médicos" fijo), no
+        // ese fijo — si no, Enter tras escribir un apellido "elegiría"
+        // siempre borrar el filtro en vez de aplicar lo buscado.
+        marcarActiva(filtro && filasSeleccionables.length > 1 ? 1 : 0);
+      }
+
+      function marcarActiva(idx) {
+        if (!filasSeleccionables.length) return;
+        activaIdx = Math.max(0, Math.min(idx, filasSeleccionables.length - 1));
+        filasSeleccionables.forEach((f, i) => {
+          f.classList.toggle('bg-[#F6FBFF]', i === activaIdx);
+          f.setAttribute('aria-selected', String(selectEl.value === f.dataset.value));
+        });
+        buscador.setAttribute('aria-activedescendant', filasSeleccionables[activaIdx].id);
+        filasSeleccionables[activaIdx].scrollIntoView({ block: 'nearest' });
+      }
+
+      function actualizarEtiqueta() {
+        const opcion = opciones.find((o) => o.value === selectEl.value);
+        boton.querySelector('.etiqueta').textContent = opcion ? opcion.texto : 'Todos los médicos';
+        const punto = boton.querySelector('.punto');
+        punto.style.background = opcion ? opcion.color : 'transparent';
+        punto.style.borderColor = opcion ? opcion.color : '#c2c6d4';
+      }
+
+      function seleccionar(value) {
+        selectEl.value = value;
+        selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+        actualizarEtiqueta();
+        cerrar({ enfocarBoton: true });
+      }
+
+      function onClickFuera(ev) {
+        if (!raiz.contains(ev.target)) cerrar();
+      }
+
+      function abrirPanel() {
+        if (abierto) return;
+        abierto = true;
+        panel.classList.remove('hidden');
+        boton.setAttribute('aria-expanded', 'true');
+        buscador.setAttribute('aria-expanded', 'true');
+        buscador.value = '';
+        renderPanel('');
+        buscador.focus();
+        document.addEventListener('click', onClickFuera, true);
+      }
+
+      function cerrar({ enfocarBoton = false } = {}) {
+        if (!abierto) return;
+        abierto = false;
+        panel.classList.add('hidden');
+        boton.setAttribute('aria-expanded', 'false');
+        buscador.setAttribute('aria-expanded', 'false');
+        document.removeEventListener('click', onClickFuera, true);
+        if (enfocarBoton) boton.focus();
+      }
+
+      boton.addEventListener('click', () => { if (abierto) cerrar(); else abrirPanel(); });
+      boton.addEventListener('keydown', (ev) => {
+        if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp' || ev.key === 'Enter' || ev.key === ' ') {
+          ev.preventDefault();
+          abrirPanel();
+        }
+      });
+      buscador.addEventListener('input', () => renderPanel(buscador.value));
+      buscador.addEventListener('keydown', (ev) => {
+        if (ev.key === 'ArrowDown') { ev.preventDefault(); marcarActiva(activaIdx + 1); }
+        else if (ev.key === 'ArrowUp') { ev.preventDefault(); marcarActiva(activaIdx - 1); }
+        else if (ev.key === 'Enter') { ev.preventDefault(); const f = filasSeleccionables[activaIdx]; if (f) seleccionar(f.dataset.value); }
+        else if (ev.key === 'Escape') { ev.preventDefault(); cerrar({ enfocarBoton: true }); }
+        else if (ev.key === 'Tab') { cerrar(); }
+      });
+
+      widget.actualizarEtiqueta = actualizarEtiqueta;
+      widget.cerrar = cerrar;
+      widget.renderPanel = renderPanel;
+      actualizarEtiqueta();
+    }
+
+    function aplicarModo() {
+      if (mediaMd.matches) {
+        construir();
+        selectEl.classList.add('hidden');
+        widget.raiz.classList.remove('hidden');
+      } else if (widget) {
+        widget.cerrar();
+        widget.raiz.classList.add('hidden');
+        selectEl.classList.remove('hidden');
+      } else {
+        selectEl.classList.remove('hidden');
+      }
+    }
+
+    mediaMd.addEventListener('change', aplicarModo);
+    aplicarModo();
+
+    return {
+      acotarPorEspecialidad(especialidadId) {
+        especialidadActiva = especialidadId || null;
+        if (widget && abierto) widget.renderPanel(widget.buscador.value);
+      },
+      sincronizar() {
+        if (widget) widget.actualizarEtiqueta();
+      },
+    };
+  }
+
+  const selectMedico = document.getElementById('filtro-medico');
+  const selectEspecialidad = document.getElementById('filtro-especialidad');
+  if (!selectMedico || !selectEspecialidad) return;
+
+  const combobox = crearComboboxMedico(selectMedico);
+  combobox.acotarPorEspecialidad(selectEspecialidad.value);
+
+  selectEspecialidad.addEventListener('change', () => {
+    combobox.acotarPorEspecialidad(selectEspecialidad.value);
+    const opcionElegida = selectMedico.querySelector('option[value="' + CSS.escape(selectMedico.value) + '"]');
+    const especialidadDelMedico = opcionElegida ? opcionElegida.dataset.especialidad : '';
+    if (selectMedico.value && especialidadDelMedico !== selectEspecialidad.value) {
+      selectMedico.value = '';
+      combobox.sincronizar();
+    }
+  });
+})();
+</script>

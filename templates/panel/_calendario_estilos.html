@@ -1,0 +1,17 @@
+<!-- Estilos de las cajas del calendario (grilla + colores por estado):
+     compartidos por los tres calendarios (admin, médico, paciente) para que
+     no haya tres copias que puedan desalinearse entre sí. Traducidas tal
+     cual de docs/prototipos/calendario.html (prototipo aprobado): mismos
+     valores, mismos nombres de clase. Colores de estado documentados en
+     docs/diseno/DESIGN.md ("Estado de cita"). -->
+<style>
+  .evt-disponibilidad { background: #e9edff; border: 1.5px dashed #8EC5FF; color: #236296; }
+  .evt-bloqueo { background-image: repeating-linear-gradient(135deg, #727783 0px, #727783 6px, #838996 6px, #838996 12px); color: #ffffff; }
+  .evt-ocupacion { box-shadow: 0px 4px 12px rgba(8, 26, 61, 0.15); }
+  .evt-ocupacion-confirmada { background: #D6ECFF; border: 1px solid #3A7BD5; color: #1D2D50; }
+  .evt-ocupacion-atendida { background: #e8f5e9; border: 1px solid #1a7f5a; color: #0f5132; }
+  .evt-ocupacion-no-atendida { background: #ffeedd; border: 1px solid #8a5000; color: #8a5000; }
+  .evento-caja { position: absolute; overflow: hidden; border-radius: 0.5rem; cursor: pointer; transition: filter .15s ease; }
+  .evento-caja:hover { filter: brightness(0.96); }
+  .evento-caja:focus-visible { outline: 2px solid #3A7BD5; outline-offset: 2px; }
+</style>

@@ -1,0 +1,21 @@
+{% load calendario_tags %}
+{% if caja.es_resumen %}
+<div class="evento-caja bg-[#424752] text-white px-1 py-1 text-[10px] leading-tight flex items-center justify-center text-center font-semibold cursor-default"
+     style="{{ caja.estilo }}"
+     title="{% for oculto in caja.ocultos %}{{ oculto.medico.usuario.get_full_name|default:'' }} · {{ oculto.titulo }} ({{ oculto.inicio|time:'H:i' }}–{{ oculto.fin|time:'H:i' }}){% if not forloop.last %} · {% endif %}{% endfor %}">
+{{ caja.titulo }}
+</div>
+{% else %}
+<div class="evento-caja {% if caja.tipo == 'disponibilidad' %}evt-disponibilidad{% elif caja.tipo == 'bloqueo' %}evt-bloqueo{% elif caja.evento.estado == 'atendida' %}evt-ocupacion evt-ocupacion-atendida{% elif caja.evento.estado == 'no atendida' %}evt-ocupacion evt-ocupacion-no-atendida{% else %}evt-ocupacion evt-ocupacion-confirmada{% endif %} px-1.5 py-1 text-[11px] leading-tight{% if caja.compacta %} flex items-center{% endif %} js-abrir-detalle"
+     style="{{ caja.estilo }}"
+     tabindex="0" role="button" data-evento-id="{{ caja.evento.id }}"
+     aria-label="{{ caja.titulo }}, {% if caja.evento.dia_completo %}todo el día{% else %}{{ caja.evento.inicio|time:'H:i' }} a {{ caja.evento.fin|time:'H:i' }}{% endif %}{% if caja.color_medico %}, {{ caja.evento.medico.usuario.get_full_name }}{% endif %}">
+{% if caja.compacta %}
+<div class="font-semibold truncate w-full">{{ caja.titulo }}</div>
+{% else %}
+<div class="font-semibold truncate">{{ caja.titulo }}</div>
+<div class="truncate">{% if caja.evento.dia_completo %}Todo el día{% else %}{{ caja.evento.inicio|time:"H:i" }}–{{ caja.evento.fin|time:"H:i" }}{% endif %}</div>
+{% if caja.color_medico %}<div class="opacity-75 truncate">{{ caja.evento.medico.usuario.get_full_name }}</div>{% endif %}
+{% endif %}
+</div>
+{% endif %}

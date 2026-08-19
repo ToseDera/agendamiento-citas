@@ -10,12 +10,16 @@
 <h1 class="font-headline-xl text-headline-xl text-[#1D2D50] font-bold">¡Hola, {{ user.first_name|default:user.username }}!</h1>
 <p class="font-body-md text-body-md text-on-surface-variant mt-1">Estas son tus próximas citas confirmadas.</p>
 </div>
-<div class="flex items-center gap-sm">
-<a href="{% url 'mis_citas_historial' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[#8EC5FF] text-[#3A7BD5] font-label-md text-label-md hover:bg-[#F6FBFF] transition-colors">
+<div class="flex flex-col sm:flex-row gap-sm">
+<a href="{% url 'mis_citas_calendario' %}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-[#8EC5FF] text-[#3A7BD5] font-label-md text-label-md hover:bg-[#F6FBFF] transition-colors">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+Calendario
+</a>
+<a href="{% url 'mis_citas_historial' %}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-[#8EC5FF] text-[#3A7BD5] font-label-md text-label-md hover:bg-[#F6FBFF] transition-colors">
 <span class="material-symbols-outlined text-[18px]">history</span>
 Historial
 </a>
-<a href="{% url 'agendar_especialidades' %}" class="inline-flex items-center gap-2 bg-brand-primary text-white px-4 py-2 rounded-lg font-label-md text-label-md hover:bg-primary transition-colors shadow-sm">
+<a href="{% url 'agendar_especialidades' %}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-brand-primary text-white px-4 py-2 rounded-lg font-label-md text-label-md hover:bg-primary transition-colors shadow-sm">
 <span class="material-symbols-outlined text-[18px]">calendar_add_on</span>
 Agendar nueva cita
 </a>

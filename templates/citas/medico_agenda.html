@@ -7,12 +7,22 @@
 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-sm">
 <div>
 <h1 class="font-headline-xl text-headline-xl text-[#1D2D50] font-bold">Mi agenda</h1>
-<p class="font-body-md text-body-md text-on-surface-variant mt-1">{{ medico.especialidad.nombre }} · próximos {{ eventos|length }} turnos</p>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">{{ medico.especialidad.nombre }} · {{ eventos|length }} cita{{ eventos|length|pluralize }} confirmada{{ eventos|length|pluralize }}</p>
 </div>
-<a href="{% url 'medico_mi_horario' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[#8EC5FF] text-[#3A7BD5] font-label-md text-label-md hover:bg-[#F6FBFF] transition-colors">
+<div class="flex flex-col sm:flex-row gap-sm">
+<a href="{% url 'medico_calendario' %}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-[#8EC5FF] text-[#3A7BD5] font-label-md text-label-md hover:bg-[#F6FBFF] transition-colors">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+Calendario
+</a>
+<a href="{% url 'medico_historial' %}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-[#8EC5FF] text-[#3A7BD5] font-label-md text-label-md hover:bg-[#F6FBFF] transition-colors">
+<span class="material-symbols-outlined text-[18px]">history</span>
+Historial
+</a>
+<a href="{% url 'medico_mi_horario' %}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-[#8EC5FF] text-[#3A7BD5] font-label-md text-label-md hover:bg-[#F6FBFF] transition-colors">
 <span class="material-symbols-outlined text-[18px]">schedule</span>
 Mi horario
 </a>
+</div>
 </div>
 
 <div class="flex flex-col gap-md">
@@ -30,17 +40,15 @@ Mi horario
 <span class="material-symbols-outlined text-[18px] text-[#3A7BD5]">calendar_month</span>
 {{ evento.inicio|date:"j \d\e F" }} · {{ evento.inicio|date:"H:i" }}
 </span>
-{% if evento.estado == 'atendida' %}
-<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#e8f5e9] text-[#1a7f5a] w-fit">Atendida</span>
-{% else %}
+<!-- La agenda solo lista confirmadas (decisión 3): sin condicional de
+     estado, como en mis_citas.html del paciente. -->
 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#D6ECFF] text-[#236296] w-fit">Confirmada</span>
-{% endif %}
 </div>
 </a>
 {% empty %}
 <div class="text-center py-lg bg-white rounded-xl shadow-soft border border-[#D6ECFF]">
 <span class="material-symbols-outlined text-[48px] text-[#627788] mb-4">event_available</span>
-<p class="font-body-md text-body-md text-[#4a5568]">No tienes citas en los próximos días.</p>
+<p class="font-body-md text-body-md text-[#4a5568]">No tienes citas confirmadas en los próximos días.</p>
 </div>
 {% endfor %}
 </div>

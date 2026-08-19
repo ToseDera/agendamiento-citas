@@ -38,6 +38,11 @@ Cancelada
 <span class="w-1.5 h-1.5 rounded-full bg-[#1a7f5a]"></span>
 Atendida
 </span>
+{% elif cita.estado.nombre == 'no atendida' %}
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#ffeedd] text-[#8a5000] w-fit">
+<span class="w-1.5 h-1.5 rounded-full bg-[#8a5000]"></span>
+No atendida
+</span>
 {% else %}
 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#D6ECFF] text-[#236296] w-fit">
 <span class="w-1.5 h-1.5 rounded-full bg-[#236296]"></span>

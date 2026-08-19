@@ -1,0 +1,11 @@
+{% if evento.tipo == 'disponibilidad' %}
+<span class="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#e9edff] text-[#236296]">Disponible</span>
+{% elif evento.tipo == 'bloqueo' %}
+<span class="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#727783] text-white">{% if evento.dia_completo %}Día no disponible{% else %}Bloqueo{% endif %}</span>
+{% elif evento.estado == 'atendida' %}
+<span class="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#e8f5e9] text-[#1a7f5a]">Atendida</span>
+{% elif evento.estado == 'no atendida' %}
+<span class="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#ffeedd] text-[#8a5000]">No atendida</span>
+{% else %}
+<span class="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#D6ECFF] text-[#236296]">Confirmada</span>
+{% endif %}

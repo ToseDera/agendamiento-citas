@@ -1,0 +1,21 @@
+<div class="bg-white rounded-xl border border-[#D6ECFF] shadow-[0px_4px_20px_rgba(29,45,80,0.05)] p-md flex flex-col sm:flex-row sm:items-start gap-md">
+<div class="flex-grow min-w-0">
+<h2 class="font-headline-md text-headline-md-mobile text-[#1D2D50]">{{ cita.medico.especialidad.nombre }}</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">{{ cita.medico.usuario.get_full_name }}</p>
+<p class="font-body-md text-body-md text-[#1D2D50] flex items-center gap-2 mt-1">
+<span class="material-symbols-outlined text-[18px] text-[#3A7BD5]">calendar_month</span>
+{{ cita.fecha|date:"j \d\e F, Y" }} · {{ cita.hora_inicio|time:"H:i" }} - {{ cita.hora_fin|time:"H:i" }}
+</p>
+{% if mostrar_historial and cita.comentario_medico %}
+<p class="font-body-md text-body-md text-on-surface-variant mt-2 flex items-start gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-[#3A7BD5] shrink-0">chat</span>
+<span class="whitespace-pre-line">{{ cita.comentario_medico }}</span>
+</p>
+{% endif %}
+</div>
+{% if mostrar_historial %}
+<div class="shrink-0">
+{% include "panel/_badge_estado_cita.html" with estado=cita.estado.nombre %}
+</div>
+{% endif %}
+</div>

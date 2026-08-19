@@ -1,5 +1,3 @@
-from datetime import date
-
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group
@@ -9,6 +7,11 @@ from django.db import transaction
 from citas.models import DIAS_SEMANA, Especialidad, HorarioMedico
 
 from .models import Medico, TipoDocumento, Usuario
+from .validators import (
+    validar_cambio_tipo_documento,
+    validar_fecha_nacimiento_no_futura,
+    validar_formato_numero_documento,
+)
 
 INPUT_CLASS = (
     'appearance-none block w-full px-3 py-2 border border-outline-variant '
@@ -75,6 +78,10 @@ class RegistroForm(UserCreationForm):
         max_length=25, label='Número de documento',
         widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'Ej. 1234567890'}),
     )
+    confirmar_numero_documento = forms.CharField(
+        max_length=25, label='Confirmar número de documento',
+        widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'Repite tu número de documento'}),
+    )
     telefono = forms.CharField(
         max_length=15, label='Teléfono', required=False,
         widget=forms.TextInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'tel', 'type': 'tel', 'placeholder': 'Ej. 3001234567'}),
@@ -92,13 +99,14 @@ class RegistroForm(UserCreationForm):
         model = Usuario
         fields = (
             'nombre', 'apellido', 'fecha_nacimiento', 'tipo_documento',
-            'numero_documento', 'correo', 'telefono',
+            'numero_documento', 'confirmar_numero_documento', 'correo', 'telefono',
         )
 
     def clean_fecha_nacimiento(self):
         fecha_nacimiento = self.cleaned_data['fecha_nacimiento']
-        if fecha_nacimiento > date.today():
-            raise ValidationError('La fecha de nacimiento no puede ser una fecha futura.')
+        error = validar_fecha_nacimiento_no_futura(fecha_nacimiento)
+        if error:
+            raise ValidationError(error)
         return fecha_nacimiento
 
     def clean_numero_documento(self):
@@ -117,48 +125,24 @@ class RegistroForm(UserCreationForm):
         cleaned_data = super().clean()
         tipo_documento = cleaned_data.get('tipo_documento')
         numero_documento = cleaned_data.get('numero_documento')
-        
+
         if tipo_documento and numero_documento:
             if Usuario.objects.filter(
                 tipo_documento=tipo_documento, numero_documento=numero_documento,
             ).exists():
                 self.add_error('numero_documento', 'Ya existe una cuenta con este número de documento.')
-                
-            codigo = tipo_documento.codigo
-            length = len(numero_documento)
 
-            if codigo == 'CC':
-                if not numero_documento.isdigit():
-                    self.add_error('numero_documento', 'La Cédula de Ciudadanía solo debe contener números.')
-                elif not (5 <= length <= 10):
-                    self.add_error('numero_documento', 'La Cédula de Ciudadanía debe tener entre 5 y 10 dígitos.')
-            elif codigo == 'TI':
-                if not numero_documento.isdigit():
-                    self.add_error('numero_documento', 'La Tarjeta de Identidad solo debe contener números.')
-                elif not (10 <= length <= 11):
-                    self.add_error('numero_documento', 'La Tarjeta de Identidad debe tener entre 10 y 11 dígitos.')
-            elif codigo == 'CE':
-                if not numero_documento.isdigit():
-                    self.add_error('numero_documento', 'La Cédula de Extranjería solo debe contener números.')
-                elif not (6 <= length <= 8):
-                    self.add_error('numero_documento', 'La Cédula de Extranjería debe tener entre 6 y 8 dígitos.')
-            elif codigo == 'PPT':
-                if not numero_documento.isdigit():
-                    self.add_error('numero_documento', 'El Permiso Especial solo debe contener números.')
-                elif not (6 <= length <= 8):
-                    self.add_error('numero_documento', 'El Permiso Especial debe tener entre 6 y 8 dígitos.')
-            elif codigo == 'PA':
-                if not numero_documento.isalnum():
-                    self.add_error('numero_documento', 'El Pasaporte solo debe contener letras y números.')
-                elif not (6 <= length <= 16):
-                    self.add_error('numero_documento', 'El Pasaporte debe tener entre 6 y 16 caracteres.')
-                else:
-                    cleaned_data['numero_documento'] = numero_documento.upper()
+            numero_normalizado, error = validar_formato_numero_documento(tipo_documento.codigo, numero_documento)
+            if error:
+                self.add_error('numero_documento', error)
             else:
-                if not numero_documento.isdigit():
-                    self.add_error('numero_documento', 'El número de documento solo debe contener números.')
-                elif not (5 <= length <= 16):
-                    self.add_error('numero_documento', 'El número de documento debe tener entre 5 y 16 dígitos.')
+                cleaned_data['numero_documento'] = numero_normalizado
+
+        confirmar_numero_documento = cleaned_data.get('confirmar_numero_documento')
+        if numero_documento and confirmar_numero_documento and numero_documento != confirmar_numero_documento:
+            self.add_error(
+                'confirmar_numero_documento', 'El número de documento no coincide con el ingresado arriba.',
+            )
 
         return cleaned_data
 
@@ -195,6 +179,14 @@ class RegistroMedicoForm(RegistroForm):
     class Meta(RegistroForm.Meta):
         fields = RegistroForm.Meta.fields + ('especialidad', 'registro_medico')
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # La confirmación de cédula (tarea 5, fase 6a.1) es solo del registro
+        # público: acá el número de documento lo escribe el Administrador
+        # sobre la identidad de otra persona, no la persona autenticándose
+        # sobre la suya propia.
+        del self.fields['confirmar_numero_documento']
+
     def save(self, commit=True):
         usuario = super().save(commit=False)
         if commit:
@@ -210,8 +202,92 @@ class RegistroMedicoForm(RegistroForm):
         return usuario
 
 
+class DatosPersonalesForm(forms.ModelForm):
+    """Formulario único de datos personales (fase 7, decisión 3): el
+    conjunto de campos editables lo decide la vista, vía `campos_editables`
+    — nunca esta clase, nunca la plantilla. Un campo ausente de
+    `campos_editables` se borra de self.fields antes de bindear datos, así
+    que un POST que lo incluya de todos modos no lo toca ni en la
+    validación ni en save() (Django nunca lee un campo que no está
+    declarado en el form)."""
+
+    nombre = forms.CharField(
+        max_length=150, label='Nombres',
+        widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'autocomplete': 'given-name'}),
+    )
+    apellido = forms.CharField(
+        max_length=150, label='Apellidos',
+        widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'autocomplete': 'family-name'}),
+    )
+    correo = forms.EmailField(
+        label='Correo electrónico',
+        widget=forms.EmailInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'email'}),
+    )
+    telefono = forms.CharField(
+        max_length=15, label='Teléfono', required=False,
+        widget=forms.TextInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'tel', 'type': 'tel'}),
+    )
+    fecha_nacimiento = forms.DateField(
+        label='Fecha de nacimiento',
+        widget=forms.DateInput(format='%Y-%m-%d', attrs={'class': DATE_INPUT_CLASS, 'type': 'date'}),
+    )
+    tipo_documento = forms.ModelChoiceField(
+        queryset=TipoDocumento.objects.all(), label='Tipo de documento', empty_label=None,
+        widget=SelectTipoDocumento(attrs={'class': SELECT_CLASS}),
+    )
+
+    class Meta:
+        model = Usuario
+        fields = ('nombre', 'apellido', 'correo', 'telefono', 'fecha_nacimiento', 'tipo_documento')
+
+    def __init__(self, *args, campos_editables, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields['nombre'].initial = self.instance.first_name
+            self.fields['apellido'].initial = self.instance.last_name
+            self.fields['correo'].initial = self.instance.email
+        for nombre_campo in list(self.fields):
+            if nombre_campo not in campos_editables:
+                del self.fields[nombre_campo]
+
+    def clean_correo(self):
+        correo = self.cleaned_data['correo']
+        existe = Usuario.objects.filter(email__iexact=correo).exclude(pk=self.instance.pk)
+        if existe.exists():
+            raise ValidationError('Ya existe una cuenta registrada con este correo electrónico.')
+        return correo
+
+    def clean_fecha_nacimiento(self):
+        fecha_nacimiento = self.cleaned_data['fecha_nacimiento']
+        error = validar_fecha_nacimiento_no_futura(fecha_nacimiento)
+        if error:
+            raise ValidationError(error)
+        return fecha_nacimiento
+
+    def clean(self):
+        cleaned_data = super().clean()
+        validar_cambio_tipo_documento(self)
+        return cleaned_data
+
+    def save(self, commit=True):
+        usuario = super().save(commit=False)
+        if 'nombre' in self.cleaned_data:
+            usuario.first_name = self.cleaned_data['nombre']
+        if 'apellido' in self.cleaned_data:
+            usuario.last_name = self.cleaned_data['apellido']
+        if 'correo' in self.cleaned_data:
+            usuario.email = self.cleaned_data['correo']
+        if commit:
+            usuario.save()
+        return usuario
+
+
 class MedicoEditForm(forms.ModelForm):
-    """Edición de datos de contacto y especialidad de un médico existente (HU-12)."""
+    """Edición de datos de contacto, documento y especialidad de un médico
+    existente (HU-12; tipo de documento agregado en fase 7, decisión 4).
+    numero_documento nunca es un campo de este form — no se muestra en
+    solo lectura vía un <input disabled> sino directamente como texto en la
+    plantilla, así que ningún POST puede tocarlo bajo ningún nombre."""
 
     nombre = forms.CharField(
         max_length=150, label='Nombres',
@@ -229,6 +305,14 @@ class MedicoEditForm(forms.ModelForm):
         max_length=15, label='Teléfono', required=False,
         widget=forms.TextInput(attrs={'class': ICON_INPUT_CLASS, 'autocomplete': 'tel', 'type': 'tel', 'placeholder': 'Ej. 3001234567'}),
     )
+    fecha_nacimiento = forms.DateField(
+        label='Fecha de nacimiento',
+        widget=forms.DateInput(format='%Y-%m-%d', attrs={'class': DATE_INPUT_CLASS, 'type': 'date'}),
+    )
+    tipo_documento = forms.ModelChoiceField(
+        queryset=TipoDocumento.objects.all(), label='Tipo de documento', empty_label=None,
+        widget=SelectTipoDocumento(attrs={'class': SELECT_CLASS}),
+    )
     especialidad = forms.ModelChoiceField(
         queryset=None, label='Especialidad',
         empty_label='Seleccione especialidad',
@@ -241,7 +325,7 @@ class MedicoEditForm(forms.ModelForm):
 
     class Meta:
         model = Usuario
-        fields = ('nombre', 'apellido', 'correo', 'telefono')
+        fields = ('nombre', 'apellido', 'correo', 'telefono', 'fecha_nacimiento', 'tipo_documento')
 
     def __init__(self, *args, medico=None, **kwargs):
         self.medico = medico
@@ -268,6 +352,18 @@ class MedicoEditForm(forms.ModelForm):
         if existe.exists():
             raise ValidationError('Ya existe una cuenta registrada con este correo electrónico.')
         return correo
+
+    def clean_fecha_nacimiento(self):
+        fecha_nacimiento = self.cleaned_data['fecha_nacimiento']
+        error = validar_fecha_nacimiento_no_futura(fecha_nacimiento)
+        if error:
+            raise ValidationError(error)
+        return fecha_nacimiento
+
+    def clean(self):
+        cleaned_data = super().clean()
+        validar_cambio_tipo_documento(self)
+        return cleaned_data
 
     def save(self, commit=True):
         usuario = super().save(commit=False)
@@ -316,14 +412,13 @@ class HorarioMedicoForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        # medico no es un campo del form (construct_instance no lo llena):
+        # tiene que estar en la instancia ANTES de _post_clean(), que es
+        # quien llama a instance.full_clean() -> instance.clean() — única
+        # vez que corre la validación de solapamiento (decisión 2, fase
+        # 6b.2). Sin este atajo medico_id quedaría None y esa validación
+        # se saltearía en silencio.
         self.instance.medico = self.medico
-        self.instance.dia_semana = cleaned_data.get('dia_semana')
-        self.instance.hora_inicio = cleaned_data.get('hora_inicio')
-        self.instance.hora_fin = cleaned_data.get('hora_fin')
-        try:
-            self.instance.clean()
-        except ValidationError as error:
-            _copiar_errores_de_validacion(self, error)
         return cleaned_data
 
     def save(self, commit=True):

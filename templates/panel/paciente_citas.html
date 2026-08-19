@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Citas de {{ paciente.get_full_name }} - Panel MediClick{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto w-full flex flex-col gap-lg">
+{% include "panel/_paciente_encabezado.html" %}
+
+<div class="flex flex-col gap-md">
+{% for cita in citas %}
+{% include "panel/_paciente_cita_row.html" with cita=cita mostrar_historial=False %}
+{% empty %}
+<div class="text-center py-lg bg-white rounded-xl shadow-soft border border-[#D6ECFF]">
+<span class="material-symbols-outlined text-[48px] text-[#627788] mb-4">event_available</span>
+<p class="font-body-md text-body-md text-[#4a5568]">El usuario no tiene citas programadas</p>
+</div>
+{% endfor %}
+</div>
+</div>
+{% endblock %}

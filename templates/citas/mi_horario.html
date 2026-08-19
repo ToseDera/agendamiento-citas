@@ -14,10 +14,9 @@
 Mis excepciones
 </a>
 </header>
-<!-- 2-Column Layout -->
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
-<!-- LEFT COLUMN: Schedule Table -->
-<div class="lg:col-span-8 flex flex-col gap-md">
+<!-- Solo lectura (decisión 1, fase 6b.1): el horario recurrente lo define
+     el administrador. Sin columna de acciones ni formulario de alta —
+     por eso ya no reserva una segunda columna como mis_excepciones.html. -->
 <div class="bg-surface-container-lowest rounded-xl border border-primary-fixed shadow-[0px_4px_20px_rgba(35,98,150,0.05)] overflow-hidden">
 <div class="px-md py-sm bg-surface-bright border-b border-primary-fixed/50 flex justify-between items-center">
 <h2 class="font-headline-md text-headline-md text-on-surface">Bloques de horario</h2>
@@ -30,7 +29,6 @@ Mis excepciones
 <th class="px-md py-sm font-label-md text-label-md text-on-surface-variant font-semibold">Día</th>
 <th class="px-md py-sm font-label-md text-label-md text-on-surface-variant font-semibold">Inicio</th>
 <th class="px-md py-sm font-label-md text-label-md text-on-surface-variant font-semibold">Fin</th>
-<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant font-semibold text-right">Acciones</th>
 </tr>
 </thead>
 <tbody class="font-body-md text-body-md text-on-surface">
@@ -39,63 +37,14 @@ Mis excepciones
 <td class="px-md py-sm">{{ horario.get_dia_semana_display }}</td>
 <td class="px-md py-sm">{{ horario.hora_inicio|time:"H:i" }}</td>
 <td class="px-md py-sm">{{ horario.hora_fin|time:"H:i" }}</td>
-<td class="px-md py-sm text-right">
-<form action="{% url 'medico_mi_horario_eliminar' horario.pk %}" method="post" class="inline">
-{% csrf_token %}
-<button aria-label="Eliminar" type="submit" class="text-error hover:text-on-error-container transition-colors inline-flex items-center justify-center p-xs rounded hover:bg-error-container/50 focus:outline-none focus:ring-2 focus:ring-error">
-<span class="material-symbols-outlined text-[20px]" data-icon="delete">delete</span>
-</button>
-</form>
-</td>
 </tr>
 {% empty %}
 <tr>
-<td class="px-md py-sm font-body-md text-body-md text-on-surface-variant text-center" colspan="4">Sin bloques de horario registrados.</td>
+<td class="px-md py-sm font-body-md text-body-md text-on-surface-variant text-center" colspan="3">Sin bloques de horario registrados. Contacta al administrador para definir tu jornada.</td>
 </tr>
 {% endfor %}
 </tbody>
 </table>
-</div>
-</div>
-</div>
-<!-- RIGHT COLUMN: Add Block Form -->
-<div class="lg:col-span-4 flex flex-col gap-md sticky top-24">
-<div class="bg-surface-container-lowest rounded-xl border border-primary-fixed shadow-[0px_12px_32px_rgba(35,98,150,0.1)] p-md flex flex-col gap-md">
-<div class="flex items-center gap-sm pb-sm border-b border-primary-fixed/50">
-<span class="material-symbols-outlined text-primary" data-icon="add_circle">add_circle</span>
-<h3 class="font-headline-md text-headline-md text-on-surface">Agregar bloque</h3>
-</div>
-{% if form.non_field_errors %}
-<div class="rounded-lg bg-error-container px-4 py-3">
-{% for error in form.non_field_errors %}
-<p class="font-label-md text-label-md text-error">{{ error }}</p>
-{% endfor %}
-</div>
-{% endif %}
-<form method="post" class="flex flex-col gap-md">
-{% csrf_token %}
-{% for field in form %}
-<div class="flex flex-col gap-xs relative">
-<label class="font-label-md text-label-md text-on-surface" for="{{ field.id_for_label }}">{{ field.label }}</label>
-{{ field }}
-{% if field.name == 'dia_semana' %}
-<div class="absolute inset-y-0 right-0 flex items-center pr-sm pointer-events-none text-outline top-[28px]">
-<span class="material-symbols-outlined" data-icon="expand_more">expand_more</span>
-</div>
-{% endif %}
-{% for error in field.errors %}
-<p class="font-label-sm text-label-sm text-error flex items-center gap-xs mt-xs">
-<span class="material-symbols-outlined text-[14px]" data-icon="error">error</span>
-{{ error }}
-</p>
-{% endfor %}
-</div>
-{% endfor %}
-<button class="w-full h-[56px] bg-primary text-on-primary font-label-md text-label-md rounded-lg flex items-center justify-center gap-sm mt-sm hover:bg-primary/90 transition-colors focus:outline-none focus:ring-4 focus:ring-primary-fixed shadow-[0px_4px_20px_rgba(58,123,213,0.15)]" type="submit">
-Agregar
-</button>
-</form>
-</div>
 </div>
 </div>
 {% endblock %}

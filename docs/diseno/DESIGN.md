@@ -165,3 +165,13 @@ The shape language is **Rounded**, moving away from sharp clinical edges toward 
 - **Chips/Badges:** Pill-shaped. Use #D6ECFF backgrounds for neutral info and soft greens/reds for medical status updates (e.g., "Confirmed", "Pending").
 - **Lists:** Clean rows separated by 1px #D6ECFF dividers. Avoid heavy boxes around every list item; use whitespace to define rows.
 - **Medical Specifics:** Prescription cards and appointment slots should include prominent icons from a consistent, soft-edged stroke library.
+
+### Estado de cita (colores semánticos)
+
+Cada estado de `Cita` tiene un par texto/borde + fondo propio, reutilizado en badges, la caja del calendario y el modal de detalle:
+
+- **Confirmada:** texto/borde `#3A7BD5`, fondo `#D6ECFF`.
+- **Atendida:** texto/borde `#1a7f5a`, fondo `#e8f5e9`.
+- **No atendida:** texto/borde `#8a5000`, fondo `#ffeedd`. Familia ámbar (desenlace fallido, no un error) — antes usaba `#627788`, casi indistinguible de `#727783` (bloqueo) en una caja compacta del calendario.
+- **Cancelada:** texto/borde `#c0392b`, fondo `#ffebee`.
+- **Bloqueo (excepción de horario):** patrón rayado `#727783`/`#838996`, texto blanco.
