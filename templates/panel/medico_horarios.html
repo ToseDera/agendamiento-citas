@@ -14,7 +14,7 @@
 <div class="lg:col-span-8 flex flex-col gap-md">
 <div class="bg-surface-container-lowest rounded-xl border border-primary-fixed shadow-[0px_4px_20px_rgba(35,98,150,0.05)] overflow-hidden">
 <div class="px-md py-sm bg-surface-bright border-b border-primary-fixed/50 flex justify-between items-center">
-<h2 class="font-headline-md text-headline-md text-on-surface">Bloques de Horario</h2>
+<h2 class="font-headline-md text-headline-md text-on-surface">Bloques de horario</h2>
 <span class="material-symbols-outlined text-tertiary" data-icon="calendar_month">calendar_month</span>
 </div>
 <div class="overflow-x-auto">
@@ -31,19 +31,19 @@
 {% for horario in horarios %}
 <tr class="border-b border-primary-fixed/30 hover:bg-surface-container-low/50 transition-colors">
 <td class="px-md py-sm">
-{% if horario.dia == 0 %}
+{% if horario.dia_semana == 0 %}
 <span class="inline-flex items-center px-sm py-xs rounded-full bg-primary-fixed text-on-primary-fixed font-label-md text-label-md">Lunes</span>
-{% elif horario.dia == 1 %}
+{% elif horario.dia_semana == 1 %}
 <span class="inline-flex items-center px-sm py-xs rounded-full bg-[#E8F5E9] text-[#1B5E20] font-label-md text-label-md">Martes</span>
-{% elif horario.dia == 2 %}
+{% elif horario.dia_semana == 2 %}
 <span class="inline-flex items-center px-sm py-xs rounded-full bg-[#E3F2FD] text-[#0D47A1] font-label-md text-label-md">Miércoles</span>
-{% elif horario.dia == 3 %}
+{% elif horario.dia_semana == 3 %}
 <span class="inline-flex items-center px-sm py-xs rounded-full bg-[#FFF3E0] text-[#E65100] font-label-md text-label-md">Jueves</span>
-{% elif horario.dia == 4 %}
+{% elif horario.dia_semana == 4 %}
 <span class="inline-flex items-center px-sm py-xs rounded-full bg-[#F3E5F5] text-[#4A148C] font-label-md text-label-md">Viernes</span>
-{% elif horario.dia == 5 %}
+{% elif horario.dia_semana == 5 %}
 <span class="inline-flex items-center px-sm py-xs rounded-full bg-[#FFF8E1] text-[#F57F17] font-label-md text-label-md">Sábado</span>
-{% elif horario.dia == 6 %}
+{% elif horario.dia_semana == 6 %}
 <span class="inline-flex items-center px-sm py-xs rounded-full bg-[#FFEBEE] text-[#B71C1C] font-label-md text-label-md">Domingo</span>
 {% endif %}
 </td>

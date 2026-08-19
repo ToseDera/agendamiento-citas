@@ -9,6 +9,7 @@ urlpatterns = [
     path('panel/especialidades/<int:pk>/toggle/', views.especialidad_toggle, name='panel_especialidad_toggle'),
     path('panel/citas/', views.panel_citas, name='panel_citas'),
     path('panel/citas/<int:pk>/cancelar/', views.panel_citas_cancelar, name='panel_citas_cancelar'),
+    path('panel/calendario/', views.panel_calendario, name='panel_calendario'),
 
     path('agendar/', views.agendar_especialidades, name='agendar_especialidades'),
     path('agendar/especialidades/<int:especialidad_pk>/medicos/', views.agendar_medicos, name='agendar_medicos'),
@@ -17,10 +18,13 @@ urlpatterns = [
 
     path('mis-citas/', views.mis_citas, name='mis_citas'),
     path('mis-citas/historial/', views.mis_citas_historial, name='mis_citas_historial'),
+    path('mis-citas/calendario/', views.mis_citas_calendario, name='mis_citas_calendario'),
     path('mis-citas/<int:pk>/', views.mis_citas_detalle, name='mis_citas_detalle'),
     path('mis-citas/<int:pk>/cancelar/', views.mis_citas_cancelar, name='mis_citas_cancelar'),
 
     path('mi-agenda/', views.medico_agenda, name='medico_agenda'),
+    path('mi-agenda/historial/', views.medico_historial, name='medico_historial'),
+    path('mi-agenda/calendario/', views.medico_calendario, name='medico_calendario'),
     path('mi-agenda/<int:pk>/', views.medico_cita_detalle, name='medico_cita_detalle'),
     path('mi-agenda/<int:pk>/atendida/', views.medico_marcar_atendida, name='medico_marcar_atendida'),
     path('mi-agenda/<int:pk>/comentario/', views.medico_comentario, name='medico_comentario'),

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load calendario_tags %}
+
+{% block title %}Calendario - Panel MediClick{% endblock %}
+
+{% block extra_head %}
+{% include "panel/_calendario_estilos.html" %}
+{% endblock %}
+
+{% block content %}
+<header class="flex flex-col gap-sm mb-md">
+<nav aria-label="Breadcrumb" class="flex text-label-sm font-label-sm text-tertiary-container items-center gap-2">
+<a class="hover:text-primary transition-colors" href="{% url 'panel_home' %}">Panel</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-on-surface-variant font-medium">Calendario</span>
+</nav>
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-navy">Calendario</h1>
+</header>
+
+<div class="flex flex-col gap-md">
+<!-- Filtros: especialidad + médico, independientes entre sí. El médico
+     gana si el querystring llega contradictorio (decisión 10, ver la vista).
+     Funciona sin JS: Aplicar es un submit normal. -->
+<section class="bg-white rounded-xl border border-[#D6ECFF] shadow-soft p-md flex flex-col gap-sm">
+<form method="get" class="flex flex-col md:flex-row md:items-end gap-sm" id="form-filtros-calendario">
+{% if lunes %}<input type="hidden" name="semana" value="{{ lunes|date:'Y-m-d' }}">{% endif %}
+<div class="flex flex-col gap-1 flex-1 min-w-0">
+<label for="filtro-especialidad" class="text-xs font-semibold text-on-surface-variant uppercase tracking-wide">Especialidad</label>
+<select id="filtro-especialidad" name="especialidad" class="h-11 w-full px-3 rounded-lg border border-[#D6ECFF] bg-white text-sm text-[#1D2D50] focus:outline-none focus:ring-2 focus:ring-[#3A7BD5]">
+<option value="">Todas las especialidades</option>
+{% for especialidad in especialidades %}
+<option value="{{ especialidad.pk }}" {% if especialidad.pk == especialidad_id %}selected{% endif %}>{{ especialidad.nombre }}</option>
+{% endfor %}
+</select>
+</div>
+<div id="filtro-medico-wrap" class="flex flex-col gap-1 flex-1 min-w-0 relative">
+<label for="filtro-medico" class="text-xs font-semibold text-on-surface-variant uppercase tracking-wide">Médico</label>
+<select id="filtro-medico" name="medico" class="h-11 w-full px-3 rounded-lg border border-[#D6ECFF] bg-white text-sm text-[#1D2D50] focus:outline-none focus:ring-2 focus:ring-[#3A7BD5]">
+<option value="">Todos los médicos</option>
+{% regroup medicos_padron by especialidad as grupos_especialidad %}
+{% for grupo in grupos_especialidad %}
+<optgroup label="{{ grupo.grouper.nombre }}">
+{% for medico in grupo.list %}
+<option value="{{ medico.pk }}" data-especialidad="{{ medico.especialidad_id }}" data-cedula="{{ medico.usuario.username }}" data-color="{{ medico.pk|color_medico }}" {% if medico.pk == medico_id %}selected{% endif %}>{{ medico.usuario.get_full_name }}</option>
+{% endfor %}
+</optgroup>
+{% endfor %}
+</select>
+</div>
+<button type="submit" class="h-11 px-5 rounded-lg bg-[#3A7BD5] text-white text-sm font-semibold hover:bg-[#3A7BD5]/90 transition-colors shrink-0">Aplicar</button>
+</form>
+<p class="text-xs text-on-surface-variant flex items-start gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-[#3A7BD5] shrink-0">info</span>
+{% if medico_seleccionado %}
+<span>Mostrando las tres capas (disponibilidad, bloqueos y citas) de {{ medico_seleccionado.usuario.get_full_name }}. Quita el médico para volver al modo panorámico.</span>
+{% elif especialidad_id %}
+<span>Panorámico acotado a esa especialidad: solo bloqueos y excepciones de esos médicos, con el conteo de citas por día. Elige un médico para ver su agenda completa.</span>
+{% else %}
+<span>Vista general: solo bloqueos y excepciones de todos los médicos. Las citas no se dibujan aquí (con un padrón grande saturarían la columna); el número junto a cada día indica cuántas hay agendadas. Elige una especialidad para acotar, o un médico para ver su agenda completa.</span>
+{% endif %}
+</p>
+</section>
+
+{% include "panel/_calendario_navegacion_semana.html" %}
+
+{% include "panel/_calendario.html" %}
+</div>
+
+<!-- Antes que _modal_calendario.html: su <script> lee este bloque por
+     getElementById en cuanto el parser lo alcanza, no en DOMContentLoaded —
+     si quedara después, lo encontraría vacío y el modal no abriría nunca. -->
+{{ eventos_json|json_script:"calendario-eventos-data" }}
+{% include "panel/_modal_calendario.html" %}
+{% include "panel/_combobox_medico.html" %}
+{% endblock %}

@@ -24,6 +24,8 @@ Mis citas
 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#ffebee] text-[#c0392b] shrink-0">Cancelada</span>
 {% elif cita.estado.nombre == 'atendida' %}
 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#e8f5e9] text-[#1a7f5a] shrink-0">Atendida</span>
+{% elif cita.estado.nombre == 'no atendida' %}
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#ffeedd] text-[#8a5000] shrink-0">No atendida</span>
 {% else %}
 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#D6ECFF] text-[#236296] shrink-0">Confirmada</span>
 {% endif %}

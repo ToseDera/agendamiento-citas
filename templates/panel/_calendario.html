@@ -1,0 +1,128 @@
+<!-- Parcial reutilizable del calendario (grilla + lista): recibe los eventos
+     ya posicionados (dias/filas_movil, con .cajas ya calculadas por
+     citas/calendario_geometria.py), la ventana y las banderas de modo. No
+     decide alcance ni permisos — eso ya lo resolvió la vista. -->
+{% load calendario_tags %}
+<section id="calendario-leyenda" class="flex flex-wrap items-center gap-x-md gap-y-xs text-xs text-on-surface-variant px-1">
+<!-- Derivada de tipos_visibles (tarea 5, fase 6b.1), no de panoramico/rol:
+     mismo enfoque que renderLeyenda() en docs/prototipos/calendario.html
+     (tipos.has(...)). El calendario del paciente nunca produce eventos de
+     tipo disponibilidad/bloqueo (alcance del servicio), así que esas
+     entradas se ausentan solas, sin condicional por rol acá. -->
+{% if 'disponibilidad' in tipos_visibles %}
+<span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded inline-block" style="background:#e9edff;border:1.5px dashed #8EC5FF;"></span>Disponible</span>
+{% endif %}
+{% if 'ocupacion' in tipos_visibles %}
+<span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded inline-block" style="background:#D6ECFF;border:1px solid #3A7BD5;"></span>Cita confirmada</span>
+<span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded inline-block" style="background:#e8f5e9;border:1px solid #1a7f5a;"></span>Cita atendida</span>
+<span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded inline-block" style="background:#ffeedd;border:1px solid #8a5000;"></span>Cita no atendida</span>
+{% endif %}
+{% if 'bloqueo' in tipos_visibles %}
+<span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded inline-block" style="background-image:repeating-linear-gradient(135deg,#727783 0px,#727783 6px,#838996 6px,#838996 12px);"></span>Bloqueo</span>
+{% endif %}
+{% if panoramico %}
+{% if medicos_visibles_supera_techo %}
+<span class="inline-flex items-center gap-1.5 text-outline"><span class="material-symbols-outlined text-[14px]">info</span>{{ medicos_visibles_total }} médicos comparten color esta semana — abre el detalle de cada bloqueo para identificarlo.</span>
+{% else %}
+{% for medico in medicos_visibles_semana %}
+<span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:{{ medico.pk|color_medico }};"></span>{{ medico.usuario.get_full_name }}</span>
+{% endfor %}
+{% endif %}
+{% endif %}
+</section>
+
+<!-- Grilla semanal: md hacia arriba -->
+<section class="hidden md:block bg-white rounded-xl border border-[#D6ECFF] shadow-soft overflow-hidden">
+<div class="overflow-x-auto max-h-[75vh] overflow-y-auto">
+<div class="min-w-[900px]">
+<div class="grid sticky top-0 z-20 bg-white border-b border-[#D6ECFF]" style="grid-template-columns: 64px repeat(7, 1fr);">
+<!-- Esquina: fija en top Y left a la vez (nested sticky) para no taparse
+     con el gutter de horas al desplazar en ambos ejes. La grilla tiene su
+     propio contenedor con scroll interno (overflow-y-auto arriba): por eso
+     el offset es top-0, no el alto del header de base.html — ese header no
+     comparte este contexto de scroll. -->
+<div class="sticky left-0 z-10 bg-white border-r border-[#D6ECFF]"></div>
+{% for dia in dias %}
+<div class="flex flex-col items-center py-2 gap-0.5 border-l border-[#D6ECFF]{% if dia.es_hoy %} bg-[#3A7BD5]/5{% endif %}">
+<span class="text-[11px] uppercase tracking-wide text-outline">{{ dia.nombre_corto }}</span>
+<span class="text-sm font-semibold {% if dia.es_hoy %}text-[#3A7BD5]{% else %}text-[#1D2D50]{% endif %}">{{ dia.fecha.day }}{% if dia.es_hoy %} · Hoy{% endif %}</span>
+{% if dia.densidad is not None %}
+{% if dia.densidad > 0 %}
+<span class="text-[10px] font-semibold text-[#236296] bg-[#d6e3ff] px-1.5 py-0.5 rounded-full">{{ dia.densidad }} cita{{ dia.densidad|pluralize }}</span>
+{% else %}
+<span class="text-[10px] text-[#c2c6d4]">Sin citas</span>
+{% endif %}
+{% endif %}
+</div>
+{% endfor %}
+</div>
+
+<div class="grid relative" style="grid-template-columns: 64px repeat(7, 1fr);">
+<div class="relative border-r border-[#D6ECFF] bg-white sticky left-0 z-10" style="{{ alto_total_estilo }}">
+{% for hora in horas_gutter %}
+<div class="absolute right-2 -translate-y-1/2 text-[11px] text-outline" style="{{ hora.estilo }}">{{ hora.texto }}</div>
+{% endfor %}
+</div>
+{% for dia in dias %}
+<div class="relative border-l border-[#D6ECFF]{% if dia.es_hoy %} bg-[#3A7BD5]/5{% endif %}" style="{{ alto_total_estilo }}">
+{% for hora in horas_gutter %}
+<div class="absolute left-0 right-0 border-t border-[#E1E8FF]" style="{{ hora.estilo }}"></div>
+{% endfor %}
+{% for caja in dia.cajas %}
+{% include "panel/_calendario_caja.html" %}
+{% endfor %}
+{% if not dia.eventos %}
+<div class="absolute inset-0 flex items-center justify-center text-center px-1 pointer-events-none select-none">
+<span class="text-[11px] text-[#c2c6d4] font-medium">Sin eventos</span>
+</div>
+{% endif %}
+</div>
+{% endfor %}
+</div>
+</div>
+</div>
+</section>
+
+<!-- Lista agrupada por día: por debajo de md -->
+<section class="md:hidden flex flex-col gap-sm">
+{% for fila in filas_movil %}
+{% if fila.es_racha %}
+<div class="bg-white rounded-xl border border-[#D6ECFF] px-4 py-3 text-xs text-[#c2c6d4] text-center">
+Sin bloqueos: {% for dia in fila.dias %}{{ dia.nombre_corto }} {{ dia.fecha.day }}{% if not forloop.last %}, {% endif %}{% endfor %}
+</div>
+{% else %}
+<div class="bg-white rounded-xl border border-[#D6ECFF] shadow-soft overflow-hidden">
+<div class="px-4 py-2.5 flex items-center gap-2 border-b border-[#D6ECFF] {% if fila.dia.es_hoy %}bg-[#d6e3ff]{% else %}bg-[#F6FBFF]{% endif %}">
+<span class="font-semibold text-sm text-[#1D2D50]">{{ fila.dia.nombre_completo }} {{ fila.dia.fecha.day }}</span>
+{% if fila.dia.es_hoy %}<span class="text-[10px] font-bold text-[#3A7BD5] bg-white px-2 py-0.5 rounded-full border border-[#8EC5FF]">HOY</span>{% endif %}
+{% if fila.dia.densidad is not None %}
+<span class="ml-auto">
+{% if fila.dia.densidad > 0 %}
+<span class="text-[10px] font-semibold text-[#236296] bg-[#d6e3ff] px-1.5 py-0.5 rounded-full">{{ fila.dia.densidad }} cita{{ fila.dia.densidad|pluralize }}</span>
+{% else %}
+<span class="text-[10px] text-[#c2c6d4]">Sin citas</span>
+{% endif %}
+</span>
+{% endif %}
+</div>
+<div class="divide-y divide-[#F2F3FF]">
+{% if not fila.dia.eventos %}
+<div class="px-4 py-4 text-sm text-[#c2c6d4] text-center">Sin eventos este día.</div>
+{% else %}
+{% for evento in fila.dia.eventos %}
+<button type="button" class="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-[#F6FBFF] transition-colors js-abrir-detalle" data-evento-id="{{ evento.id }}"
+  {% if panoramico and evento.medico %}style="border-left: 4px solid {{ evento.medico.pk|color_medico }};"{% endif %}>
+<div class="w-14 shrink-0 text-xs font-medium text-on-surface-variant">{% if evento.dia_completo %}Todo el día{% else %}{{ evento.inicio|time:"H:i" }}{% endif %}</div>
+<div class="flex-grow min-w-0">
+<div class="text-sm font-semibold text-[#1D2D50] truncate">{{ evento.titulo }}</div>
+{% if panoramico and evento.medico %}<div class="text-xs text-on-surface-variant truncate">{{ evento.medico.usuario.get_full_name }}</div>{% endif %}
+</div>
+{% include "panel/_calendario_badge_estado.html" with evento=evento %}
+</button>
+{% endfor %}
+{% endif %}
+</div>
+</div>
+{% endif %}
+{% endfor %}
+</section>

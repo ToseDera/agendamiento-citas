@@ -1,0 +1,17 @@
+<!-- Navegación de semana: es el único control de rango (decisión 11), conserva
+     los filtros activos. Reutilizado por los tres calendarios (admin, médico,
+     paciente): mismos querystrings/lunes/domingo/ventana_texto, calculados
+     siempre por _contexto_calendario_semana (citas/views.py). -->
+<section class="bg-white rounded-xl border border-[#D6ECFF] shadow-soft p-sm md:p-md flex flex-wrap items-center justify-between gap-sm">
+<div class="flex items-center gap-1">
+<a href="?{{ querystring_semana_anterior }}" aria-label="Semana anterior" class="p-2 rounded-lg hover:bg-[#F6FBFF] text-[#1D2D50] transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</a>
+<a href="?{{ querystring_hoy }}" class="px-3 py-2 rounded-lg border border-[#D6ECFF] text-sm font-semibold text-[#3A7BD5] hover:bg-[#F6FBFF] transition-colors">Hoy</a>
+<a href="?{{ querystring_semana_siguiente }}" aria-label="Semana siguiente" class="p-2 rounded-lg hover:bg-[#F6FBFF] text-[#1D2D50] transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</a>
+</div>
+<h2 class="font-semibold text-[#1D2D50] text-sm md:text-base">{{ lunes|date:"j" }} – {{ domingo|date:"j \d\e F \d\e Y" }}</h2>
+<span class="text-xs text-on-surface-variant hidden sm:inline">Ventana visible: {{ ventana_texto }}</span>
+</section>

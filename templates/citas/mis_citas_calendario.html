@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load calendario_tags %}
+
+{% block title %}Calendario - Mis citas{% endblock %}
+
+{% block extra_head %}
+{% include "panel/_calendario_estilos.html" %}
+{% endblock %}
+
+{% block content %}
+<header class="flex flex-col md:flex-row md:items-center md:justify-between gap-sm mb-md">
+<div>
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-[#1D2D50]">Calendario</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Tus citas de la semana.</p>
+</div>
+<a href="{% url 'mis_citas' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[#8EC5FF] text-[#3A7BD5] font-label-md text-label-md hover:bg-[#F6FBFF] transition-colors shrink-0">
+<span class="material-symbols-outlined text-[18px]">view_list</span>
+Vista de lista
+</a>
+</header>
+
+<div class="flex flex-col gap-md">
+{% include "panel/_calendario_navegacion_semana.html" %}
+{% include "panel/_calendario.html" %}
+</div>
+
+<!-- Antes que _modal_calendario.html: ver el comentario equivalente en
+     panel/calendario.html — su <script> lee este bloque por getElementById
+     apenas el parser lo alcanza, no en DOMContentLoaded. -->
+{{ eventos_json|json_script:"calendario-eventos-data" }}
+{% include "panel/_modal_calendario.html" %}
+{% endblock %}
