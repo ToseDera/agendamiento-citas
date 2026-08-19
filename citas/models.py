@@ -195,7 +195,8 @@ class CitaLog(models.Model):
     estado = models.ForeignKey(EstadoCita, on_delete=models.PROTECT, related_name='+')
     accion = models.CharField(max_length=20)
     realizado_por = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='+',
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='+', null=True,
+        help_text='Nulo cuando la transición la hizo un proceso automático (ver citas.services.cerrar_citas_vencidas), no una persona.',
     )
     detalle = models.CharField(max_length=255, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)

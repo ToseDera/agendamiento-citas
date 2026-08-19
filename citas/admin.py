@@ -42,6 +42,10 @@ class CitaAdmin(admin.ModelAdmin):
 
 @admin.register(CitaLog)
 class CitaLogAdmin(admin.ModelAdmin):
-    list_display = ('cita', 'accion', 'estado', 'realizado_por', 'fecha_creacion')
+    list_display = ('cita', 'accion', 'estado', 'realizado_por_display', 'fecha_creacion')
     list_filter = ('accion', 'estado')
     search_fields = ('cita__paciente__numero_documento', 'cita__medico__usuario__numero_documento')
+
+    @admin.display(description='Realizado por')
+    def realizado_por_display(self, obj):
+        return obj.realizado_por or 'Sistema (automático)'
