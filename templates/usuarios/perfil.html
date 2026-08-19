@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Mi perfil - MediClick{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto w-full flex flex-col gap-lg">
+<h1 class="font-headline-xl text-headline-xl text-[#1D2D50] font-bold">Mi perfil</h1>
+
+<div class="bg-white rounded-xl p-md md:p-lg shadow-[0px_4px_20px_rgba(29,45,80,0.05)] border border-[#D6ECFF] flex flex-col gap-md">
+<div class="flex items-center gap-4">
+<div class="w-16 h-16 rounded-full bg-gradient-to-br from-[#8EC5FF] to-[#3A7BD5] flex items-center justify-center text-white font-headline-md shrink-0 uppercase">
+{{ user.first_name|make_list|first|default:'' }}{{ user.last_name|make_list|first|default:'' }}
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md text-[#1D2D50]">{{ user.get_full_name|default:user.username }}</h2>
+{% if es_admin %}
+<p class="font-label-md text-label-md text-[#236296]">Administrador</p>
+{% elif es_medico %}
+<p class="font-label-md text-label-md text-[#236296]">{{ user.medico.especialidad.nombre }}</p>
+{% elif es_paciente %}
+<p class="font-label-md text-label-md text-[#236296]">Paciente</p>
+{% endif %}
+</div>
+</div>
+
+<div class="h-px bg-[#D6ECFF] w-full"></div>
+
+<div class="flex items-center gap-3 text-[#1D2D50]">
+<span class="material-symbols-outlined text-[#3A7BD5]">badge</span>
+<span class="font-body-md text-body-md">
+{% if 'tipo_documento' not in form.fields %}{{ user.tipo_documento.nombre }} · {% endif %}{{ user.numero_documento }}
+</span>
+</div>
+
+{% if form.non_field_errors %}
+<div class="rounded-lg bg-error-container px-4 py-3">
+{% for error in form.non_field_errors %}
+<p class="font-label-md text-label-md text-error">{{ error }}</p>
+{% endfor %}
+</div>
+{% endif %}
+
+<form method="post" class="flex flex-col gap-md">
+{% csrf_token %}
+{% for field in form %}
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between items-center">
+<label class="font-label-md text-label-md text-on-surface" for="{{ field.id_for_label }}">{{ field.label }}</label>
+{% if field.name == 'telefono' %}
+<span class="font-label-sm text-label-sm text-outline">Opcional</span>
+{% endif %}
+</div>
+{% if field.name == 'correo' or field.name == 'telefono' or field.name == 'nombre' or field.name == 'apellido' %}
+<div class="input-icon-wrapper">
+{% if field.name == 'correo' %}
+<span class="material-symbols-outlined input-icon">mail</span>
+{% elif field.name == 'telefono' %}
+<span class="material-symbols-outlined input-icon">call</span>
+{% elif field.name == 'nombre' or field.name == 'apellido' %}
+<span class="material-symbols-outlined input-icon">person</span>
+{% endif %}
+{{ field }}
+</div>
+{% else %}
+{{ field }}
+{% endif %}
+{% for error in field.errors %}
+<p class="font-label-sm text-label-sm text-error">{{ error }}</p>
+{% endfor %}
+</div>
+{% endfor %}
+
+{% if es_medico %}
+<div class="h-px bg-[#D6ECFF] w-full"></div>
+<div class="flex items-center gap-3 text-[#1D2D50]">
+<span class="material-symbols-outlined text-[#3A7BD5]">stethoscope</span>
+<span class="font-body-md text-body-md">{{ user.medico.especialidad.nombre }}</span>
+</div>
+<div class="flex items-center gap-3 text-[#1D2D50]">
+<span class="material-symbols-outlined text-[#3A7BD5]">verified</span>
+<span class="font-body-md text-body-md">Registro profesional: {{ user.medico.registro_medico|default:"No indicado." }}</span>
+</div>
+{% endif %}
+
+<button class="w-full sm:w-auto bg-primary text-on-primary font-label-md text-label-md px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors shadow-sm mt-sm" type="submit">
+Guardar cambios
+</button>
+</form>
+</div>
+</div>
+{% endblock %}

@@ -33,16 +33,40 @@
         Ir a médicos <span class="material-symbols-outlined ml-1">arrow_forward</span>
     </div>
 </a>
-<!-- Card 3: Citas -->
+<!-- Card 3: Pacientes -->
+<a class="group flex flex-col bg-white rounded-2xl p-6 border border-[#D6ECFF] shadow-soft hover:shadow-[0_12px_32px_rgba(58,123,213,0.15)] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden" href="{% url 'panel_pacientes' %}">
+    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#3A7BD5] to-[#8EC5FF] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+    <div class="w-16 h-16 rounded-xl bg-[#F6FBFF] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+        <span class="material-symbols-outlined text-[#3A7BD5] text-4xl" style="font-variation-settings: 'FILL' 1;">person_search</span>
+    </div>
+    <h2 class="font-headline-lg text-2xl font-bold text-[#1D2D50] mb-2 group-hover:text-[#3A7BD5] transition-colors">Pacientes</h2>
+    <p class="font-body-md text-[#424752] flex-grow">Busca un paciente por su número de documento y consulta su ficha: datos personales, citas programadas e historial.</p>
+    <div class="mt-6 flex items-center text-[#3A7BD5] font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-x-[-10px] group-hover:translate-x-0">
+        Ir a pacientes <span class="material-symbols-outlined ml-1">arrow_forward</span>
+    </div>
+</a>
+<!-- Card 4: Citas -->
 <a class="group flex flex-col bg-white rounded-2xl p-6 border border-[#D6ECFF] shadow-soft hover:shadow-[0_12px_32px_rgba(58,123,213,0.15)] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden" href="{% url 'panel_citas' %}">
     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#3A7BD5] to-[#8EC5FF] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
     <div class="w-16 h-16 rounded-xl bg-[#F6FBFF] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
         <span class="material-symbols-outlined text-[#3A7BD5] text-4xl" style="font-variation-settings: 'FILL' 1;">event_busy</span>
     </div>
     <h2 class="font-headline-lg text-2xl font-bold text-[#1D2D50] mb-2 group-hover:text-[#3A7BD5] transition-colors">Citas</h2>
-    <p class="font-body-md text-[#424752] flex-grow">Consulta las citas confirmadas próximas y cancélalas si es necesario.</p>
+    <p class="font-body-md text-[#424752] flex-grow">Consulta todas las citas del sistema en cualquier estado, con filtro, y cancela las que sigan vigentes.</p>
     <div class="mt-6 flex items-center text-[#3A7BD5] font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-x-[-10px] group-hover:translate-x-0">
         Ir a citas <span class="material-symbols-outlined ml-1">arrow_forward</span>
+    </div>
+</a>
+<!-- Card 5: Calendario -->
+<a class="group flex flex-col bg-white rounded-2xl p-6 border border-[#D6ECFF] shadow-soft hover:shadow-[0_12px_32px_rgba(58,123,213,0.15)] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden" href="{% url 'panel_calendario' %}">
+    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#3A7BD5] to-[#8EC5FF] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+    <div class="w-16 h-16 rounded-xl bg-[#F6FBFF] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+        <span class="material-symbols-outlined text-[#3A7BD5] text-4xl" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+    </div>
+    <h2 class="font-headline-lg text-2xl font-bold text-[#1D2D50] mb-2 group-hover:text-[#3A7BD5] transition-colors">Calendario</h2>
+    <p class="font-body-md text-[#424752] flex-grow">Vista semanal de bloqueos y citas por especialidad o médico, con contador de densidad por día.</p>
+    <div class="mt-6 flex items-center text-[#3A7BD5] font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-x-[-10px] group-hover:translate-x-0">
+        Ir al calendario <span class="material-symbols-outlined ml-1">arrow_forward</span>
     </div>
 </a>
 </div>

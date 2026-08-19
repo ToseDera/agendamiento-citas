@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}{{ paciente.get_full_name }} - Panel MediClick{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto w-full flex flex-col gap-lg">
+{% include "panel/_paciente_encabezado.html" %}
+
+<div class="bg-white rounded-xl p-md md:p-lg shadow-[0px_4px_20px_rgba(29,45,80,0.05)] border border-[#D6ECFF] flex flex-col gap-md">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-md text-headline-md-mobile text-[#1D2D50]">Datos personales</h2>
+<a href="{% url 'panel_paciente_editar' paciente.pk %}" class="inline-flex items-center gap-2 text-[#3A7BD5] font-label-md text-label-md hover:underline">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+Editar
+</a>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-md">
+<div>
+<h3 class="font-label-md text-label-md text-on-surface-variant font-semibold mb-1">Nombre completo</h3>
+<p class="font-body-md text-body-md text-[#1D2D50]">{{ paciente.get_full_name }}</p>
+</div>
+<div>
+<h3 class="font-label-md text-label-md text-on-surface-variant font-semibold mb-1">Documento</h3>
+<p class="font-body-md text-body-md text-[#1D2D50]">{{ paciente.tipo_documento.nombre }} · {{ paciente.numero_documento }}</p>
+</div>
+<div>
+<h3 class="font-label-md text-label-md text-on-surface-variant font-semibold mb-1">Correo</h3>
+<p class="font-body-md text-body-md text-[#1D2D50]">{{ paciente.email }}</p>
+</div>
+<div>
+<h3 class="font-label-md text-label-md text-on-surface-variant font-semibold mb-1">Teléfono</h3>
+<p class="font-body-md text-body-md text-[#1D2D50]">{{ paciente.telefono|default:"No indicado" }}</p>
+</div>
+<div>
+<h3 class="font-label-md text-label-md text-on-surface-variant font-semibold mb-1">Fecha de nacimiento</h3>
+<p class="font-body-md text-body-md text-[#1D2D50]">{{ paciente.fecha_nacimiento|date:"j \d\e F, Y" }}</p>
+</div>
+<div>
+<h3 class="font-label-md text-label-md text-on-surface-variant font-semibold mb-1">Fecha de registro</h3>
+<p class="font-body-md text-body-md text-[#1D2D50]">{{ paciente.date_joined|date:"j \d\e F, Y" }}</p>
+</div>
+</div>
+</div>
+
+<div class="bg-white rounded-xl p-md md:p-lg shadow-[0px_4px_20px_rgba(29,45,80,0.05)] border border-[#D6ECFF]">
+<h2 class="font-headline-md text-headline-md-mobile text-[#1D2D50] mb-4">Citas por estado</h2>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-sm">
+<div class="rounded-lg bg-[#D6ECFF] p-4 text-center">
+<p class="text-2xl font-bold text-[#236296]">{{ conteo_confirmada }}</p>
+<p class="text-xs text-on-surface-variant mt-1">Programadas</p>
+</div>
+<div class="rounded-lg bg-[#e8f5e9] p-4 text-center">
+<p class="text-2xl font-bold text-[#1a7f5a]">{{ conteo_atendida }}</p>
+<p class="text-xs text-on-surface-variant mt-1">Atendidas</p>
+</div>
+<div class="rounded-lg bg-[#ffebee] p-4 text-center">
+<p class="text-2xl font-bold text-[#c0392b]">{{ conteo_cancelada }}</p>
+<p class="text-xs text-on-surface-variant mt-1">Canceladas</p>
+</div>
+<div class="rounded-lg bg-[#ffeedd] p-4 text-center">
+<p class="text-2xl font-bold text-[#8a5000]">{{ conteo_no_atendida }}</p>
+<p class="text-xs text-on-surface-variant mt-1">No atendidas</p>
+</div>
+</div>
+</div>
+</div>
+{% endblock %}

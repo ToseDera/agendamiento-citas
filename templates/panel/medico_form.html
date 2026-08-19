@@ -40,23 +40,38 @@
 {% endif %}
 </div>
 
-<div class="relative flex items-center">
+{% if field.name == 'correo' or field.name == 'telefono' or field.name == 'nombre' or field.name == 'apellido' or field.name == 'registro_medico' or 'password' in field.name %}
+<div class="input-icon-wrapper">
 {% if field.name == 'correo' %}
-<span class="material-symbols-outlined absolute left-sm text-on-surface-variant pointer-events-none z-10">mail</span>
+<span class="material-symbols-outlined input-icon">mail</span>
 {% elif field.name == 'telefono' %}
-<span class="material-symbols-outlined absolute left-sm text-on-surface-variant pointer-events-none z-10">call</span>
+<span class="material-symbols-outlined input-icon">call</span>
+{% elif field.name == 'nombre' or field.name == 'apellido' %}
+<span class="material-symbols-outlined input-icon">person</span>
+{% elif field.name == 'registro_medico' %}
+<span class="material-symbols-outlined input-icon">badge</span>
 {% elif 'password' in field.name %}
-<span class="material-symbols-outlined absolute left-sm text-on-surface-variant pointer-events-none z-10">lock</span>
+<span class="material-symbols-outlined input-icon">lock</span>
 {% endif %}
 {{ field }}
-{% if field.name == 'tipo_documento' or field.name == 'especialidad' %}
-{% endif %}
 </div>
+{% else %}
+{{ field }}
+{% endif %}
 
 {% for error in field.errors %}
 <p class="mt-1 font-label-sm text-label-sm text-error">{{ error }}</p>
 {% endfor %}
 </div>
+{% if field.name == 'tipo_documento' and modo == 'editar' %}
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant">Número de documento</label>
+<div class="h-14 flex items-center gap-3 px-3 rounded-lg border border-outline-variant bg-surface-container-low text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">badge</span>
+<span class="font-body-md text-body-md">{{ medico.usuario.numero_documento }}</span>
+</div>
+</div>
+{% endif %}
 {% endfor %}
 </div>
 

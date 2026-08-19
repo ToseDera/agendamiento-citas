@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Pacientes - Panel MediClick{% endblock %}
+
+{% block content %}
+<header class="flex flex-col gap-sm">
+<nav aria-label="Breadcrumb" class="flex text-label-sm font-label-sm text-tertiary-container items-center gap-2">
+<a class="hover:text-primary transition-colors" href="{% url 'panel_home' %}">Panel</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-on-surface-variant font-medium">Pacientes</span>
+</nav>
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-navy">Buscar paciente</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">Busca por número de documento para ver su ficha, sus citas programadas y su historial.</p>
+</header>
+
+<section class="bg-white rounded-xl border border-[#D6ECFF] shadow-soft p-md mt-md max-w-xl">
+<form method="get" class="flex flex-col sm:flex-row sm:items-end gap-sm" id="form-buscar-paciente">
+<div class="flex flex-col gap-1 flex-1 min-w-0">
+<label for="filtro-numero-documento" class="text-xs font-semibold text-on-surface-variant uppercase tracking-wide">Número de documento</label>
+<input type="text" id="filtro-numero-documento" name="numero_documento" value="{{ numero_documento }}" placeholder="Ej. 1234567890" class="h-11 w-full px-3 rounded-lg border border-[#D6ECFF] bg-white text-sm text-[#1D2D50] focus:outline-none focus:ring-2 focus:ring-[#3A7BD5]">
+</div>
+<button type="submit" class="h-11 px-5 rounded-lg bg-[#3A7BD5] text-white text-sm font-semibold hover:bg-[#3A7BD5]/90 transition-colors shrink-0">Buscar</button>
+</form>
+</section>
+
+{% if buscado %}
+<div class="mt-md max-w-xl">
+{% if paciente %}
+<a href="{% url 'panel_paciente_ficha' paciente.pk %}" class="group flex items-center gap-4 bg-white rounded-xl border border-[#D6ECFF] shadow-soft hover:shadow-[0_12px_32px_rgba(58,123,213,0.15)] transition-all duration-300 p-md">
+<div class="w-14 h-14 rounded-full bg-gradient-to-br from-[#8EC5FF] to-[#3A7BD5] flex items-center justify-center text-white font-headline-md shrink-0 uppercase">
+{{ paciente.first_name|make_list|first|default:'' }}{{ paciente.last_name|make_list|first|default:'' }}
+</div>
+<div class="flex-grow">
+<h2 class="font-headline-md text-headline-md-mobile text-[#1D2D50]">{{ paciente.get_full_name }}</h2>
+<p class="font-label-md text-label-md text-[#236296]">{{ paciente.tipo_documento.nombre }} · {{ paciente.numero_documento }}</p>
+</div>
+<span class="material-symbols-outlined text-[#3A7BD5]">arrow_forward</span>
+</a>
+{% else %}
+<div class="text-center py-lg bg-white rounded-xl shadow-soft border border-[#D6ECFF]">
+<span class="material-symbols-outlined text-[48px] text-[#627788] mb-4">person_off</span>
+<p class="font-body-md text-body-md text-[#4a5568]">No se encontró ningún paciente con ese número de documento.</p>
+</div>
+{% endif %}
+</div>
+{% endif %}
+{% endblock %}

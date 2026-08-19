@@ -90,6 +90,18 @@
 {% endfor %}
 </div>
 </div>
+<!-- Row 3b: Confirmar Número de Documento -->
+<div>
+<label class="font-label-md text-label-md form-label" for="id_confirmar_numero_documento">Confirmar Número de Documento</label>
+{{ form.confirmar_numero_documento }}
+<p class="mt-1 font-label-sm text-label-sm text-on-surface-variant flex items-start gap-1">
+<span class="material-symbols-outlined text-[14px]">info</span>
+<span>Tu número de documento no podrá modificarse después de crear la cuenta.</span>
+</p>
+{% for error in form.confirmar_numero_documento.errors %}
+<p class="mt-1 font-label-sm text-label-sm text-error">{{ error }}</p>
+{% endfor %}
+</div>
 <!-- Full-width: Correo Electrónico -->
 <div>
 <label class="font-label-md text-label-md form-label" for="id_correo">Correo Electrónico</label>
