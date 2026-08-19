@@ -166,7 +166,7 @@
 {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'registro' %}
 <!-- TopNavBar -->
 <header class="bg-[#1D2D50] shadow-sm sticky top-0 z-50">
-<div class="flex justify-between items-center h-20 w-full px-margin-mobile md:px-margin-desktop mx-auto max-w-[1440px]">
+<div class="flex justify-between items-center min-h-20 py-2 w-full px-margin-mobile md:px-margin-desktop mx-auto max-w-[1440px]">
 <!-- Brand -->
 <div class="flex items-center gap-sm">
 <a href="{% url 'inicio' %}" class="flex items-center">
@@ -174,17 +174,31 @@
 </a>
 </div>
 <!-- Desktop Navigation -->
-<nav class="hidden md:flex items-center gap-lg">
+<!-- flex-wrap + gap-md (en vez de gap-lg): con 5 enlaces para el administrador
+     (fase 6c, tarea 7) la fila ya iba justa entre 768 y 900px con gap-lg;
+     gap-md es el mismo token de spacing que ya usan las barras de filtros y
+     acción de esta app, y flex-wrap queda como red de seguridad si igual no
+     entra (mismo patrón que panel/_calendario_navegacion_semana.html) — el
+     header pasó de h-20 a min-h-20 py-2 arriba para no recortar una segunda
+     línea si eso llega a pasar. -->
+<nav class="hidden md:flex flex-wrap items-center gap-md">
 {% if es_admin %}
 <a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if request.resolver_match.url_name == 'inicio' or request.resolver_match.url_name == 'panel_home' %}border-b-2 border-white{% endif %}" href="{% url 'inicio' %}">Panel</a>
 <a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if 'especialidad' in request.resolver_match.url_name %}border-b-2 border-white{% endif %}" href="{% url 'panel_especialidades' %}">Especialidades</a>
 <a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if 'medico' in request.resolver_match.url_name %}border-b-2 border-white{% endif %}" href="{% url 'panel_medicos' %}">Médicos</a>
+<a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if 'paciente' in request.resolver_match.url_name %}border-b-2 border-white{% endif %}" href="{% url 'panel_pacientes' %}">Pacientes</a>
+<a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if request.resolver_match.url_name == 'perfil' %}border-b-2 border-white{% endif %}" href="{% url 'perfil' %}">Perfil</a>
 {% elif es_medico %}
 <a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if 'medico_agenda' in request.resolver_match.url_name or 'medico_cita' in request.resolver_match.url_name or 'medico_marcar' in request.resolver_match.url_name or 'medico_comentario' in request.resolver_match.url_name %}border-b-2 border-white{% endif %}" href="{% url 'medico_agenda' %}">Mi agenda</a>
+<a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if request.resolver_match.url_name == 'medico_calendario' %}border-b-2 border-white{% endif %}" href="{% url 'medico_calendario' %}">Calendario</a>
+<a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if request.resolver_match.url_name == 'medico_historial' %}border-b-2 border-white{% endif %}" href="{% url 'medico_historial' %}">Historial</a>
 <a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if 'horario' in request.resolver_match.url_name or 'excepcion' in request.resolver_match.url_name %}border-b-2 border-white{% endif %}" href="{% url 'medico_mi_horario' %}">Mi horario</a>
+<a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if request.resolver_match.url_name == 'perfil' %}border-b-2 border-white{% endif %}" href="{% url 'perfil' %}">Perfil</a>
 {% elif es_paciente %}
 <a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if 'mis_citas' in request.resolver_match.url_name %}border-b-2 border-white{% endif %}" href="{% url 'mis_citas' %}">Inicio</a>
+<a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if request.resolver_match.url_name == 'mis_citas_calendario' %}border-b-2 border-white{% endif %}" href="{% url 'mis_citas_calendario' %}">Calendario</a>
 <a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if 'agendar_' in request.resolver_match.url_name %}border-b-2 border-white{% endif %}" href="{% url 'agendar_especialidades' %}">Especialidades</a>
+<a class="text-white font-bold pb-1 font-label-md text-label-md hover:text-primary-fixed-dim transition-colors duration-200 {% if request.resolver_match.url_name == 'perfil' %}border-b-2 border-white{% endif %}" href="{% url 'perfil' %}">Perfil</a>
 {% endif %}
 </nav>
 <!-- Actions -->
@@ -210,12 +224,19 @@
 <a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'inicio' %}">Panel</a>
 <a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'panel_especialidades' %}">Especialidades</a>
 <a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'panel_medicos' %}">Médicos</a>
+<a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'panel_pacientes' %}">Pacientes</a>
+<a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'perfil' %}">Perfil</a>
 {% elif es_medico %}
 <a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'medico_agenda' %}">Mi agenda</a>
+<a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'medico_calendario' %}">Calendario</a>
+<a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'medico_historial' %}">Historial</a>
 <a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'medico_mi_horario' %}">Mi horario</a>
+<a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'perfil' %}">Perfil</a>
 {% elif es_paciente %}
 <a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'mis_citas' %}">Inicio</a>
+<a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'mis_citas_calendario' %}">Calendario</a>
 <a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'agendar_especialidades' %}">Especialidades</a>
+<a class="px-4 py-3 text-white font-label-md text-label-md hover:bg-white/10" href="{% url 'perfil' %}">Perfil</a>
 {% endif %}
 <div class="border-t border-white/10 mt-1 pt-1">
 {% if user.is_authenticated %}
